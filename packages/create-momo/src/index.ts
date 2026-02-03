@@ -2,8 +2,6 @@ import { intro } from "@clack/prompts";
 import { Command } from "commander";
 import color from "picocolors";
 
-// import packageJson from '../package.json'; // We'll handle version properly later
-
 const program = new Command();
 
 async function main() {
@@ -13,18 +11,42 @@ async function main() {
 
   program
     .name("create-momo")
-    // .version(packageJson.version)
     .description(
       "A modern CLI tool for creating and managing monorepo projects",
-    );
+    )
+    .version("0.0.0");
 
+  // Root command (create project)
   program
-    .command("create")
-    .argument("[name]", "Name of the project")
-    .description("Create a new monorepo project")
-    .action((name) => {
-      console.log(`Creating project: ${name}`);
+    .argument("[project-name]", "Name of the project directory")
+    .action(async (projectName) => {
+      // Only run if no subcommand is matched
+      if (projectName) {
+        console.log(`Creating project in: ${projectName}`);
+      } else {
+        console.log("Interactive project creation wizard...");
+      }
       // Implementation coming in Phase 2
+    });
+
+  // Add command
+  program
+    .command("add")
+    .description("Add apps, packages, or configurations to existing project")
+    .option("-a, --app", "Add an application")
+    .option("-p, --package", "Add a package")
+    .action((options) => {
+      console.log("Adding component...", options);
+      // Implementation coming in Phase 2
+    });
+
+  // Setup command
+  program
+    .command("setup")
+    .description("Setup configurations and project types")
+    .command("publish")
+    .action(() => {
+      console.log("Setup publish...");
     });
 
   program.parse();
