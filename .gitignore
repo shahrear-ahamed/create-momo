@@ -30,7 +30,7 @@ lerna-debug.log*
 .turbo
 
 # IDEs
-.vscode
+# .vscode
 .idea
 *.swp
 *.swo
