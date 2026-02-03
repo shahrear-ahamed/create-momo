@@ -1,9 +1,9 @@
 import path from "node:path";
 import { cancel, isCancel, select, text } from "@clack/prompts";
 import color from "picocolors";
-import { fileOps } from "../utils/file-ops";
-import { createSpinner, logger } from "../utils/logger";
-import { validators } from "../utils/validators";
+import { fileOps } from "../utils/file-ops.js";
+import { createSpinner, logger } from "../utils/logger.js";
+import { validators } from "../utils/validators.js";
 
 export async function createProject(
   args: { name?: string; cwd?: string } = {},

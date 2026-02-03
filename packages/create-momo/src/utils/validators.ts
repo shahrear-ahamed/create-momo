@@ -1,7 +1,9 @@
 import { z } from "zod";
 
 export const validators = {
-  projectName: (name: string): string | undefined => {
+  projectName: (name: string | undefined): string | undefined => {
+    if (!name) return "Project name cannot be empty";
+
     const schema = z
       .string()
       .min(1, "Project name cannot be empty")
@@ -16,12 +18,14 @@ export const validators = {
 
     const result = schema.safeParse(name);
     if (!result.success) {
-      return result.error.errors[0]?.message || "Invalid project name";
+      return result.error.issues[0]?.message || "Invalid project name";
     }
-    return undefined; // Return undefined if valid (clack convention)
+    return undefined;
   },
 
-  scopeName: (scope: string): string | undefined => {
+  scopeName: (scope: string | undefined): string | undefined => {
+    if (!scope) return "Scope cannot be empty";
+
     const schema = z
       .string()
       .regex(
@@ -30,7 +34,7 @@ export const validators = {
       );
     const result = schema.safeParse(scope);
     if (!result.success) {
-      return result.error.errors[0]?.message || "Invalid scope name";
+      return result.error.issues[0]?.message || "Invalid scope name";
     }
     return undefined;
   },

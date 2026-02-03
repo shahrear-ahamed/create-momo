@@ -23,7 +23,7 @@ export const fileOps = {
   copyTemplate: async (
     src: string,
     dest: string,
-    variables?: Record<string, string>,
+    _variables?: Record<string, string>,
   ): Promise<void> => {
     await fs.copy(src, dest, {
       overwrite: true,
@@ -38,14 +38,14 @@ export const fileOps = {
   /**
    * Write JSON file
    */
-  writeJson: async (file: string, content: any): Promise<void> => {
+  writeJson: async (file: string, content: unknown): Promise<void> => {
     await fs.outputJson(file, content, { spaces: 2 });
   },
 
   /**
    * Read JSON file
    */
-  readJson: async <T = any>(file: string): Promise<T> => {
+  readJson: async <T>(file: string): Promise<T> => {
     return fs.readJson(file);
   },
 };
