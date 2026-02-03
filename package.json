@@ -1,0 +1,49 @@
+{
+  "name": "create-momo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A modern CLI tool for creating and managing Turborepo monorepo projects",
+  "keywords": [
+    "monorepo",
+    "turborepo",
+    "cli",
+    "scaffolding",
+    "typescript",
+    "generator",
+    "starter",
+    "template"
+  ],
+  "homepage": "https://github.com/shahrear-ahamed/create-momo#readme",
+  "bugs": {
+    "url": "https://github.com/shahrear-ahamed/create-momo/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shahrear-ahamed/create-momo.git"
+  },
+  "license": "MIT",
+  "author": "Shahrear Ahamed",
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "clean": "turbo clean && rm -rf node_modules",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "turbo build && changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.1",
+    "@types/node": "^20.11.16",
+    "prettier": "^3.2.5",
+    "turbo": "^2.0.0",
+    "typescript": "^5.3.3"
+  },
+  "packageManager": "pnpm@9.1.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}
