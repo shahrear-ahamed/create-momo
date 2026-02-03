@@ -3,6 +3,7 @@ import { Command } from "commander";
 import color from "picocolors";
 import { addComponent } from "@/commands/add.js";
 import { configCommand } from "@/commands/config.js";
+import { setupCommand } from "@/commands/setup.js";
 
 const program = new Command();
 

@@ -13,7 +13,7 @@ type AddOptions = {
 export async function addComponent(type?: string, options: AddOptions = {}) {
   // 1. Validate Monorepo Root
   // Simple check: does turbo.json or pnpm-workspace.yaml exist?
-  const isMonorepo = await fileOps.isEmpty(process.cwd()); // Reusing check but we need existence check
+  const _isMonorepo = await fileOps.isEmpty(process.cwd()); // Reusing check but we need existence check
   // Actually fileOps.isEmpty returns true if dir doesn't exist or is empty.
   // We need to check if specific files exist.
   // For now let's assume if package.json exists and has workspaces.
