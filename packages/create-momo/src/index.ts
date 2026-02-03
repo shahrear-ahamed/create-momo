@@ -15,7 +15,7 @@ async function main() {
     .name("create-momo")
     // .version(packageJson.version)
     .description(
-      "A modern CLI tool for creating and managing Turborepo monorepo projects",
+      "A modern CLI tool for creating and managing monorepo projects",
     );
 
   program
