@@ -2,6 +2,7 @@ import { intro } from "@clack/prompts";
 import { Command } from "commander";
 import color from "picocolors";
 import { addComponent } from "@/commands/add.js";
+import { configCommand } from "@/commands/config.js";
 
 const program = new Command();
 
@@ -49,6 +50,30 @@ async function main() {
       console.log("Setup publish...");
     });
 
+  // Config command
+  const config = program.command("config").description("Manage configuration");
+
+  config
+    .command("list")
+    .description("List all configurations")
+    .action(async () => {
+      await configCommand.list();
+    });
+
+  config
+    .command("get")
+    .argument("<key>", "Configuration key")
+    .action(async (key) => {
+      await configCommand.get(key);
+    });
+
+  config
+    .command("set")
+    .argument("<key>", "Configuration key")
+    .argument("<value>", "Configuration value")
+    .action(async (key, value) => {
+      await configCommand.set(key, value);
+    });
   program.parse();
 }
 
