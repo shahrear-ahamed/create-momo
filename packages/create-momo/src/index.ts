@@ -1,9 +1,18 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { intro } from "@clack/prompts";
 import { Command } from "commander";
+import fs from "fs-extra";
 import color from "picocolors";
 import { addComponent } from "@/commands/add.js";
 import { configCommand } from "@/commands/config.js";
 import { setupCommand } from "@/commands/setup.js";
+
+// Read package.json dynamically
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const pkgPath = path.resolve(__dirname, "../package.json");
+const pkg = fs.readJsonSync(pkgPath);
 
 const program = new Command();
 
@@ -17,7 +26,7 @@ async function main() {
     .description(
       "A modern CLI tool for creating and managing monorepo projects",
     )
-    .version("0.0.0");
+    .version(pkg.version, "-v, --version");
 
   // Root command (create project)
   program
