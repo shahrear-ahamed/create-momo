@@ -1,6 +1,7 @@
 import { intro } from "@clack/prompts";
 import { Command } from "commander";
 import color from "picocolors";
+import { addComponent } from "./commands/add.js";
 
 const program = new Command();
 
@@ -35,9 +36,8 @@ async function main() {
     .description("Add apps, packages, or configurations to existing project")
     .option("-a, --app", "Add an application")
     .option("-p, --package", "Add a package")
-    .action((options) => {
-      console.log("Adding component...", options);
-      // Implementation coming in Phase 2
+    .action(async (type, options) => {
+      await addComponent(type, options);
     });
 
   // Setup command
