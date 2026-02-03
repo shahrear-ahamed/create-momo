@@ -42,12 +42,36 @@ async function main() {
     });
 
   // Setup command
-  program
+  const setup = program
     .command("setup")
-    .description("Setup configurations and project types")
+    .description("Setup configurations and project types");
+
+  setup
     .command("publish")
-    .action(() => {
-      console.log("Setup publish...");
+    .description("Configure npm publishing")
+    .action(async () => {
+      await setupCommand.publish();
+    });
+
+  setup
+    .command("open-source")
+    .description("Add open-source files (LICENSE, CONTRIBUTING, etc.)")
+    .action(async () => {
+      await setupCommand.openSource();
+    });
+
+  setup
+    .command("close-source")
+    .description("Configure for proprietary use")
+    .action(async () => {
+      await setupCommand.closeSource();
+    });
+
+  setup
+    .command("project")
+    .description("Initialize from a blueprint")
+    .action(async () => {
+      await setupCommand.project();
     });
 
   // Config command
