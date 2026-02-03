@@ -1,0 +1,44 @@
+name: Snapshot Release
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  snapshot:
+    name: Snapshot Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Create Snapshot Version
+        run: |
+          pnpm changeset version --snapshot pr-${{ github.event.number }}
+          pnpm install --frozen-lockfile # update lockfile after version bump
+
+      - name: Build
+        run: pnpm build
+
+      - name: Publish Snapshot
+        run: pnpm changeset publish --no-git-tag --snapshot --tag pr-${{ github.event.number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
