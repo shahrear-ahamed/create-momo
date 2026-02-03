@@ -1,7 +1,7 @@
 import { intro } from "@clack/prompts";
 import { Command } from "commander";
 import color from "picocolors";
-import { addComponent } from "./commands/add.js";
+import { addComponent } from "@/commands/add.js";
 
 const program = new Command();
 
