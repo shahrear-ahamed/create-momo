@@ -2,6 +2,8 @@ import path from "node:path";
 import { cancel, isCancel, select, text } from "@clack/prompts";
 import color from "picocolors";
 import { configManager } from "@/commands/config.js";
+import { getBaseConfig } from "@/templates/config-typescript/base.json.js";
+import { getConfigPackageJson } from "@/templates/config-typescript/package.json.js";
 import { getGitignore } from "@/templates/gitignore.js";
 import { getMomoConfig } from "@/templates/momo.config.json.js";
 import {
@@ -146,6 +148,15 @@ export async function createProject(
     // Create folders
     await fileOps.ensureDir(path.join(targetDir, "apps"));
     await fileOps.ensureDir(path.join(targetDir, "packages"));
+
+    // 6. Scaffold config-typescript package
+    const configDir = path.join(targetDir, "packages", "config-typescript");
+    await fileOps.ensureDir(configDir);
+    await fileOps.writeJson(
+      path.join(configDir, "package.json"),
+      getConfigPackageJson(scope as string),
+    );
+    await fileOps.writeJson(path.join(configDir, "base.json"), getBaseConfig());
 
     spinner.stop("Project scouted successfully!");
 

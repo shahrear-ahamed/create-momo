@@ -1,6 +1,11 @@
 import path from "node:path";
 import { cancel, isCancel, select, text } from "@clack/prompts";
 import color from "picocolors";
+import { getBaseConfig } from "@/templates/config-typescript/base.json.js";
+import { getNextjsConfig } from "@/templates/config-typescript/nextjs.json.js";
+import { getNodeConfig } from "@/templates/config-typescript/node.json.js";
+import { getConfigPackageJson } from "@/templates/config-typescript/package.json.js";
+import { getReactConfig } from "@/templates/config-typescript/react.json.js";
 import { fileOps } from "@/utils/file-ops.js";
 import { createSpinner, logger } from "@/utils/logger.js";
 import { validators } from "@/utils/validators.js";
@@ -107,7 +112,55 @@ export async function addComponent(type?: string, options: AddOptions = {}) {
       },
     });
 
-    // Add tsconfig
+    // 5.1 Ensure config-typescript exists and has the requested flavor
+    const configPkgDir = path.join(
+      process.cwd(),
+      "packages",
+      "config-typescript",
+    );
+    const flavorFile = path.join(configPkgDir, `${flavor}.json`);
+
+    // Existence checks
+    const configExists = !(await fileOps.isEmpty(configPkgDir));
+    if (!configExists) {
+      await fileOps.ensureDir(configPkgDir);
+      // We need to know the scope for the package.json.
+      // For now let's assume we can read it or just default it.
+      // Better yet, let's just make sure it's there.
+      // We'll use a generic placeholder if we can't find it, or just rely on the init.
+      await fileOps.writeJson(
+        path.join(configPkgDir, "package.json"),
+        getConfigPackageJson("@momo"),
+      );
+      await fileOps.writeJson(
+        path.join(configPkgDir, "base.json"),
+        getBaseConfig(),
+      );
+    }
+
+    // Check flavor file
+    const flavorExists = await (async () => {
+      try {
+        await fileOps.readJson(flavorFile);
+        return true;
+      } catch {
+        return false;
+      }
+    })();
+
+    if (!flavorExists && flavor !== "base") {
+      let configContent: any;
+      if (flavor === "nextjs") configContent = getNextjsConfig();
+      else if (flavor === "react") configContent = getReactConfig();
+      else if (flavor === "node") configContent = getNodeConfig();
+
+      if (configContent) {
+        await fileOps.writeJson(flavorFile, configContent);
+        logger.info(`Added ${color.cyan(flavor + ".json")} to shared config.`);
+      }
+    }
+
+    // Add tsconfig to component
     const extendPath = `../../packages/config-typescript/${flavor}.json`;
     await fileOps.writeJson(path.join(targetDir, "tsconfig.json"), {
       extends: extendPath,

@@ -1,22 +1,11 @@
 export const getBaseTsConfig = () => {
   return {
+    extends: "./packages/config-typescript/base.json",
     compilerOptions: {
-      target: "ES2022",
-      lib: ["DOM", "DOM.Iterable", "ESNext"],
-      module: "ESNext",
-      skipLibCheck: true,
-      moduleResolution: "bundler",
-      allowImportingTsExtensions: true,
-      resolveJsonModule: true,
-      isolatedModules: true,
-      noEmit: true,
-      jsx: "react-jsx",
-      strict: true,
-      noUnusedLocals: true,
-      noUnusedParameters: true,
-      noFallthroughCasesInSwitch: true,
-      allowSyntheticDefaultImports: true,
-      forceConsistentCasingInFileNames: true,
+      baseUrl: ".",
+      paths: {
+        "@/*": ["./packages/*/src", "./apps/*/src"],
+      },
     },
     exclude: ["node_modules", "dist"],
   };
