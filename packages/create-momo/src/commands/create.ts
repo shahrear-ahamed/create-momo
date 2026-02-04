@@ -1,6 +1,15 @@
 import path from "node:path";
 import { cancel, isCancel, select, text } from "@clack/prompts";
 import color from "picocolors";
+import { configManager } from "@/commands/config.js";
+import { getGitignore } from "@/templates/gitignore.js";
+import { getMomoConfig } from "@/templates/momo.config.json.js";
+import {
+  getRootPackageJson,
+  type PackageManager,
+} from "@/templates/package.json.js";
+import { getBaseTsConfig } from "@/templates/tsconfig.json.js";
+import { getTurboJson } from "@/templates/turbo.json.js";
 import { fileOps } from "@/utils/file-ops.js";
 import { createSpinner, logger } from "@/utils/logger.js";
 import { validators } from "@/utils/validators.js";
@@ -65,10 +74,16 @@ export async function createProject(
   }
 
   // 3. Configuration (Scope)
+  const config = await configManager.load();
+  const defaultScope =
+    config.packageScope ||
+    config.scope ||
+    `@${projectName.replace(/[^a-zA-Z0-9-]/g, "").toLowerCase()}`;
+
   const scope = await text({
     message: "What is the package scope?",
     placeholder: "@momo",
-    initialValue: `@${projectName.replace(/[^a-zA-Z0-9-]/g, "").toLowerCase()}`,
+    initialValue: defaultScope,
     validate: validators.scopeName,
   });
 
@@ -77,129 +92,55 @@ export async function createProject(
     process.exit(0);
   }
 
-  // 4. Scaffolding
+  // 4. Package Manager Detection
+  const userAgent = process.env.npm_config_user_agent || "";
+  let packageManager: PackageManager = "pnpm";
+
+  if (userAgent.includes("yarn")) packageManager = "yarn";
+  else if (userAgent.includes("bun")) packageManager = "bun";
+  else if (userAgent.includes("npm")) packageManager = "npm";
+
+  // 5. Scaffolding
   const spinner = createSpinner("Scaffolding project...");
 
   try {
-    const cleanScope = (scope as string).replace("@", "");
+    const _cleanScope = (scope as string).replace("@", "");
 
     await fileOps.ensureDir(targetDir);
 
     // ROOT package.json
-    await fileOps.writeJson(path.join(targetDir, "package.json"), {
-      name: projectName,
-      private: true,
-      license: "MIT",
-      scripts: {
-        build: "turbo build",
-        dev: "turbo dev",
-        lint: "turbo lint",
-        clean: "turbo clean",
-        format: "biome format . --write",
-        check: "biome check .",
-        "type-check": "turbo type-check",
-      },
-      dependencies: {},
-      devDependencies: {
-        turbo: "latest",
-        typescript: "^5.9.3",
-        "@biomejs/biome": "latest",
-      },
-      packageManager: "pnpm@9.1.0",
-      engines: {
-        node: ">=18",
-      },
-    });
+    await fileOps.writeJson(
+      path.join(targetDir, "package.json"),
+      getRootPackageJson(projectName, packageManager),
+    );
 
-    // pnpm-workspace.yaml
-    await fileOps.writeFile(
-      path.join(targetDir, "pnpm-workspace.yaml"),
-      `packages:
+    // Workspace Config (Only for pnpm)
+    if (packageManager === "pnpm") {
+      await fileOps.writeFile(
+        path.join(targetDir, "pnpm-workspace.yaml"),
+        `packages:
   - "apps/*"
   - "packages/*"
 `,
-    );
+      );
+    }
 
     // turbo.json
-    await fileOps.writeJson(path.join(targetDir, "turbo.json"), {
-      $schema: "https://turbo.build/schema.json",
-      tasks: {
-        build: {
-          dependsOn: ["^build"],
-          inputs: ["$TURBO_DEFAULT$", ".env*"],
-          outputs: [".next/**", "!.next/cache/**", "dist/**"],
-        },
-        lint: {
-          dependsOn: ["^lint"],
-        },
-        dev: {
-          cache: false,
-          persistent: true,
-        },
-        "type-check": {
-          dependsOn: ["^type-check"],
-        },
-      },
-    });
+    await fileOps.writeJson(path.join(targetDir, "turbo.json"), getTurboJson());
 
     // tsconfig.json (Base)
-    await fileOps.writeJson(path.join(targetDir, "tsconfig.json"), {
-      compilerOptions: {
-        target: "ES2022",
-        lib: ["DOM", "DOM.Iterable", "ESNext"],
-        module: "ESNext",
-        skipLibCheck: true,
-        moduleResolution: "bundler",
-        allowImportingTsExtensions: true,
-        resolveJsonModule: true,
-        isolatedModules: true,
-        noEmit: true,
-        jsx: "react-jsx",
-        strict: true,
-        noUnusedLocals: true,
-        noUnusedParameters: true,
-        noFallthroughCasesInSwitch: true,
-        allowSyntheticDefaultImports: true,
-        forceConsistentCasingInFileNames: true,
-      },
-      exclude: ["node_modules", "dist"],
-    });
+    await fileOps.writeJson(
+      path.join(targetDir, "tsconfig.json"),
+      getBaseTsConfig(),
+    );
 
     // .gitignore
-    await fileOps.writeFile(
-      path.join(targetDir, ".gitignore"),
-      `# Dependencies
-node_modules
-.pnpm-store
+    await fileOps.writeFile(path.join(targetDir, ".gitignore"), getGitignore());
 
-# Next.js
-.next
-out
-
-# Production
-build
-dist
-
-# Misc
-.DS_Store
-*.pem
-
-# Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# Env settings
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Turbo
-.turbo
-`,
+    // momo.config.json
+    await fileOps.writeJson(
+      path.join(targetDir, "momo.config.json"),
+      getMomoConfig(scope as string, packageManager),
     );
 
     // Create folders
@@ -213,8 +154,10 @@ yarn-error.log*
     if (targetDir !== process.cwd()) {
       logger.step(`  cd ${args.name || projectName}`);
     }
-    logger.step("  pnpm install");
-    logger.step("  pnpm dev");
+    logger.step(`  ${packageManager} install`);
+    logger.step(
+      `  ${packageManager} ${packageManager === "npm" ? "run " : ""}dev`,
+    );
   } catch (error) {
     spinner.stop("Failed to create project");
     logger.error((error as Error).message);

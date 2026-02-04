@@ -1,0 +1,23 @@
+export const getBaseTsConfig = () => {
+  return {
+    compilerOptions: {
+      target: "ES2022",
+      lib: ["DOM", "DOM.Iterable", "ESNext"],
+      module: "ESNext",
+      skipLibCheck: true,
+      moduleResolution: "bundler",
+      allowImportingTsExtensions: true,
+      resolveJsonModule: true,
+      isolatedModules: true,
+      noEmit: true,
+      jsx: "react-jsx",
+      strict: true,
+      noUnusedLocals: true,
+      noUnusedParameters: true,
+      noFallthroughCasesInSwitch: true,
+      allowSyntheticDefaultImports: true,
+      forceConsistentCasingInFileNames: true,
+    },
+    exclude: ["node_modules", "dist"],
+  };
+};

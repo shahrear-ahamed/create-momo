@@ -48,4 +48,11 @@ export const fileOps = {
   readJson: async <T>(file: string): Promise<T> => {
     return fs.readJson(file);
   },
+
+  /**
+   * Write file
+   */
+  writeFile: async (file: string, content: string): Promise<void> => {
+    await fs.outputFile(file, content);
+  },
 };

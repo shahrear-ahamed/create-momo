@@ -11,6 +11,7 @@ const GLOBAL_CONFIG_PATH = path.join(GLOBAL_CONFIG_DIR, "config.json");
 
 interface MomoConfig {
   scope?: string;
+  packageScope?: string;
   author?: string;
   license?: string;
   manager?: string;
