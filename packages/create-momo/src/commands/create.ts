@@ -9,13 +9,17 @@ export async function createProject(
   args: { name?: string; cwd?: string } = {},
 ) {
   let projectName = args.name;
+  let targetDir = "";
 
   // 1. Ask for project name if not provided
   if (!projectName) {
     const name = await text({
       message: "What is the name of your monorepo?",
-      placeholder: "my-momo-project",
-      validate: validators.projectName,
+      placeholder: "my-momo-project (or . for current directory)",
+      validate: (value) => {
+        if (value === ".") return; // Allow .
+        return validators.projectName(value);
+      },
     });
 
     if (isCancel(name)) {
@@ -24,21 +28,30 @@ export async function createProject(
     }
     projectName = name as string;
   } else {
-    // Validate provided name
-    const validationError = validators.projectName(projectName);
-    if (validationError) {
-      logger.error(`Invalid project name: ${validationError}`);
-      process.exit(1);
+    // Validate provided name (allow . for current dir)
+    if (projectName !== ".") {
+      const validationError = validators.projectName(projectName);
+      if (validationError) {
+        logger.error(`Invalid project name: ${validationError}`);
+        process.exit(1);
+      }
     }
   }
 
-  const targetDir = path.resolve(process.cwd(), projectName);
+  // Resolve target directory
+  if (projectName === ".") {
+    targetDir = process.cwd();
+    // If using current dir, use the folder name as the project name in package.json
+    projectName = path.basename(targetDir);
+  } else {
+    targetDir = path.resolve(process.cwd(), projectName);
+  }
 
   // 2. Check if directory exists and is empty
   const isEmpty = await fileOps.isEmpty(targetDir);
   if (!isEmpty) {
     const overwrite = await select({
-      message: `Directory "${projectName}" is not empty. How would you like to proceed?`,
+      message: `Directory "${projectName === "." ? "Current Directory" : projectName}" is not empty. How would you like to proceed?`,
       options: [
         { value: "cancel", label: "Cancel operation" },
         { value: "ignore", label: "Ignore (files might be overwritten)" },
@@ -53,13 +66,12 @@ export async function createProject(
 
   // 3. Select Template/Blueprint (Placeholder for now)
   // In Phase 3, we will add real templates.
-  // For now, we will just create the directory.
 
   // 4. Configuration (Scope, etc.)
   const scope = await text({
     message: "What is the package scope?",
     placeholder: "@momo",
-    initialValue: `@${projectName.split("/").pop()}`,
+    initialValue: `@${projectName.replace(/[^a-zA-Z0-9-]/g, "").toLowerCase()}`, // Sanitize just in case
     validate: validators.scopeName,
   });
 
@@ -72,6 +84,7 @@ export async function createProject(
   const spinner = createSpinner("Scaffolding project...");
 
   try {
+    // Only create dir if it's not the current one (though ensureDir is safe)
     await fileOps.ensureDir(targetDir);
 
     // Simulate copying template (Phase 3 will implement actual copy)
@@ -94,7 +107,9 @@ export async function createProject(
 
     logger.success(`\nProject created at ${color.underline(targetDir)}`);
     logger.info("\nNext steps:");
-    logger.step(`  cd ${projectName}`);
+    if (targetDir !== process.cwd()) {
+      logger.step(`  cd ${args.name || projectName}`);
+    }
     logger.step("  pnpm install");
     logger.step("  pnpm dev");
   } catch (error) {
