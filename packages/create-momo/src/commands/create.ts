@@ -15,8 +15,7 @@ export async function createProject(
   if (!projectName) {
     const name = await text({
       message: "What is the name of your monorepo?",
-      placeholder: "my-momo-project (or . for current directory)",
-      initialValue: "my-momo-project",
+      placeholder: "my-momo-project",
       validate: (value) => {
         if (value === ".") return; // Allow .
         return validators.projectName(value);
@@ -65,14 +64,11 @@ export async function createProject(
     }
   }
 
-  // 3. Select Template/Blueprint (Placeholder for now)
-  // In Phase 3, we will add real templates.
-
-  // 4. Configuration (Scope, etc.)
+  // 3. Configuration (Scope)
   const scope = await text({
     message: "What is the package scope?",
     placeholder: "@momo",
-    initialValue: `@${projectName.replace(/[^a-zA-Z0-9-]/g, "").toLowerCase()}`, // Sanitize just in case
+    initialValue: `@${projectName.replace(/[^a-zA-Z0-9-]/g, "").toLowerCase()}`,
     validate: validators.scopeName,
   });
 
@@ -81,26 +77,132 @@ export async function createProject(
     process.exit(0);
   }
 
-  // 5. Scaffolding
+  // 4. Scaffolding
   const spinner = createSpinner("Scaffolding project...");
 
   try {
-    // Only create dir if it's not the current one (though ensureDir is safe)
+    const cleanScope = (scope as string).replace("@", "");
+
     await fileOps.ensureDir(targetDir);
 
-    // Simulate copying template (Phase 3 will implement actual copy)
+    // ROOT package.json
     await fileOps.writeJson(path.join(targetDir, "package.json"), {
       name: projectName,
       private: true,
-      workspaces: ["apps/*", "packages/*"],
+      license: "MIT",
       scripts: {
         build: "turbo build",
         dev: "turbo dev",
         lint: "turbo lint",
+        clean: "turbo clean",
+        format: "biome format . --write",
+        check: "biome check .",
+        "type-check": "turbo type-check",
+      },
+      dependencies: {},
+      devDependencies: {
+        turbo: "latest",
+        typescript: "^5.9.3",
+        "@biomejs/biome": "latest",
+      },
+      packageManager: "pnpm@9.1.0",
+      engines: {
+        node: ">=18",
       },
     });
 
-    // Create folder structure
+    // pnpm-workspace.yaml
+    await fileOps.writeFile(
+      path.join(targetDir, "pnpm-workspace.yaml"),
+      `packages:
+  - "apps/*"
+  - "packages/*"
+`,
+    );
+
+    // turbo.json
+    await fileOps.writeJson(path.join(targetDir, "turbo.json"), {
+      $schema: "https://turbo.build/schema.json",
+      tasks: {
+        build: {
+          dependsOn: ["^build"],
+          inputs: ["$TURBO_DEFAULT$", ".env*"],
+          outputs: [".next/**", "!.next/cache/**", "dist/**"],
+        },
+        lint: {
+          dependsOn: ["^lint"],
+        },
+        dev: {
+          cache: false,
+          persistent: true,
+        },
+        "type-check": {
+          dependsOn: ["^type-check"],
+        },
+      },
+    });
+
+    // tsconfig.json (Base)
+    await fileOps.writeJson(path.join(targetDir, "tsconfig.json"), {
+      compilerOptions: {
+        target: "ES2022",
+        lib: ["DOM", "DOM.Iterable", "ESNext"],
+        module: "ESNext",
+        skipLibCheck: true,
+        moduleResolution: "bundler",
+        allowImportingTsExtensions: true,
+        resolveJsonModule: true,
+        isolatedModules: true,
+        noEmit: true,
+        jsx: "react-jsx",
+        strict: true,
+        noUnusedLocals: true,
+        noUnusedParameters: true,
+        noFallthroughCasesInSwitch: true,
+        allowSyntheticDefaultImports: true,
+        forceConsistentCasingInFileNames: true,
+      },
+      exclude: ["node_modules", "dist"],
+    });
+
+    // .gitignore
+    await fileOps.writeFile(
+      path.join(targetDir, ".gitignore"),
+      `# Dependencies
+node_modules
+.pnpm-store
+
+# Next.js
+.next
+out
+
+# Production
+build
+dist
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Env settings
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Turbo
+.turbo
+`,
+    );
+
+    // Create folders
     await fileOps.ensureDir(path.join(targetDir, "apps"));
     await fileOps.ensureDir(path.join(targetDir, "packages"));
 

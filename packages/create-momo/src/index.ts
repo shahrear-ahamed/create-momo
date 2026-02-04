@@ -29,13 +29,6 @@ async function main() {
     )
     .version(pkg.version, "-v, --version");
 
-  // Create command (Explicit)
-  program
-    .command("create")
-    .description("Create a new monorepo project")
-    .argument("[project-name]", "Name of the project directory")
-    .action(async (projectName) => await createProject({ name: projectName }));
-
   // Root command (implicit create)
   program
     .argument("[project-name]", "Name of the project directory")
