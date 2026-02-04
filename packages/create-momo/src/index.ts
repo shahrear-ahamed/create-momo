@@ -7,6 +7,7 @@ import color from "picocolors";
 import { addComponent } from "@/commands/add.js";
 import { configCommand } from "@/commands/config.js";
 import { setupCommand } from "@/commands/setup.js";
+import { createProject } from "./commands/create.js";
 
 // Read package.json dynamically
 const __filename = fileURLToPath(import.meta.url);
@@ -28,12 +29,17 @@ async function main() {
     )
     .version(pkg.version, "-v, --version");
 
-  // Root command (create project)
+  // Create command (Explicit)
+  program
+    .command("create")
+    .description("Create a new monorepo project")
+    .argument("[project-name]", "Name of the project directory")
+    .action(async (projectName) => await createProject({ name: projectName }));
+
+  // Root command (implicit create)
   program
     .argument("[project-name]", "Name of the project directory")
-    .action(async (projectName) => {
-      await createProject({ name: projectName });
-    });
+    .action(async (projectName) => await createProject({ name: projectName }));
 
   // Add command
   program
@@ -41,9 +47,7 @@ async function main() {
     .description("Add apps, packages, or configurations to existing project")
     .option("-a, --app", "Add an application")
     .option("-p, --package", "Add a package")
-    .action(async (type, options) => {
-      await addComponent(type, options);
-    });
+    .action(async (type, options) => await addComponent(type, options));
 
   // Setup command
   const setup = program

@@ -16,6 +16,7 @@ export async function createProject(
     const name = await text({
       message: "What is the name of your monorepo?",
       placeholder: "my-momo-project (or . for current directory)",
+      initialValue: "my-momo-project",
       validate: (value) => {
         if (value === ".") return; // Allow .
         return validators.projectName(value);
