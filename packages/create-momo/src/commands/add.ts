@@ -74,7 +74,23 @@ export async function addComponent(type?: string, options: AddOptions = {}) {
   const targetRoot = componentType === "app" ? "apps" : "packages";
   const targetDir = path.join(process.cwd(), targetRoot, componentName);
 
-  // 4. Scaffolding
+  // 4. Prompt for Flavor
+  const flavor = await select({
+    message: `Select the flavor for your ${componentType}`,
+    options: [
+      { value: "base", label: "Vanilla / Base" },
+      { value: "nextjs", label: "Next.js" },
+      { value: "react", label: "React (Vite)" },
+      { value: "node", label: "Node.js / Express" },
+    ],
+  });
+
+  if (isCancel(flavor)) {
+    cancel("Operation cancelled.");
+    process.exit(0);
+  }
+
+  // 5. Scaffolding
   const spinner = createSpinner(`Creating ${componentType}...`);
 
   try {
@@ -92,8 +108,9 @@ export async function addComponent(type?: string, options: AddOptions = {}) {
     });
 
     // Add tsconfig
+    const extendPath = `../../packages/config-typescript/${flavor}.json`;
     await fileOps.writeJson(path.join(targetDir, "tsconfig.json"), {
-      extends: "../../packages/config-typescript/base.json", // Assumption
+      extends: extendPath,
       compilerOptions: {
         outDir: "dist",
         rootDir: "src",
