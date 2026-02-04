@@ -32,13 +32,7 @@ async function main() {
   program
     .argument("[project-name]", "Name of the project directory")
     .action(async (projectName) => {
-      // Only run if no subcommand is matched
-      if (projectName) {
-        console.log(`Creating project in: ${projectName}`);
-      } else {
-        console.log("Interactive project creation wizard...");
-      }
-      // Implementation coming in Phase 2
+      await createProject({ name: projectName });
     });
 
   // Add command
