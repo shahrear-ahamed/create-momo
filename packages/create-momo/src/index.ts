@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { intro } from "@clack/prompts";
 import { Command } from "commander";
 import fs from "fs-extra";
-import color from "picocolors";
+import gradient from "gradient-string";
 import { addComponent } from "@/commands/add.js";
 import { configCommand } from "@/commands/config.js";
 import { deployCommand } from "@/commands/deploy.js";
@@ -22,7 +22,23 @@ const program = new Command();
 async function main() {
   console.clear();
 
-  intro(color.bgCyan(color.black(" MOMO ")));
+  const logo = `
+ ██████╗██████╗ ███████╗ █████╗ ████████╗███████╗    ███╗   ███╗ ██████╗ ███╗   ███╗ ██████╗ 
+██╔════╝██╔══██╗██╔════╝██╔══██╗╚══██╔══╝██╔════╝    ████╗ ████║██╔═══██╗████╗ ████║██╔═══██╗
+██║     ██████╔╝█████╗  ███████║   ██║   █████╗      ██╔████╔██║██║   ██║██╔████╔██║██║   ██║
+██║     ██╔══██╗██╔══╝  ██╔══██║   ██║   ██╔══╝      ██║╚██╔╝██║██║   ██║██║╚██╔╝██║██║   ██║
+╚██████╗██║  ██║███████╗██║  ██║   ██║   ███████╗    ██║ ╚═╝ ██║╚██████╔╝██║ ╚═╝ ██║╚██████╔╝
+ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝    ╚═╝     ╚═╝ ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ 
+                             
+    `;
+
+  const logoGradient = gradient([
+    "#00FF87",
+    "#60EFFF",
+    "#B2EBF2",
+    "#F0F9FF",
+  ]).multiline(logo);
+  intro(logoGradient);
 
   program
     .name("create-momo")
@@ -30,34 +46,7 @@ async function main() {
       "A modern CLI tool for creating and managing monorepo projects",
     )
     .version(pkg.version, "-v, --version")
-    .helpOption("-h, --help", "Show help")
-    .addHelpText(
-      "before",
-      `
-${color.bold("Core")}
-  create <name>              ${color.dim("# Create new monorepo")}
-  add -a/--app               ${color.dim("# Add app (categorized)")}
-  add -p/--package           ${color.dim("# Add package (categorized)")}
-  config <subcommand>         ${color.dim("# Manage configuration")}
-
-${color.bold("Setup")}
-  setup project              ${color.dim("# Select pre-configured blueprint")}
-  setup publish              ${color.dim("# Configure npm publishing")}
-  setup open-source          ${color.dim("# Add open-source files")}
-  setup close-source         ${color.dim("# Add proprietary files")}
-
-${color.bold("Deploy")}
-  deploy init                ${color.dim("# Initialize deployment config")}
-  deploy push                ${color.dim("# Deploy to platform")}
-
-${color.bold("Utility")}
-  list                       ${color.dim("# List templates")}
-  doctor                     ${color.dim("# Check project health")}
-  update                     ${color.dim("# Update configs")}
-  --version/-v               ${color.dim("# Show version")}
-  --help/-h                  ${color.dim("# Show help")}
-`,
-    );
+    .helpOption("-h, --help", "Show help");
 
   // --- CORE COMMANDS ---
   program
