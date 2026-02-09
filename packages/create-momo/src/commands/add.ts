@@ -149,14 +149,14 @@ export async function addComponent(type?: string, options: AddOptions = {}) {
     })();
 
     if (!flavorExists && flavor !== "base") {
-      let configContent: any;
+      let configContent: Record<string, unknown> | undefined;
       if (flavor === "nextjs") configContent = getNextjsConfig();
       else if (flavor === "react") configContent = getReactConfig();
       else if (flavor === "node") configContent = getNodeConfig();
 
       if (configContent) {
         await fileOps.writeJson(flavorFile, configContent);
-        logger.info(`Added ${color.cyan(flavor + ".json")} to shared config.`);
+        logger.info(`Added ${color.cyan(`${flavor}.json`)} to shared config.`);
       }
     }
 

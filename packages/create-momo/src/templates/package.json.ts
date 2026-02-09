@@ -6,7 +6,7 @@ export const getRootPackageJson = (
 ) => {
   const isPnpm = packageManager === "pnpm";
 
-  const base: any = {
+  const base: Record<string, unknown> = {
     name,
     private: true,
     license: "MIT",

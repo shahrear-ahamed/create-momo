@@ -15,7 +15,7 @@ interface MomoConfig {
   author?: string;
   license?: string;
   manager?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 const defaultConfig: MomoConfig = {
@@ -41,7 +41,7 @@ export const configManager = {
     try {
       const stored = await fileOps.readJson<MomoConfig>(configPath);
       return { ...defaultConfig, ...stored };
-    } catch (error) {
+    } catch (_error) {
       // Is file exists but is invalid?
       return { ...defaultConfig };
     }
