@@ -1,0 +1,12 @@
+export const getConfigPackageJson = (scope: string) => {
+  return {
+    name: `${scope}/config-typescript`,
+    version: "0.0.0",
+    private: true,
+    license: "MIT",
+    files: ["base.json", "nextjs.json", "react.json", "node.json"],
+    publishConfig: {
+      access: "public",
+    },
+  };
+};

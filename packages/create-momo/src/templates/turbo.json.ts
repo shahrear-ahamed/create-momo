@@ -1,0 +1,22 @@
+export const getTurboJson = () => {
+  return {
+    $schema: "https://turbo.build/schema.json",
+    tasks: {
+      build: {
+        dependsOn: ["^build"],
+        inputs: ["$TURBO_DEFAULT$", ".env*"],
+        outputs: [".next/**", "!.next/cache/**", "dist/**"],
+      },
+      lint: {
+        dependsOn: ["^lint"],
+      },
+      dev: {
+        cache: false,
+        persistent: true,
+      },
+      "type-check": {
+        dependsOn: ["^type-check"],
+      },
+    },
+  };
+};
