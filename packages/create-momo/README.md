@@ -1,78 +1,47 @@
 # create-momo
 
-A modern, high-performance CLI tool for scaffolding and managing monorepo projects with ease. Built for speed, consistency, and a premium developer experience.
+A modern, high-performance CLI tool for scaffolding and managing Turborepo monorepo projects with a premium developer experience.
 
 ## ✨ Features
 
-- **Instant Scaffolding**: Create a production-ready monorepo project in seconds.
-- **Component Management**: Effortlessly add apps and packages with pre-configured TypeScript and workspaces.
-- **Premium UI**: Beautiful CLI interface with interactive prompts and status indicators.
-- **Built-in Workflows**: Integrated commands for configuration, setup, and deployment.
+- **Context-Aware CLI**: Behaves as a **Project Creator** outside a project and a **Project Manager** inside one.
+- **Zero-Config Monorepos**: Scaffold production-ready monorepos using `pnpm`, `npm`, `yarn`, or `bun`.
+- **Project Wrappers**: Unified commands like `momo dev`, `momo build`, and `momo lint` that delegate to Turborepo.
+- **Smart Scaffolding**: Add apps, packages, or standardized configurations with `momo add`.
+- **Professional CI/CD**: Optimized GitHub Actions workflows for automated releases and multi-branch support.
 
-## 🚀 Quick Start
+## 🚀 Usage
 
-Get started immediately without installation:
+You don't need to install `create-momo` globally. Use it directly with your favorite package manager:
 
 ```bash
-pnpm create momo
-# or
-npx create-momo@latest
+# npm
+npx create-momo [project-name]
+
+# pnpm
+pnpm create momo [project-name]
+
+# bun
+bun create momo [project-name]
 ```
 
 ## 🛠 Commands
 
-### Core
+Once inside a `create-momo` project, navigate into the directory and use the management commands:
 
-#### `create [project-name]`
-Initialize a new monorepo project. If no name is provided, it will prompt you.
-```bash
-momo create my-awesome-project
-```
+### 1. Project Management
+- **`momo dev`**: Starts the development environment for all apps and packages.
+- **`momo build`**: Builds all packages in the monorepo.
+- **`momo lint`**: Runs linting checks (Biome) across the workspace.
+- **`momo start`**: Starts the production build.
 
-#### `add`
-Add a new application or package to your monorepo. It will guide you through selecting a location (`/apps` or `/packages`) and a technology flavor.
-```bash
-momo add
-```
+### 2. Scaffolding
+- **`momo add`**: Interactively add a new app (Next.js, Vite, etc.) or package (shared library) to the workspace.
 
-### Setup & Config
-
-#### `setup`
-Configure project-wide settings and documentation.
-- `momo setup publish`: Configure npm registry and publishing settings.
-- `momo setup open-source`: Add community files (LICENSE, CONTRIBUTING).
-- `momo setup close-source`: Configure for proprietary use.
-
-#### `config`
-Manage CLI global and project-specific configurations.
-- `momo config list`: View all settings.
-- `momo config set <key> <value>`: Update a setting.
-
-### Utility
-
-#### `doctor`
-Check the health of your monorepo, verifying dependencies and configurations.
-```bash
-momo doctor
-```
-
-#### `list`
-List all available component flavors and templates.
-```bash
-momo list
-```
-
----
-
-## ⏳ Coming Soon
-
-We're constantly improving `create-momo`. Here’s what’s on the horizon:
-
-- **Shortcut Commands**: `momo push` for instant deployment. `[Coming Soon]`
-- **Direct Addition**: `momo add app <name>` and `momo add package <name>` to skip prompts. `[Coming Soon]`
-- **Auto Documentation**: `momo setup readme` to generate standard READMEs for your sub-packages. `[Coming Soon]`
-- **Pre-configured Blueprints**: SaaS Starters (Next.js + Supabase) and API Services (Express + Docker). `[Coming Soon]`
-- **Plugin System**: Extend the CLI with your own custom commands and templates. `[Coming Soon]`
+### 3. Setup & Config
+- **`momo setup publish`**: Configure automated npm publishing.
+- **`momo setup open-source`**: Add `LICENSE`, `CONTRIBUTING`, and `README` templates.
+- **`momo config list/set`**: Manage CLI and project configurations.
 
 ## 📄 License
 
