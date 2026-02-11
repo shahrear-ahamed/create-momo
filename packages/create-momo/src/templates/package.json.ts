@@ -3,6 +3,7 @@ export type PackageManager = "npm" | "yarn" | "pnpm" | "bun";
 export const getRootPackageJson = (
   name: string,
   packageManager: PackageManager,
+  createMomoVersion: string,
 ) => {
   const isPnpm = packageManager === "pnpm";
 
@@ -21,6 +22,7 @@ export const getRootPackageJson = (
     },
     dependencies: {},
     devDependencies: {
+      "create-momo": `^${createMomoVersion}`,
       turbo: "latest",
       typescript: "^5.9.3",
       "@biomejs/biome": "latest",

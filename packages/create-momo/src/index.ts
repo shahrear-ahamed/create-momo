@@ -7,6 +7,7 @@ import gradient from "gradient-string";
 import { addComponent } from "@/commands/add.js";
 import { configCommand } from "@/commands/config.js";
 import { deployCommand } from "@/commands/deploy.js";
+import { projectCommand } from "@/commands/project.js";
 import { setupCommand } from "@/commands/setup.js";
 import { utilityCommand } from "@/commands/utility.js";
 import { createProject } from "./commands/create.js";
@@ -49,20 +50,23 @@ async function main() {
     .helpOption("-h, --help", "Show help");
 
   // --- CORE COMMANDS ---
-  program
-    .command("create")
-    .description("Create a new monorepo project")
-    .argument("[project-name]", "Name of the project directory")
-    .action(async (projectName) => await createProject({ name: projectName }));
+  // Note: 'create' command removed - auto-initialization handled by root action
 
   program
     .command("add")
-    .description("Add apps, packages, or configurations to existing project")
-    .option("-a, --app", "Add an application (categorized)")
-    .option("-p, --package", "Add a package (categorized)")
+    .description(
+      "Scaffold a new app, package, or configuration into the monorepo",
+    )
+    .option("-a, --app", "Add a new application (Next.js, Vite, etc.)")
+    .option(
+      "-p, --package",
+      "Add a new shared library or configuration package",
+    )
     .action(async (type, options) => await addComponent(type, options));
 
-  const config = program.command("config").description("Manage configuration");
+  const config = program
+    .command("config")
+    .description("Manage create-momo CLI settings");
   config
     .command("list")
     .description("List all configurations")
@@ -80,7 +84,7 @@ async function main() {
   // --- SETUP COMMANDS ---
   const setup = program
     .command("setup")
-    .description("Setup configurations and project types");
+    .description("Configure project-wide standards and publishing workflows");
 
   setup
     .command("project")
@@ -129,15 +133,32 @@ async function main() {
     .description("Update configurations")
     .action(async () => await utilityCommand.update());
 
+  // --- PROJECT MANAGEMENT COMMANDS ---
+  program
+    .command("build")
+    .description("Build all packages in the monorepo")
+    .action(async () => await projectCommand.build());
+
+  program
+    .command("dev")
+    .description("Run development mode for all packages")
+    .action(async () => await projectCommand.dev());
+
+  program
+    .command("lint")
+    .description("Lint all packages in the monorepo")
+    .action(async () => await projectCommand.lint());
+
+  program
+    .command("start")
+    .description("Start the production build for all packages")
+    .action(async () => await projectCommand.start());
+
   // Support implicit create (root argument)
   program
     .argument("[project-name]", "Name of the project directory")
     .action(async (projectName) => {
-      if (!projectName) {
-        program.help();
-        return;
-      }
-      await createProject({ name: projectName });
+      await createProject({ name: projectName, version: pkg.version });
     });
 
   program.parse();
