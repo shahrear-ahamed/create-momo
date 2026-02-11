@@ -1,5 +1,11 @@
 # create-momo
 
+## 0.2.0
+
+### Minor Changes
+
+- c0b44f6: feat: transform into a context-aware monorepo manager with `dev`, `build`, `lint`, and `start` commands. Added safety checks to prevent nested monorepos and streamlined the creation flow.
+
 ## 0.1.0
 
 ### Minor Changes
