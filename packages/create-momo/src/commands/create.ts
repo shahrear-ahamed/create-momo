@@ -1,7 +1,5 @@
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { cancel, isCancel, select, text } from "@clack/prompts";
-import fs from "fs-extra";
 import color from "picocolors";
 import { configManager } from "@/commands/config.js";
 import { getBaseConfig } from "@/templates/config-typescript/base.json.js";
@@ -18,14 +16,8 @@ import { fileOps } from "@/utils/file-ops.js";
 import { createSpinner, logger } from "@/utils/logger.js";
 import { validators } from "@/utils/validators.js";
 
-// Read package.json dynamically
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const pkgPath = path.resolve(__dirname, "../../package.json");
-const pkg = fs.readJsonSync(pkgPath);
-
 export async function createProject(
-  args: { name?: string; cwd?: string } = {},
+  args: { name?: string; cwd?: string; version?: string } = {},
 ) {
   let projectName = args.name;
   let targetDir = "";
@@ -102,13 +94,28 @@ export async function createProject(
     process.exit(0);
   }
 
-  // 4. Package Manager Detection
+  // 4. Package Manager Selection
   const userAgent = process.env.npm_config_user_agent || "";
-  let packageManager: PackageManager = "pnpm";
+  let detectedPM: PackageManager = "pnpm";
+  if (userAgent.includes("yarn")) detectedPM = "yarn";
+  else if (userAgent.includes("bun")) detectedPM = "bun";
+  else if (userAgent.includes("npm")) detectedPM = "npm";
 
-  if (userAgent.includes("yarn")) packageManager = "yarn";
-  else if (userAgent.includes("bun")) packageManager = "bun";
-  else if (userAgent.includes("npm")) packageManager = "npm";
+  const packageManager = (await select({
+    message: "Which package manager do you want to use?",
+    initialValue: detectedPM,
+    options: [
+      { value: "bun", label: "Bun" },
+      { value: "npm", label: "NPM" },
+      { value: "pnpm", label: "PNPM" },
+      { value: "yarn", label: "Yarn" },
+    ],
+  })) as PackageManager;
+
+  if (isCancel(packageManager)) {
+    cancel("Operation cancelled.");
+    process.exit(0);
+  }
 
   // 5. Scaffolding
   const spinner = createSpinner("Scaffolding project...");
@@ -121,7 +128,7 @@ export async function createProject(
     // ROOT package.json
     await fileOps.writeJson(
       path.join(targetDir, "package.json"),
-      getRootPackageJson(projectName, packageManager, pkg.version),
+      getRootPackageJson(projectName, packageManager, args.version || "0.1.0"),
     );
 
     // Workspace Config (Only for pnpm)

@@ -54,12 +54,19 @@ async function main() {
 
   program
     .command("add")
-    .description("Add apps, packages, or configurations to existing project")
-    .option("-a, --app", "Add an application (categorized)")
-    .option("-p, --package", "Add a package (categorized)")
+    .description(
+      "Scaffold a new app, package, or configuration into the monorepo",
+    )
+    .option("-a, --app", "Add a new application (Next.js, Vite, etc.)")
+    .option(
+      "-p, --package",
+      "Add a new shared library or configuration package",
+    )
     .action(async (type, options) => await addComponent(type, options));
 
-  const config = program.command("config").description("Manage configuration");
+  const config = program
+    .command("config")
+    .description("Manage create-momo CLI settings");
   config
     .command("list")
     .description("List all configurations")
@@ -77,7 +84,7 @@ async function main() {
   // --- SETUP COMMANDS ---
   const setup = program
     .command("setup")
-    .description("Setup configurations and project types");
+    .description("Configure project-wide standards and publishing workflows");
 
   setup
     .command("project")
@@ -144,18 +151,14 @@ async function main() {
 
   program
     .command("start")
-    .description("Start all packages in the monorepo")
+    .description("Start the production build for all packages")
     .action(async () => await projectCommand.start());
 
   // Support implicit create (root argument)
   program
     .argument("[project-name]", "Name of the project directory")
     .action(async (projectName) => {
-      if (!projectName) {
-        program.help();
-        return;
-      }
-      await createProject({ name: projectName });
+      await createProject({ name: projectName, version: pkg.version });
     });
 
   program.parse();
