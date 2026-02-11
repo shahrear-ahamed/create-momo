@@ -1,5 +1,7 @@
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { cancel, isCancel, select, text } from "@clack/prompts";
+import fs from "fs-extra";
 import color from "picocolors";
 import { configManager } from "@/commands/config.js";
 import { getBaseConfig } from "@/templates/config-typescript/base.json.js";
@@ -15,6 +17,12 @@ import { getTurboJson } from "@/templates/turbo.json.js";
 import { fileOps } from "@/utils/file-ops.js";
 import { createSpinner, logger } from "@/utils/logger.js";
 import { validators } from "@/utils/validators.js";
+
+// Read package.json dynamically
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const pkgPath = path.resolve(__dirname, "../../package.json");
+const pkg = fs.readJsonSync(pkgPath);
 
 export async function createProject(
   args: { name?: string; cwd?: string } = {},
@@ -113,7 +121,7 @@ export async function createProject(
     // ROOT package.json
     await fileOps.writeJson(
       path.join(targetDir, "package.json"),
-      getRootPackageJson(projectName, packageManager),
+      getRootPackageJson(projectName, packageManager, pkg.version),
     );
 
     // Workspace Config (Only for pnpm)

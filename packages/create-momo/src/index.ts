@@ -7,6 +7,7 @@ import gradient from "gradient-string";
 import { addComponent } from "@/commands/add.js";
 import { configCommand } from "@/commands/config.js";
 import { deployCommand } from "@/commands/deploy.js";
+import { projectCommand } from "@/commands/project.js";
 import { setupCommand } from "@/commands/setup.js";
 import { utilityCommand } from "@/commands/utility.js";
 import { createProject } from "./commands/create.js";
@@ -49,11 +50,7 @@ async function main() {
     .helpOption("-h, --help", "Show help");
 
   // --- CORE COMMANDS ---
-  program
-    .command("create")
-    .description("Create a new monorepo project")
-    .argument("[project-name]", "Name of the project directory")
-    .action(async (projectName) => await createProject({ name: projectName }));
+  // Note: 'create' command removed - auto-initialization handled by root action
 
   program
     .command("add")
@@ -128,6 +125,27 @@ async function main() {
     .command("update")
     .description("Update configurations")
     .action(async () => await utilityCommand.update());
+
+  // --- PROJECT MANAGEMENT COMMANDS ---
+  program
+    .command("build")
+    .description("Build all packages in the monorepo")
+    .action(async () => await projectCommand.build());
+
+  program
+    .command("dev")
+    .description("Run development mode for all packages")
+    .action(async () => await projectCommand.dev());
+
+  program
+    .command("lint")
+    .description("Lint all packages in the monorepo")
+    .action(async () => await projectCommand.lint());
+
+  program
+    .command("start")
+    .description("Start all packages in the monorepo")
+    .action(async () => await projectCommand.start());
 
   // Support implicit create (root argument)
   program
