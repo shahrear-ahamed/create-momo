@@ -1,62 +1,111 @@
-# create-momo
+# Create Momo
 
 ![momo-banner](https://github.com/shahrear-ahamed/create-momo/blob/main/packages/create-momo/assets/banner.png?raw=true)
 
-> A premium CLI tool for scaffolding and managing high-performance Turborepo monorepos with an intuitive, context-aware developer experience.
+> **Create Momo** is a premium, context-aware CLI tool designed to simplify the creation and management of high-performance Turborepo monorepos. It provides a standardized, production-ready environment for modern web development.
 
 [![npm version](https://img.shields.io/npm/v/create-momo.svg)](https://www.npmjs.com/package/create-momo)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## ✨ Features
+## 🎯 Overview
 
-- 🚀 **Zero-Config Monorepos**: Instant Turborepo setup with your choice of `pnpm`, `npm`, `yarn`, or `bun`.
-- 🧠 **Context-Aware CLI**: One command for everything. It's a **Project Creator** outside a project and a **Project Manager** inside one.
-- 🛠️ **Project Management**: Built-in wrappers for common tasks: `momo dev`, `momo build`, `momo lint`, and `momo start`.
-- 🎨 **Premium UX**: Interactive prompts powered by `@clack/prompts` with a beautiful gradient-branded interface.
-- 📦 **Smart Scaffolding**: Effortlessly add new apps and packages to your existing monorepo with `momo add`.
-- ⚙️ **Professional Tooling**: Pre-configured with Biome, TypeScript, and optimized GitHub Actions CI/CD workflows.
+Building monorepos shouldn't be complex. **Create Momo** automates the tedious parts of monorepo orchestration—from initial scaffolding to ongoing management. Whether you're building a SaaS, an e-commerce platform, or a suite of shared libraries, Momo provides the structure and tools you need to move fast and stay consistent.
+
+---
+
+## ✨ Key Features
+
+### 🚀 Zero-Config Scaffolding
+- **Package Manager Agnostic**: Native support for **PNPM**, **NPM**, **Yarn**, and **Bun**.
+- **Instant Productivity**: Scaffolds a full Turborepo workspace with apps, packages, and shared configs in seconds.
+
+### 🧠 Context-Aware Intelligence
+- **Creation Mode**: Run it in an empty directory to launch the interactive project wizard.
+- **Management Mode**: Run it inside a Momo project to access powerful utility and development commands.
+
+### 🛠️ Integrated Project Management
+- **Command Wrappers**: Unified commands like `momo dev`, `momo build`, and `momo lint` that handle cross-package orchestration via Turborepo.
+- **Component Scaffolding**: Use `momo add` to instantly drop new apps or shared packages into your existing workspace.
+
+### 🎨 Premium Developer Experience
+- **Interactive Prompts**: Beautiful, human-friendly CLI powered by `@clack/prompts`.
+- **Branded Interface**: A polished UI with gradient logos and clear status indicators.
+- **GitHub Actions Ready**: Pre-configured CI/CD workflows for automated PR testing and releases.
+
+---
 
 ## 🚀 Quick Start
 
-Create a new monorepo project instantly:
+You can start a new project immediately without any global installation:
 
+### 1. Initialize Project
 ```bash
-# Using your preferred package manager
-pnpm create momo
-# or
+# Using PNPM (Recommended)
+pnpm create momo my-project
+
+# Using NPM
 npx create-momo@latest my-project
-# or
-bun create momo .
+
+# Using Bun
+bun create momo my-project
 ```
 
-The CLI will guide you through the setup, including project name, package scope, and package manager selection.
+### 2. Follow the Wizard
+The CLI will guide you through:
+- Project name and directory setup
+- Package scope (e.g., `@momo`)
+- Your preferred package manager
 
-## 🛠 Project Management
+---
 
-Once your project is created, navigate into the directory and use `momo` to manage your workflow:
+## 🛠 Command Reference
 
-```bash
-cd my-project
-pnpm install
+### Creation Commands
+*These are used to start new projects or initialize existing directories.*
 
-# Run development mode for all packages
-pnpm momo dev
+- **`create-momo [name]`**: The root command for project initialization.
+- **`create-momo .`**: Initialize in the current directory.
 
-# Build all packages
-pnpm momo build
+### Management Commands
+*Run these inside your project directory to manage your monorepo.*
 
-# Add a new application or package
-pnpm momo add
+| Command | Shortcut | Description |
+| :--- | :--- | :--- |
+| **`momo dev`** | `turbo dev` | Runs development mode for all apps/packages in parallel. |
+| **`momo build`** | `turbo build` | Executes the production build for the entire monorepo. |
+| **`momo lint`** | `biome check` | Runs linting and formatting across the workspace. |
+| **`momo add`** | - | Launches the interactive wizard to add new apps or packages. |
+| **`momo setup`** | - | Subcommands for `publish`, `open-source`, or `close-source` config. |
+
+---
+
+## 🏗 Project Architecture
+
+A standard **Momo** project follows a modular structure optimized for caching and reuse:
+
+```text
+my-project/
+├── apps/                # Your applications (Next.js, Vite, etc.)
+├── packages/            # Shared libraries and configurations
+│   ├── config-typescript/ # Shared TS settings
+│   └── ...
+├── momo.config.json     # Project-specific CLI configuration
+├── turbo.json           # Turborepo orchestration settings
+└── package.json         # Root workspace management
 ```
 
-*Note: Since `create-momo` is added to your project's `devDependencies`, you can run it via your package manager without a global installation.*
+---
 
-## ⏳ What's Next?
+## ⏳ Roadmap
 
-- **SaaS Blueprints**: Pre-configured templates for Next.js + Supabase + Auth.js.
-- **Momo Doctor**: Automated health checks for your monorepo configurations.
-- **Deployment Hub**: Streamlined deployment workflows for Vercel, Netlify, and Docker.
+- [ ] **SaaS Blueprints**: Pre-configured templates with Auth, DB, and UI pre-integrated.
+- [ ] **Momo Doctor**: Automated health checks for your monorepo dependencies.
+- [ ] **Deployment Flows**: One-click deployment configurations for Vercel and Netlify.
+- [ ] **Custom Templates**: Support for user-defined blueprints.
+
+---
 
 ## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).
+Built with ❤️ by [Shahrear Ahamed](https://github.com/shahrear-ahamed).

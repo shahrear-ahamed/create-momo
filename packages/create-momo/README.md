@@ -1,47 +1,66 @@
-# create-momo
+# Create-Momo
 
-A modern, high-performance CLI tool for scaffolding and managing Turborepo monorepo projects with a premium developer experience.
+> The engine behind the Momo ecosystem. A high-performance, context-aware CLI tool for scaffolding and managing Turborepo monorepos.
 
 ## ✨ Features
 
-- **Context-Aware CLI**: Behaves as a **Project Creator** outside a project and a **Project Manager** inside one.
-- **Zero-Config Monorepos**: Scaffold production-ready monorepos using `pnpm`, `npm`, `yarn`, or `bun`.
-- **Project Wrappers**: Unified commands like `momo dev`, `momo build`, and `momo lint` that delegate to Turborepo.
-- **Smart Scaffolding**: Add apps, packages, or standardized configurations with `momo add`.
-- **Professional CI/CD**: Optimized GitHub Actions workflows for automated releases and multi-branch support.
+- **Context-Aware Architecture**: Automatically detects if it's running in a project root to switch between **Creation** and **Management** modes.
+- **Unified Task Orchestration**: Wraps complex standard tasks (`build`, `dev`, `lint`) into simple, memorable commands.
+- **Ecosystem Agnostic**: First-class support for `pnpm`, `npm`, `yarn`, and `bun` workspace structures.
+- **Standardized Scaffolding**: Provides consistent blueprints for apps and packages ensuring architectural integrity across the monorepo.
 
-## 🚀 Usage
+---
 
-You don't need to install `create-momo` globally. Use it directly with your favorite package manager:
+## 🚀 Installation & Usage
 
+You can use **Create-Momo** through your preferred package manager's "create" command. No global installation is strictly required.
+
+### 1. Scaffolding a New Project
 ```bash
 # npm
-npx create-momo [project-name]
+npx create-momo@latest my-project
 
 # pnpm
-pnpm create momo [project-name]
+pnpm create momo my-project
 
 # bun
-bun create momo [project-name]
+bun create momo .
 ```
 
-## 🛠 Commands
+### 2. Management within a Project
+Once a project is created, `create-momo` is automatically added to your `devDependencies`. Use it to manage your workspace:
 
-Once inside a `create-momo` project, navigate into the directory and use the management commands:
+```bash
+# Add a new app or package
+pnpm momo add
 
-### 1. Project Management
-- **`momo dev`**: Starts the development environment for all apps and packages.
-- **`momo build`**: Builds all packages in the monorepo.
-- **`momo lint`**: Runs linting checks (Biome) across the workspace.
-- **`momo start`**: Starts the production build.
+# Orchestrate project tasks
+pnpm momo dev
+pnpm momo build
+pnpm momo lint
+```
 
-### 2. Scaffolding
-- **`momo add`**: Interactively add a new app (Next.js, Vite, etc.) or package (shared library) to the workspace.
+---
 
-### 3. Setup & Config
-- **`momo setup publish`**: Configure automated npm publishing.
-- **`momo setup open-source`**: Add `LICENSE`, `CONTRIBUTING`, and `README` templates.
-- **`momo config list/set`**: Manage CLI and project configurations.
+## 🛠 Command Deep Dive
+
+### `create-momo [project-name]`
+The entry point for new monorepos. If a name is not provided, it prompts for one. It handles directory validation, scope assignment, and package manager detection.
+
+### `momo add`
+The primary scaffolding command. It guides you through adding:
+- **Apps**: Next.js, Vite, or other frontend flavors.
+- **Packages**: Shared libraries, config packages, or UI kits.
+
+### `momo dev | build | lint | start`
+High-level wrappers around `turbo [task]`. These commands ensure that the correct environment variables and filters are applied based on your `momo.config.json`.
+
+### `momo setup <subcommand>`
+- **`publish`**: Sets up automated npm publishing workflows.
+- **`open-source`**: Drops a standard suite of community files (LICENSE, README, etc.).
+- **`project`**: Allows re-selecting or updating the project's foundational blueprint.
+
+---
 
 ## 📄 License
 
