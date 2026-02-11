@@ -24,7 +24,7 @@ npx create-momo@latest my-project
 pnpm create momo my-project
 
 # bun
-bun create momo .
+bun create momo my-project
 ```
 
 ### 2. Management within a Project
