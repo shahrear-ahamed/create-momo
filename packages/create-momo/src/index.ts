@@ -10,6 +10,7 @@ import { registerCreateCommand } from "@/commands/core/create.js";
 import { registerDeployCommands } from "@/commands/management/deploy.js";
 import { registerProjectCommands } from "@/commands/management/project.js";
 import { registerSetupCommands } from "@/commands/setup/setup.js";
+import { registerDepCommand } from "@/commands/utility/dep.js";
 import { registerUtilityCommands } from "@/commands/utility/utility.js";
 
 // Read package.json dynamically
@@ -33,19 +34,12 @@ async function main() {
                              
     `;
 
-  const logoGradient = gradient([
-    "#00FF87",
-    "#60EFFF",
-    "#B2EBF2",
-    "#F0F9FF",
-  ]).multiline(logo);
+  const logoGradient = gradient(["#00FF87", "#60EFFF", "#B2EBF2", "#F0F9FF"]).multiline(logo);
   intro(logoGradient);
 
   program
     .name("create-momo")
-    .description(
-      "A modern CLI tool for creating and managing monorepo projects",
-    )
+    .description("A modern CLI tool for creating and managing monorepo projects")
     .version(pkg.version, "-v, --version")
     .helpOption("-h, --help", "Show help");
 
@@ -56,6 +50,7 @@ async function main() {
   registerSetupCommands(program);
   registerDeployCommands(program);
   registerUtilityCommands(program);
+  registerDepCommand(program);
   registerProjectCommands(program);
 
   program.parse();
