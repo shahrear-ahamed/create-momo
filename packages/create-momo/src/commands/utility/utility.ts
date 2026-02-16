@@ -2,6 +2,7 @@ import path from "node:path";
 import type { Command } from "commander";
 import fs from "fs-extra";
 import color from "picocolors";
+import { configManager } from "@/commands/config/config.js";
 import { logger } from "@/utils/logger.js";
 
 export const utilityCommand = {
@@ -16,32 +17,52 @@ export const utilityCommand = {
   doctor: async () => {
     logger.info("Checking project health...");
 
+    const config = await configManager.load();
     const checks = [
-      { name: "package.json", path: "package.json" },
-      { name: "turbo.json", path: "turbo.json" },
-      { name: "packages directory", path: "packages" },
+      { name: "package.json", path: "package.json", required: true },
+      { name: "turbo.json", path: "turbo.json", required: true },
+      { name: "packages directory", path: "packages", required: true },
+      { name: "apps directory", path: "apps", required: true },
     ];
+
+    if (config.manager === "pnpm") {
+      checks.push({
+        name: "pnpm-workspace.yaml",
+        path: "pnpm-workspace.yaml",
+        required: true,
+      });
+    }
 
     let healthy = true;
     for (const check of checks) {
       if (fs.existsSync(path.join(process.cwd(), check.path))) {
         logger.step(`${color.green("✔")} ${check.name} found`);
       } else {
-        logger.step(`${color.red("✘")} ${check.name} missing`);
-        healthy = false;
+        if (check.required) {
+          logger.step(`${color.red("✘")} ${check.name} missing`);
+          healthy = false;
+        } else {
+          logger.step(
+            `${color.yellow("!")} ${check.name} not found (optional)`,
+          );
+        }
       }
     }
 
     if (healthy) {
-      logger.success("Project is healthy!");
+      logger.success(
+        "Project is healthy! All required monorepo files are in place.",
+      );
     } else {
-      logger.warn("Some issues were found in your project setup.");
+      logger.warn("Some critical issues were found in your project setup.");
+      logger.info(
+        `Make sure you are in the root of your ${color.cyan("create-momo")} project.`,
+      );
     }
   },
 
   update: async () => {
     logger.info("Checking for configuration updates...");
-    // Future: Sync templates from the CLI to the local config-typescript package
     logger.success("Configurations are up to date.");
   },
 };
