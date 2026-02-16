@@ -9,7 +9,7 @@ import { registerAddCommand } from "@/commands/core/add.js";
 import { registerCreateCommand } from "@/commands/core/create.js";
 import { registerDeployCommands } from "@/commands/management/deploy.js";
 import { registerProjectCommands } from "@/commands/management/project.js";
-import { registerSetupCommands } from "@/commands/setup/setup.ts";
+import { registerSetupCommands } from "@/commands/setup/setup.js";
 import { registerUtilityCommands } from "@/commands/utility/utility.js";
 
 // Read package.json dynamically
@@ -60,7 +60,5 @@ async function main() {
 
   program.parse();
 }
-
-main().catch(console.error);
 
 main().catch(console.error);
