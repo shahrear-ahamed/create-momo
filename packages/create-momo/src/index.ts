@@ -10,7 +10,6 @@ import { registerCreateCommand } from "@/commands/core/create.js";
 import { registerDeployCommands } from "@/commands/management/deploy.js";
 import { registerProjectCommands } from "@/commands/management/project.js";
 import { registerSetupCommands } from "@/commands/setup/setup.js";
-import { registerDepCommand } from "@/commands/utility/dep.js";
 import { registerUtilityCommands } from "@/commands/utility/utility.js";
 
 // Read package.json dynamically
@@ -50,7 +49,6 @@ async function main() {
   registerSetupCommands(program);
   registerDeployCommands(program);
   registerUtilityCommands(program);
-  registerDepCommand(program);
   registerProjectCommands(program);
 
   program.parse();

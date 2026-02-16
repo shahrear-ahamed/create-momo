@@ -1,7 +1,10 @@
 import path from "node:path";
 import { cancel, isCancel, select, text } from "@clack/prompts";
 import type { Command } from "commander";
+import { execa } from "execa";
+import fs from "fs-extra";
 import color from "picocolors";
+import { configManager } from "@/commands/config/config.js";
 import { AddComponentSchema } from "@/schemas/commands.schema.js";
 import { getBaseConfig } from "@/templates/config-typescript/base.json.js";
 import { getNextjsConfig } from "@/templates/config-typescript/nextjs.json.js";
@@ -11,6 +14,7 @@ import { getReactConfig } from "@/templates/config-typescript/react.json.js";
 import { fileOps } from "@/utils/file-ops.js";
 import { createSpinner, logger } from "@/utils/logger.js";
 import { validators } from "@/utils/validators.js";
+import { workspaceUtils } from "@/utils/workspace.js";
 
 type AddOptions = {
   app?: boolean;
@@ -37,6 +41,11 @@ export async function addComponent(type?: string, options: AddOptions = {}) {
           label: "Package (in /packages)",
           hint: "Shared UI, utils, etc.",
         },
+        {
+          value: "dep",
+          label: "Dependency",
+          hint: "Install a package (main or dev)",
+        },
       ],
     });
 
@@ -45,6 +54,19 @@ export async function addComponent(type?: string, options: AddOptions = {}) {
       process.exit(0);
     }
     componentType = selectedType as string;
+
+    // If it's a dependency, delegate to the dependency handler
+    if (componentType === "dep") {
+      const packageName = await text({
+        message: "What is the name of the package?",
+        placeholder: "zod",
+      });
+      if (isCancel(packageName)) {
+        cancel("Operation cancelled.");
+        process.exit(0);
+      }
+      return addDependency(packageName as string, {});
+    }
   } else {
     // Infer from flags
     if (validated.options?.app) componentType = "app";
@@ -164,11 +186,149 @@ export async function addComponent(type?: string, options: AddOptions = {}) {
   }
 }
 
+interface AddDepOptions {
+  dev?: boolean;
+  app?: string;
+  pkg?: string;
+  root?: boolean;
+}
+
+async function addDependency(packageName: string, options: AddDepOptions) {
+  const config = await configManager.load();
+  const packageManager = config.manager || "pnpm";
+
+  // Guard: Must be inside a momo project
+  const rootDir = process.cwd();
+  const configPath = path.join(rootDir, "momo.config.json");
+  if (!fs.existsSync(configPath)) {
+    logger.error(
+      `Not inside a ${color.cyan("create-momo")} project. Run this command from the project root.`,
+    );
+    process.exit(1);
+  }
+
+  // Determine target
+  let target: string | null = null;
+  let isWorkspaceRoot = options.root || false;
+
+  if (options.app) {
+    const workspace = await workspaceUtils.findWorkspace(options.app, rootDir);
+    if (!workspace || workspace.type !== "app") {
+      logger.error(`App ${color.cyan(options.app)} not found.`);
+      process.exit(1);
+    }
+    target = workspace.name;
+  } else if (options.pkg) {
+    const workspace = await workspaceUtils.findWorkspace(options.pkg, rootDir);
+    if (!workspace || workspace.type !== "package") {
+      logger.error(`Package ${color.cyan(options.pkg)} not found.`);
+      process.exit(1);
+    }
+    target = workspace.name;
+  } else if (!isWorkspaceRoot) {
+    // Interactive selection
+    const workspaces = await workspaceUtils.discoverWorkspaces(rootDir);
+    if (workspaces.length === 0) {
+      logger.warn("No apps or packages found. Adding to workspace root.");
+      isWorkspaceRoot = true;
+    } else {
+      const selections = workspaces.map((ws) => ({
+        value: ws.name,
+        label: `${ws.name} ${color.dim(`(${ws.type})`)}`,
+      }));
+
+      selections.push({
+        value: "__root__",
+        label: `${color.bold("Workspace Root")} ${color.dim("(main or dev deps)")}`,
+      });
+
+      const selected = await select({
+        message: `Where should ${color.cyan(packageName)} be installed?`,
+        options: selections,
+      });
+
+      if (isCancel(selected)) {
+        cancel("Operation cancelled.");
+        process.exit(0);
+      }
+
+      if (selected === "__root__") {
+        isWorkspaceRoot = true;
+      } else {
+        target = selected as string;
+      }
+    }
+  }
+
+  // Check if it's an internal workspace package
+  const isInternal = await workspaceUtils.isInternalPackage(packageName, rootDir);
+  if (isInternal) {
+    logger.info(
+      `${color.cyan(packageName)} is an internal workspace package. Using workspace protocol.`,
+    );
+  }
+
+  // Build command
+  const args: string[] = ["add"];
+  if (options.dev) args.push("-D");
+
+  if (isWorkspaceRoot) {
+    args.push("-w");
+  } else if (target) {
+    args.push("--filter", target);
+  }
+
+  args.push(isInternal ? `${packageName}@workspace:*` : packageName);
+
+  // Execute
+  try {
+    logger.info(
+      `Installing ${color.cyan(packageName)}${isWorkspaceRoot ? " to workspace root" : target ? ` to ${color.cyan(target)}` : ""}...`,
+    );
+    await execa(packageManager, args, {
+      stdio: "inherit",
+      cwd: rootDir,
+    });
+    logger.success(`Successfully installed ${color.cyan(packageName)}`);
+  } catch (error) {
+    logger.error(`Failed to install ${packageName}`);
+    process.exit(1);
+  }
+}
+
 export function registerAddCommand(program: Command) {
-  program
+  const add = program
     .command("add")
-    .description("Scaffold a new app, package, or configuration into the monorepo")
-    .option("-a, --app", "Add a new application (Next.js, Vite, etc.)")
-    .option("-p, --package", "Add a new shared library or configuration package")
+    .description("Add components or dependencies to the monorepo")
     .action(async (type, options) => await addComponent(type, options));
+
+  add
+    .command("app")
+    .argument("[name]", "Name of the application")
+    .description("Add a new application")
+    .action(async (name) => {
+      // Mock options for compatibility
+      await addComponent("app", { app: true });
+    });
+
+  add
+    .command("package")
+    .argument("[name]", "Name of the package")
+    .description("Add a new package")
+    .action(async (name) => {
+      await addComponent("package", { package: true });
+    });
+
+  add
+    .command("dep")
+    .alias("get")
+    .argument("<package>", "Package name to install")
+    .description("Install a dependency")
+    .option("-D, --dev", "Install as devDependency")
+    .option("-a, --app <name>", "Target a specific app")
+    .option("-p, --pkg <name>", "Target a specific package")
+    .option("-w, --root", "Install to workspace root")
+    .action(async (packageName, options) => {
+      await addDependency(packageName, options);
+    });
 }
