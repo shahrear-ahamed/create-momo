@@ -59,4 +59,13 @@ We use [Conventional Commits](https://www.conventionalcommits.org/) for commit m
 3. If you've changed APIs, update the documentation.
 4. Ensure the test suite passes.
 5. Make sure your code lints.
-6. Issue that pull request!
+6. **Add a changeset**: Run `pnpm changeset` and follow the prompts. This is required for any change that should trigger a new release.
+7. Issue that pull request!
+
+## Release Workflow
+
+We use [Changesets](https://github.com/changesets/changesets) to manage versioning and releases.
+
+1. **Commit a changeset**: When your feature is ready, run `pnpm changeset`. This creates a small markdown file in the `.changeset` directory.
+2. **Merge to main**: Once your PR is merged to `main`, a GitHub Action will automatically create or update a "Version Packages" Pull Request.
+3. **Publish**: When you merge the "Version Packages" PR, the GitHub Action will automatically publish the new version(s) to npm and create matching GitHub releases.

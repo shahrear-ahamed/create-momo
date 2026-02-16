@@ -18,65 +18,37 @@ import { createSpinner, logger } from "@/utils/logger.js";
 import { validators } from "@/utils/validators.js";
 import { workspaceUtils } from "@/utils/workspace.js";
 
-export async function addComponent(type?: string, options: AddOptions = {}) {
-  // Validate with Zod
-  const validated = AddComponentSchema.parse({ type, options });
-  let componentType = validated.type;
+async function getComponentType(type?: string, options: AddOptions = {}): Promise<string> {
+  let componentType = type;
 
-  // 1. Determine Type (App vs Package)
-  if (!componentType && !validated.options?.app && !validated.options?.package) {
-    const selectedType = await select({
+  if (!componentType && !options.app && !options.package) {
+    const selected = await select({
       message: "What do you want to add?",
       options: [
-        {
-          value: "app",
-          label: "Application (in /apps)",
-          hint: "Next.js, Vite, etc.",
-        },
-        {
-          value: "package",
-          label: "Package (in /packages)",
-          hint: "Shared UI, utils, etc.",
-        },
-        {
-          value: "dep",
-          label: "Dependency",
-          hint: "Install a package (main or dev)",
-        },
+        { value: "app", label: "Application (in /apps)", hint: "Next.js, Vite, etc." },
+        { value: "package", label: "Package (in /packages)", hint: "Shared UI, utils, etc." },
+        { value: "dep", label: "Dependency", hint: "Install a package (main or dev)" },
       ],
     });
 
-    if (isCancel(selectedType)) {
+    if (isCancel(selected)) {
       cancel("Operation cancelled.");
       process.exit(0);
     }
-    componentType = selectedType as string;
-
-    // If it's a dependency, delegate to the dependency handler
-    if (componentType === "dep") {
-      const packageName = await text({
-        message: "What is the name of the package?",
-        placeholder: "zod",
-      });
-      if (isCancel(packageName)) {
-        cancel("Operation cancelled.");
-        process.exit(0);
-      }
-      return addDependency(packageName as string, {});
-    }
+    componentType = selected as string;
   } else {
-    // Infer from flags
-    if (validated.options?.app) componentType = "app";
-    if (validated.options?.package) componentType = "package";
+    if (options.app) componentType = "app";
+    if (options.package) componentType = "package";
   }
 
-  // 2. Prompt for Name
+  return componentType as string;
+}
+
+async function getComponentName(componentType: string): Promise<string> {
   const name = await text({
     message: `What is the name of your new ${componentType}?`,
     placeholder: componentType === "app" ? "web" : "ui",
-    validate: (val) => {
-      return validators.projectName(val);
-    },
+    validate: (val) => validators.projectName(val),
   });
 
   if (isCancel(name)) {
@@ -84,11 +56,10 @@ export async function addComponent(type?: string, options: AddOptions = {}) {
     process.exit(0);
   }
 
-  const componentName = name as string;
-  const targetRoot = componentType === "app" ? "apps" : "packages";
-  const targetDir = path.join(process.cwd(), targetRoot, componentName);
+  return name as string;
+}
 
-  // 3. Prompt for Flavor
+async function getComponentFlavor(componentType: string): Promise<string> {
   const flavor = await select({
     message: `Select the flavor for your ${componentType}`,
     options: [
@@ -104,77 +75,88 @@ export async function addComponent(type?: string, options: AddOptions = {}) {
     process.exit(0);
   }
 
-  // 4. Scaffolding
+  return flavor as string;
+}
+
+async function ensureSharedConfig(flavor: string) {
+  const configPkgDir = path.join(process.cwd(), "packages", "config-typescript");
+  const flavorFile = path.join(configPkgDir, `${flavor}.json`);
+
+  const configExists = !(await fileOps.isEmpty(configPkgDir));
+  if (!configExists) {
+    await fileOps.ensureDir(configPkgDir);
+    await fileOps.writeJson(path.join(configPkgDir, "package.json"), getConfigPackageJson("@momo"));
+    await fileOps.writeJson(path.join(configPkgDir, "base.json"), getBaseConfig());
+  }
+
+  if (flavor === "base") return;
+
+  const flavorExists = await (async () => {
+    try {
+      await fileOps.readJson(flavorFile);
+      return true;
+    } catch {
+      return false;
+    }
+  })();
+
+  if (!flavorExists) {
+    let configContent: Record<string, unknown> | undefined;
+    if (flavor === "nextjs") configContent = getNextjsConfig();
+    else if (flavor === "react") configContent = getReactConfig();
+    else if (flavor === "node") configContent = getNodeConfig();
+
+    if (configContent) {
+      await fileOps.writeJson(flavorFile, configContent);
+      logger.info(`Added ${color.cyan(`${flavor}.json`)} to shared config.`);
+    }
+  }
+}
+
+export async function addComponent(type?: string, options: AddOptions = {}) {
+  const validated = AddComponentSchema.parse({ type, options });
+  const componentType = await getComponentType(validated.type, validated.options);
+
+  if (componentType === "dep") {
+    const packageName = await text({
+      message: "What is the name of the package?",
+      placeholder: "zod",
+    });
+    if (isCancel(packageName)) {
+      cancel("Operation cancelled.");
+      process.exit(0);
+    }
+    return addDependency(packageName as string, {});
+  }
+
+  const componentName = await getComponentName(componentType);
+  const targetRoot = componentType === "app" ? "apps" : "packages";
+  const targetDir = path.join(process.cwd(), targetRoot, componentName);
+
+  const flavor = await getComponentFlavor(componentType);
   const spinner = createSpinner(`Creating ${componentType}...`);
 
   try {
     await fileOps.ensureDir(targetDir);
-
-    // Basic package.json
     await fileOps.writeJson(path.join(targetDir, "package.json"), {
       name: componentName,
       version: "0.0.0",
       private: true,
-      scripts: {
-        build: "echo build",
-        dev: "echo dev",
-      },
+      scripts: { build: "echo build", dev: "echo dev" },
     });
 
-    // 4.1 Ensure config-typescript exists and has the requested flavor
-    const configPkgDir = path.join(process.cwd(), "packages", "config-typescript");
-    const flavorFile = path.join(configPkgDir, `${flavor}.json`);
+    await ensureSharedConfig(flavor);
 
-    // Existence checks
-    const configExists = !(await fileOps.isEmpty(configPkgDir));
-    if (!configExists) {
-      await fileOps.ensureDir(configPkgDir);
-      await fileOps.writeJson(
-        path.join(configPkgDir, "package.json"),
-        getConfigPackageJson("@momo"),
-      );
-      await fileOps.writeJson(path.join(configPkgDir, "base.json"), getBaseConfig());
-    }
-
-    // Check flavor file
-    const flavorExists = await (async () => {
-      try {
-        await fileOps.readJson(flavorFile);
-        return true;
-      } catch {
-        return false;
-      }
-    })();
-
-    if (!flavorExists && flavor !== "base") {
-      let configContent: Record<string, unknown> | undefined;
-      if (flavor === "nextjs") configContent = getNextjsConfig();
-      else if (flavor === "react") configContent = getReactConfig();
-      else if (flavor === "node") configContent = getNodeConfig();
-
-      if (configContent) {
-        await fileOps.writeJson(flavorFile, configContent);
-        logger.info(`Added ${color.cyan(`${flavor}.json`)} to shared config.`);
-      }
-    }
-
-    // Add tsconfig to component
     const extendPath = `../../packages/config-typescript/${flavor}.json`;
     await fileOps.writeJson(path.join(targetDir, "tsconfig.json"), {
       extends: extendPath,
-      compilerOptions: {
-        outDir: "dist",
-        rootDir: "src",
-      },
+      compilerOptions: { outDir: "dist", rootDir: "src" },
       include: ["src"],
       exclude: ["node_modules", "dist"],
     });
 
-    // Add src folder
     await fileOps.ensureDir(path.join(targetDir, "src"));
-
     spinner.stop(`${componentType === "app" ? "Application" : "Package"} added successfully!`);
-
     logger.success(`\nCreated ${color.bold(componentName)} in ${color.underline(targetDir)}`);
   } catch (error) {
     spinner.stop("Failed to add component");
@@ -183,23 +165,45 @@ export async function addComponent(type?: string, options: AddOptions = {}) {
   }
 }
 
-async function addDependency(packageName: string, options: AddDepOptions) {
-  const config = await configManager.load();
-  const packageManager = config.manager || "pnpm";
-
-  // Guard: Must be inside a momo project
-  const rootDir = process.cwd();
-  const configPath = path.join(rootDir, "momo.config.json");
-  if (!fs.existsSync(configPath)) {
-    logger.error(
-      `Not inside a ${color.cyan("create-momo")} project. Run this command from the project root.`,
-    );
-    process.exit(1);
+async function promptInstallationTarget(
+  workspaces: { name: string; type: string }[],
+  packageName: string,
+): Promise<{ target: string | null; isWorkspaceRoot: boolean }> {
+  if (workspaces.length === 0) {
+    return { target: null, isWorkspaceRoot: true };
   }
 
-  // Determine target
-  let target: string | null = null;
-  let isWorkspaceRoot = options.root || false;
+  const selections = workspaces.map((ws) => ({
+    value: ws.name,
+    label: `${ws.name} ${color.dim(`(${ws.type})`)}`,
+  }));
+
+  selections.push({
+    value: "__root__",
+    label: `${color.bold("Workspace Root")} ${color.dim("(main or dev deps)")}`,
+  });
+
+  const selected = await select({
+    message: `Where should ${color.cyan(packageName)} be installed?`,
+    options: selections,
+  });
+
+  if (isCancel(selected)) {
+    cancel("Operation cancelled.");
+    process.exit(0);
+  }
+
+  return selected === "__root__"
+    ? { target: null, isWorkspaceRoot: true }
+    : { target: selected as string, isWorkspaceRoot: false };
+}
+
+async function getInstallationTarget(
+  options: AddDepOptions,
+  rootDir: string,
+  packageName: string,
+): Promise<{ target: string | null; isWorkspaceRoot: boolean }> {
+  if (options.root) return { target: null, isWorkspaceRoot: true };
 
   if (options.app) {
     const workspace = await workspaceUtils.findWorkspace(options.app, rootDir);
@@ -207,80 +211,51 @@ async function addDependency(packageName: string, options: AddDepOptions) {
       logger.error(`App ${color.cyan(options.app)} not found.`);
       process.exit(1);
     }
-    target = workspace.name;
-  } else if (options.pkg) {
+    return { target: workspace.name, isWorkspaceRoot: false };
+  }
+
+  if (options.pkg) {
     const workspace = await workspaceUtils.findWorkspace(options.pkg, rootDir);
     if (!workspace || workspace.type !== "package") {
       logger.error(`Package ${color.cyan(options.pkg)} not found.`);
       process.exit(1);
     }
-    target = workspace.name;
-  } else if (!isWorkspaceRoot) {
-    // Interactive selection
-    const workspaces = await workspaceUtils.discoverWorkspaces(rootDir);
-    if (workspaces.length === 0) {
-      logger.warn("No apps or packages found. Adding to workspace root.");
-      isWorkspaceRoot = true;
-    } else {
-      const selections = workspaces.map((ws) => ({
-        value: ws.name,
-        label: `${ws.name} ${color.dim(`(${ws.type})`)}`,
-      }));
-
-      selections.push({
-        value: "__root__",
-        label: `${color.bold("Workspace Root")} ${color.dim("(main or dev deps)")}`,
-      });
-
-      const selected = await select({
-        message: `Where should ${color.cyan(packageName)} be installed?`,
-        options: selections,
-      });
-
-      if (isCancel(selected)) {
-        cancel("Operation cancelled.");
-        process.exit(0);
-      }
-
-      if (selected === "__root__") {
-        isWorkspaceRoot = true;
-      } else {
-        target = selected as string;
-      }
-    }
+    return { target: workspace.name, isWorkspaceRoot: false };
   }
 
-  // Check if it's an internal workspace package
+  const workspaces = await workspaceUtils.discoverWorkspaces(rootDir);
+  return promptInstallationTarget(workspaces, packageName);
+}
+
+async function addDependency(packageName: string, options: AddDepOptions) {
+  const config = await configManager.load();
+  const packageManager = config.manager || "pnpm";
+  const rootDir = process.cwd();
+
+  if (!fs.existsSync(path.join(rootDir, "momo.config.json"))) {
+    logger.error(`Not inside a ${color.cyan("create-momo")} project.`);
+    process.exit(1);
+  }
+
+  const { target, isWorkspaceRoot } = await getInstallationTarget(options, rootDir, packageName);
   const isInternal = await workspaceUtils.isInternalPackage(packageName, rootDir);
+
   if (isInternal) {
-    logger.info(
-      `${color.cyan(packageName)} is an internal workspace package. Using workspace protocol.`,
-    );
+    logger.info(`${color.cyan(packageName)} is an internal package. Using workspace protocol.`);
   }
 
-  // Build command
   const args: string[] = ["add"];
   if (options.dev) args.push("-D");
-
-  if (isWorkspaceRoot) {
-    args.push("-w");
-  } else if (target) {
-    args.push("--filter", target);
-  }
+  if (isWorkspaceRoot) args.push("-w");
+  else if (target) args.push("--filter", target);
 
   args.push(isInternal ? `${packageName}@workspace:*` : packageName);
 
-  // Execute
   try {
-    logger.info(
-      `Installing ${color.cyan(packageName)}${isWorkspaceRoot ? " to workspace root" : target ? ` to ${color.cyan(target)}` : ""}...`,
-    );
-    await execa(packageManager, args, {
-      stdio: "inherit",
-      cwd: rootDir,
-    });
+    logger.info(`Installing ${color.cyan(packageName)}...`);
+    await execa(packageManager, args, { stdio: "inherit", cwd: rootDir });
     logger.success(`Successfully installed ${color.cyan(packageName)}`);
-  } catch (error) {
+  } catch (_error) {
     logger.error(`Failed to install ${packageName}`);
     process.exit(1);
   }
@@ -296,7 +271,7 @@ export function registerAddCommand(program: Command) {
     .command(COMMANDS.addApp)
     .argument("[name]", "Name of the application")
     .description(DESCRIPTIONS.addApp)
-    .action(async (name) => {
+    .action(async (_name) => {
       await addComponent("app", { app: true });
     });
 
@@ -304,7 +279,7 @@ export function registerAddCommand(program: Command) {
     .command(COMMANDS.addPackage)
     .argument("[name]", "Name of the package")
     .description(DESCRIPTIONS.addPackage)
-    .action(async (name) => {
+    .action(async (_name) => {
       await addComponent("package", { package: true });
     });
 

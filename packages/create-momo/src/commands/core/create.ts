@@ -17,33 +17,14 @@ import { createSpinner, logger } from "@/utils/logger.js";
 import { projectUtils } from "@/utils/project.js";
 import { validators } from "@/utils/validators.js";
 
-export async function createProject(args: CreateProjectOptions = {}) {
-  // Validate args with Zod
-  const validated = CreateProjectSchema.parse(args);
-  let projectName = validated.name;
-  let targetDir = "";
+async function getProjectName(initialName?: string): Promise<string> {
+  let projectName = initialName;
 
-  // Guard: Prevent nested project creation
-  if (projectUtils.isInsideProject()) {
-    const root = projectUtils.findProjectRoot();
-    logger.error(
-      `Detected existing ${color.cyan("create-momo")} project at: ${color.underline(root || "")}`,
-    );
-    logger.warn(
-      "Nesting projects is not recommended. Please run this command outside of an existing monorepo.",
-    );
-    process.exit(1);
-  }
-
-  // 1. Ask for project name if not provided
   if (!projectName) {
     const name = await text({
       message: "What is the name of your monorepo?",
       placeholder: "my-momo-project",
-      validate: (value) => {
-        if (value === ".") return; // Allow .
-        return validators.projectName(value);
-      },
+      validate: (value) => (value === "." ? undefined : validators.projectName(value)),
     });
 
     if (isCancel(name)) {
@@ -51,30 +32,22 @@ export async function createProject(args: CreateProjectOptions = {}) {
       process.exit(0);
     }
     projectName = name as string;
-  } else {
-    // Validate provided name (allow . for current dir)
-    if (projectName !== ".") {
-      const validationError = validators.projectName(projectName);
-      if (validationError) {
-        logger.error(`Invalid project name: ${validationError}`);
-        process.exit(1);
-      }
+  } else if (projectName !== ".") {
+    const error = validators.projectName(projectName);
+    if (error) {
+      logger.error(`Invalid project name: ${error}`);
+      process.exit(1);
     }
   }
 
-  // Resolve target directory
-  if (projectName === ".") {
-    targetDir = process.cwd();
-    projectName = path.basename(targetDir);
-  } else {
-    targetDir = path.resolve(process.cwd(), projectName);
-  }
+  return projectName;
+}
 
-  // 2. Check if directory exists and is empty
+async function validateTargetDir(targetDir: string, projectName: string) {
   const isEmpty = await fileOps.isEmpty(targetDir);
   if (!isEmpty) {
     const overwrite = await select({
-      message: `Directory "${projectName === "." ? "Current Directory" : projectName}" is not empty. How would you like to proceed?`,
+      message: `Directory "${projectName === "." ? "Current Directory" : projectName}" is not empty. Proceed?`,
       options: [
         { value: "cancel", label: "Cancel operation" },
         { value: "ignore", label: "Ignore (files might be overwritten)" },
@@ -86,8 +59,9 @@ export async function createProject(args: CreateProjectOptions = {}) {
       process.exit(0);
     }
   }
+}
 
-  // 3. Configuration (Scope)
+async function getProjectScope(projectName: string): Promise<string> {
   const config = await configManager.load();
   const defaultScope =
     config.packageScope ||
@@ -106,7 +80,10 @@ export async function createProject(args: CreateProjectOptions = {}) {
     process.exit(0);
   }
 
-  // 4. Package Manager Selection
+  return scope as string;
+}
+
+async function getPackageManager(): Promise<PackageManager> {
   const userAgent = process.env.npm_config_user_agent || "";
   let detectedPM: PackageManager = "pnpm";
   if (userAgent.includes("yarn")) detectedPM = "yarn";
@@ -129,66 +106,84 @@ export async function createProject(args: CreateProjectOptions = {}) {
     process.exit(0);
   }
 
-  // 5. Scaffolding
+  return packageManager;
+}
+
+async function runScaffolding(
+  targetDir: string,
+  projectName: string,
+  scope: string,
+  packageManager: PackageManager,
+  version: string,
+) {
+  await fileOps.ensureDir(targetDir);
+
+  await fileOps.writeJson(
+    path.join(targetDir, "package.json"),
+    getRootPackageJson(projectName, packageManager, version),
+  );
+
+  if (packageManager === "pnpm") {
+    await fileOps.writeFile(
+      path.join(targetDir, "pnpm-workspace.yaml"),
+      'packages:\n  - "apps/*"\n  - "packages/*"\n',
+    );
+  }
+
+  await fileOps.writeJson(path.join(targetDir, "turbo.json"), getTurboJson());
+  await fileOps.writeJson(path.join(targetDir, "tsconfig.json"), getBaseTsConfig());
+  await fileOps.writeFile(path.join(targetDir, ".gitignore"), getGitignore());
+  await fileOps.writeJson(
+    path.join(targetDir, "momo.config.json"),
+    getMomoConfig(scope, packageManager),
+  );
+
+  await fileOps.ensureDir(path.join(targetDir, "apps"));
+  await fileOps.ensureDir(path.join(targetDir, "packages"));
+
+  const configDir = path.join(targetDir, "packages", "config-typescript");
+  await fileOps.ensureDir(configDir);
+  await fileOps.writeJson(path.join(configDir, "package.json"), getConfigPackageJson(scope));
+  await fileOps.writeJson(path.join(configDir, "base.json"), getBaseConfig());
+}
+
+export async function createProject(args: CreateProjectOptions = {}) {
+  const validated = CreateProjectSchema.parse(args);
+
+  if (projectUtils.isInsideProject()) {
+    const root = projectUtils.findProjectRoot();
+    logger.error(`Detected existing create-momo project at: ${color.underline(root || "")}`);
+    process.exit(1);
+  }
+
+  let projectName = await getProjectName(validated.name);
+  let targetDir = "";
+
+  if (projectName === ".") {
+    targetDir = process.cwd();
+    projectName = path.basename(targetDir);
+  } else {
+    targetDir = path.resolve(process.cwd(), projectName);
+  }
+
+  await validateTargetDir(targetDir, projectName);
+  const scope = await getProjectScope(projectName);
+  const packageManager = await getPackageManager();
+
   const spinner = createSpinner("Scaffolding project with latest dependencies...");
-
   try {
-    const _cleanScope = (scope as string).replace("@", "");
-
-    await fileOps.ensureDir(targetDir);
-
-    // ROOT package.json - always use latest for core tools
-    await fileOps.writeJson(
-      path.join(targetDir, "package.json"),
-      getRootPackageJson(projectName, packageManager, validated.version || "0.2.0"),
+    await runScaffolding(
+      targetDir,
+      projectName,
+      scope,
+      packageManager,
+      validated.version || "0.2.0",
     );
-
-    // Workspace Config (Only for pnpm)
-    if (packageManager === "pnpm") {
-      await fileOps.writeFile(
-        path.join(targetDir, "pnpm-workspace.yaml"),
-        `packages:
-  - "apps/*"
-  - "packages/*"
-`,
-      );
-    }
-
-    // turbo.json
-    await fileOps.writeJson(path.join(targetDir, "turbo.json"), getTurboJson());
-
-    // tsconfig.json (Base)
-    await fileOps.writeJson(path.join(targetDir, "tsconfig.json"), getBaseTsConfig());
-
-    // .gitignore
-    await fileOps.writeFile(path.join(targetDir, ".gitignore"), getGitignore());
-
-    // momo.config.json
-    await fileOps.writeJson(
-      path.join(targetDir, "momo.config.json"),
-      getMomoConfig(scope as string, packageManager),
-    );
-
-    // Create folders
-    await fileOps.ensureDir(path.join(targetDir, "apps"));
-    await fileOps.ensureDir(path.join(targetDir, "packages"));
-
-    // 6. Scaffold config-typescript package
-    const configDir = path.join(targetDir, "packages", "config-typescript");
-    await fileOps.ensureDir(configDir);
-    await fileOps.writeJson(
-      path.join(configDir, "package.json"),
-      getConfigPackageJson(scope as string),
-    );
-    await fileOps.writeJson(path.join(configDir, "base.json"), getBaseConfig());
 
     spinner.stop("Project scaffolded successfully!");
-
     logger.success(`\nProject created at ${color.underline(targetDir)}`);
     logger.info("\nNext steps:");
-    if (targetDir !== process.cwd()) {
-      logger.step(`  cd ${projectName}`);
-    }
+    if (targetDir !== process.cwd()) logger.step(`  cd ${projectName}`);
     logger.step(`  ${packageManager} install`);
     logger.step(`  ${packageManager} ${packageManager === "npm" ? "run " : ""}dev`);
   } catch (error) {
