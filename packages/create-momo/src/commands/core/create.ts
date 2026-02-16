@@ -8,14 +8,12 @@ import { getBaseConfig } from "@/templates/config-typescript/base.json.js";
 import { getConfigPackageJson } from "@/templates/config-typescript/package.json.js";
 import { getGitignore } from "@/templates/gitignore.js";
 import { getMomoConfig } from "@/templates/momo.config.json.js";
-import {
-  getRootPackageJson,
-  type PackageManager,
-} from "@/templates/package.json.js";
+import { getRootPackageJson, type PackageManager } from "@/templates/package.json.js";
 import { getBaseTsConfig } from "@/templates/tsconfig.json.js";
 import { getTurboJson } from "@/templates/turbo.json.js";
 import { fileOps } from "@/utils/file-ops.js";
 import { createSpinner, logger } from "@/utils/logger.js";
+import { projectUtils } from "@/utils/project.js";
 import { validators } from "@/utils/validators.js";
 
 interface CreateProjectOptions {
@@ -29,6 +27,18 @@ export async function createProject(args: CreateProjectOptions = {}) {
   const validated = CreateProjectSchema.parse(args);
   let projectName = validated.name;
   let targetDir = "";
+
+  // Guard: Prevent nested project creation
+  if (projectUtils.isInsideProject()) {
+    const root = projectUtils.findProjectRoot();
+    logger.error(
+      `Detected existing ${color.cyan("create-momo")} project at: ${color.underline(root || "")}`,
+    );
+    logger.warn(
+      "Nesting projects is not recommended. Please run this command outside of an existing monorepo.",
+    );
+    process.exit(1);
+  }
 
   // 1. Ask for project name if not provided
   if (!projectName) {
@@ -125,9 +135,7 @@ export async function createProject(args: CreateProjectOptions = {}) {
   }
 
   // 5. Scaffolding
-  const spinner = createSpinner(
-    "Scaffolding project with latest dependencies...",
-  );
+  const spinner = createSpinner("Scaffolding project with latest dependencies...");
 
   try {
     const _cleanScope = (scope as string).replace("@", "");
@@ -137,11 +145,7 @@ export async function createProject(args: CreateProjectOptions = {}) {
     // ROOT package.json - always use latest for core tools
     await fileOps.writeJson(
       path.join(targetDir, "package.json"),
-      getRootPackageJson(
-        projectName,
-        packageManager,
-        validated.version || "0.2.0",
-      ),
+      getRootPackageJson(projectName, packageManager, validated.version || "0.2.0"),
     );
 
     // Workspace Config (Only for pnpm)
@@ -159,10 +163,7 @@ export async function createProject(args: CreateProjectOptions = {}) {
     await fileOps.writeJson(path.join(targetDir, "turbo.json"), getTurboJson());
 
     // tsconfig.json (Base)
-    await fileOps.writeJson(
-      path.join(targetDir, "tsconfig.json"),
-      getBaseTsConfig(),
-    );
+    await fileOps.writeJson(path.join(targetDir, "tsconfig.json"), getBaseTsConfig());
 
     // .gitignore
     await fileOps.writeFile(path.join(targetDir, ".gitignore"), getGitignore());
@@ -194,9 +195,7 @@ export async function createProject(args: CreateProjectOptions = {}) {
       logger.step(`  cd ${projectName}`);
     }
     logger.step(`  ${packageManager} install`);
-    logger.step(
-      `  ${packageManager} ${packageManager === "npm" ? "run " : ""}dev`,
-    );
+    logger.step(`  ${packageManager} ${packageManager === "npm" ? "run " : ""}dev`);
   } catch (error) {
     spinner.stop("Failed to create project");
     logger.error((error as Error).message);
