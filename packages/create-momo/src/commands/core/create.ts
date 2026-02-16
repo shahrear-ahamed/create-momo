@@ -1,26 +1,39 @@
 import path from "node:path";
 import { cancel, isCancel, select, text } from "@clack/prompts";
+import type { Command } from "commander";
 import color from "picocolors";
-import { configManager } from "@/commands/config.js";
+import { configManager } from "@/commands/config/config.js";
+import { CreateProjectSchema } from "@/schemas/commands.schema.js";
 import { getBaseConfig } from "@/templates/config-typescript/base.json.js";
 import { getConfigPackageJson } from "@/templates/config-typescript/package.json.js";
 import { getGitignore } from "@/templates/gitignore.js";
 import { getMomoConfig } from "@/templates/momo.config.json.js";
-import {
-  getRootPackageJson,
-  type PackageManager,
-} from "@/templates/package.json.js";
+import { getRootPackageJson } from "@/templates/package.json.js";
 import { getBaseTsConfig } from "@/templates/tsconfig.json.js";
 import { getTurboJson } from "@/templates/turbo.json.js";
+import type { CreateProjectOptions, PackageManager } from "@/types/index.js";
 import { fileOps } from "@/utils/file-ops.js";
 import { createSpinner, logger } from "@/utils/logger.js";
+import { projectUtils } from "@/utils/project.js";
 import { validators } from "@/utils/validators.js";
 
-export async function createProject(
-  args: { name?: string; cwd?: string; version?: string } = {},
-) {
-  let projectName = args.name;
+export async function createProject(args: CreateProjectOptions = {}) {
+  // Validate args with Zod
+  const validated = CreateProjectSchema.parse(args);
+  let projectName = validated.name;
   let targetDir = "";
+
+  // Guard: Prevent nested project creation
+  if (projectUtils.isInsideProject()) {
+    const root = projectUtils.findProjectRoot();
+    logger.error(
+      `Detected existing ${color.cyan("create-momo")} project at: ${color.underline(root || "")}`,
+    );
+    logger.warn(
+      "Nesting projects is not recommended. Please run this command outside of an existing monorepo.",
+    );
+    process.exit(1);
+  }
 
   // 1. Ask for project name if not provided
   if (!projectName) {
@@ -52,7 +65,6 @@ export async function createProject(
   // Resolve target directory
   if (projectName === ".") {
     targetDir = process.cwd();
-    // If using current dir, use the folder name as the project name in package.json
     projectName = path.basename(targetDir);
   } else {
     targetDir = path.resolve(process.cwd(), projectName);
@@ -118,17 +130,17 @@ export async function createProject(
   }
 
   // 5. Scaffolding
-  const spinner = createSpinner("Scaffolding project...");
+  const spinner = createSpinner("Scaffolding project with latest dependencies...");
 
   try {
     const _cleanScope = (scope as string).replace("@", "");
 
     await fileOps.ensureDir(targetDir);
 
-    // ROOT package.json
+    // ROOT package.json - always use latest for core tools
     await fileOps.writeJson(
       path.join(targetDir, "package.json"),
-      getRootPackageJson(projectName, packageManager, args.version || "0.1.0"),
+      getRootPackageJson(projectName, packageManager, validated.version || "0.2.0"),
     );
 
     // Workspace Config (Only for pnpm)
@@ -146,10 +158,7 @@ export async function createProject(
     await fileOps.writeJson(path.join(targetDir, "turbo.json"), getTurboJson());
 
     // tsconfig.json (Base)
-    await fileOps.writeJson(
-      path.join(targetDir, "tsconfig.json"),
-      getBaseTsConfig(),
-    );
+    await fileOps.writeJson(path.join(targetDir, "tsconfig.json"), getBaseTsConfig());
 
     // .gitignore
     await fileOps.writeFile(path.join(targetDir, ".gitignore"), getGitignore());
@@ -173,20 +182,26 @@ export async function createProject(
     );
     await fileOps.writeJson(path.join(configDir, "base.json"), getBaseConfig());
 
-    spinner.stop("Project scouted successfully!");
+    spinner.stop("Project scaffolded successfully!");
 
     logger.success(`\nProject created at ${color.underline(targetDir)}`);
     logger.info("\nNext steps:");
     if (targetDir !== process.cwd()) {
-      logger.step(`  cd ${args.name || projectName}`);
+      logger.step(`  cd ${projectName}`);
     }
     logger.step(`  ${packageManager} install`);
-    logger.step(
-      `  ${packageManager} ${packageManager === "npm" ? "run " : ""}dev`,
-    );
+    logger.step(`  ${packageManager} ${packageManager === "npm" ? "run " : ""}dev`);
   } catch (error) {
     spinner.stop("Failed to create project");
     logger.error((error as Error).message);
     process.exit(1);
   }
+}
+
+export function registerCreateCommand(program: Command, pkgVersion: string) {
+  program
+    .argument("[project-name]", "Name of the project directory")
+    .action(async (projectName) => {
+      await createProject({ name: projectName, version: pkgVersion });
+    });
 }

@@ -28,10 +28,7 @@ export const validators = {
 
     const schema = z
       .string()
-      .regex(
-        /^@[a-z0-9-~][a-z0-9-._~]*$/,
-        "Scope must start with @ and be a valid npm scope",
-      );
+      .regex(/^@[a-z0-9-~][a-z0-9-._~]*$/, "Scope must start with @ and be a valid npm scope");
     const result = schema.safeParse(scope);
     if (!result.success) {
       return result.error.issues[0]?.message || "Invalid scope name";

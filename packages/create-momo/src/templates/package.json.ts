@@ -1,4 +1,4 @@
-export type PackageManager = "npm" | "yarn" | "pnpm" | "bun";
+import type { PackageManager } from "@/types/index.js";
 
 export const getRootPackageJson = (
   name: string,
@@ -24,7 +24,7 @@ export const getRootPackageJson = (
     devDependencies: {
       "create-momo": `^${createMomoVersion}`,
       turbo: "latest",
-      typescript: "^5.9.3",
+      typescript: "latest", // Always use latest typescript
       "@biomejs/biome": "latest",
     },
     engines: {
@@ -38,7 +38,7 @@ export const getRootPackageJson = (
   }
 
   if (isPnpm) {
-    base.packageManager = "pnpm@9.1.0";
+    base.packageManager = "pnpm@latest"; // Use latest pnpm
   }
 
   return base;

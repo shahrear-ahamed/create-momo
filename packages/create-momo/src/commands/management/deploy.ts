@@ -1,3 +1,4 @@
+import type { Command } from "commander";
 import { logger } from "@/utils/logger.js";
 
 export const deployCommand = {
@@ -13,3 +14,17 @@ export const deployCommand = {
     logger.success("Deployment pushed successfully.");
   },
 };
+
+export function registerDeployCommands(program: Command) {
+  const deploy = program.command("deploy").description("Deployment workflows");
+
+  deploy
+    .command("init")
+    .description("Initialize deployment config")
+    .action(async () => await deployCommand.init());
+
+  deploy
+    .command("push")
+    .description("Deploy to platform")
+    .action(async () => await deployCommand.push());
+}
