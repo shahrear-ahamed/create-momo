@@ -5,6 +5,7 @@ import { execa } from "execa";
 import fs from "fs-extra";
 import color from "picocolors";
 import { configManager } from "@/commands/config/config.js";
+import { ADD_DEP_FLAGS, COMMANDS, DESCRIPTIONS } from "@/constants/commands.js";
 import { AddComponentSchema } from "@/schemas/commands.schema.js";
 import { getBaseConfig } from "@/templates/config-typescript/base.json.js";
 import { getNextjsConfig } from "@/templates/config-typescript/nextjs.json.js";
@@ -298,36 +299,35 @@ async function addDependency(packageName: string, options: AddDepOptions) {
 
 export function registerAddCommand(program: Command) {
   const add = program
-    .command("add")
-    .description("Add components or dependencies to the monorepo")
+    .command(COMMANDS.add)
+    .description(DESCRIPTIONS.add)
     .action(async (type, options) => await addComponent(type, options));
 
   add
-    .command("app")
+    .command(COMMANDS.addApp)
     .argument("[name]", "Name of the application")
-    .description("Add a new application")
+    .description(DESCRIPTIONS.addApp)
     .action(async (name) => {
-      // Mock options for compatibility
       await addComponent("app", { app: true });
     });
 
   add
-    .command("package")
+    .command(COMMANDS.addPackage)
     .argument("[name]", "Name of the package")
-    .description("Add a new package")
+    .description(DESCRIPTIONS.addPackage)
     .action(async (name) => {
       await addComponent("package", { package: true });
     });
 
   add
-    .command("dep")
-    .alias("get")
+    .command(COMMANDS.addDep)
+    .alias(COMMANDS.addDepAlias)
     .argument("<package>", "Package name to install")
-    .description("Install a dependency")
-    .option("-D, --dev", "Install as devDependency")
-    .option("-a, --app <name>", "Target a specific app")
-    .option("-p, --pkg <name>", "Target a specific package")
-    .option("-w, --root", "Install to workspace root")
+    .description(DESCRIPTIONS.addDep)
+    .option(ADD_DEP_FLAGS.dev.flag, ADD_DEP_FLAGS.dev.description)
+    .option(ADD_DEP_FLAGS.app.flag, ADD_DEP_FLAGS.app.description)
+    .option(ADD_DEP_FLAGS.pkg.flag, ADD_DEP_FLAGS.pkg.description)
+    .option(ADD_DEP_FLAGS.root.flag, ADD_DEP_FLAGS.root.description)
     .action(async (packageName, options) => {
       await addDependency(packageName, options);
     });

@@ -1,6 +1,7 @@
 import type { Command } from "commander";
 import { execa } from "execa";
 import color from "picocolors";
+import { COMMANDS, DESCRIPTIONS, GLOBAL_FLAGS } from "@/constants/commands.js";
 import { logger } from "@/utils/logger.js";
 
 interface TurboOptions {
@@ -18,13 +19,12 @@ async function runTurbo(
 
     // Add --filter if provided (support both --filter and -f alias)
     if (options.filter) {
-      args.push("--filter", options.filter);
+      args.push(GLOBAL_FLAGS.filter.long, options.filter);
     }
 
     // Add any additional arguments passed through
     args.push(...additionalArgs);
 
-    const argsDisplay = args.length > 1 ? ` ${args.slice(1).join(" ")}` : "";
     logger.info(`Running ${color.cyan(`turbo ${args.join(" ")}`)}...`);
 
     await execa("turbo", args, {
@@ -39,20 +39,20 @@ async function runTurbo(
 
 export const projectCommand = {
   build: async (options: TurboOptions = {}, additionalArgs: string[] = []) =>
-    await runTurbo("build", options, additionalArgs),
+    await runTurbo(COMMANDS.build, options, additionalArgs),
   dev: async (options: TurboOptions = {}, additionalArgs: string[] = []) =>
-    await runTurbo("dev", options, additionalArgs),
+    await runTurbo(COMMANDS.dev, options, additionalArgs),
   lint: async (options: TurboOptions = {}, additionalArgs: string[] = []) =>
-    await runTurbo("lint", options, additionalArgs),
+    await runTurbo(COMMANDS.lint, options, additionalArgs),
   start: async (options: TurboOptions = {}, additionalArgs: string[] = []) =>
-    await runTurbo("start", options, additionalArgs),
+    await runTurbo(COMMANDS.start, options, additionalArgs),
 };
 
 export function registerProjectCommands(program: Command) {
   program
-    .command("build")
-    .description("Build all packages in the monorepo")
-    .option("-f, --filter <package>", "Filter to specific package(s)")
+    .command(COMMANDS.build)
+    .description(DESCRIPTIONS.build)
+    .option(GLOBAL_FLAGS.filter.flag, GLOBAL_FLAGS.filter.description)
     .allowUnknownOption()
     .action(async (options, command) => {
       const unknownArgs = command.args || [];
@@ -60,9 +60,9 @@ export function registerProjectCommands(program: Command) {
     });
 
   program
-    .command("dev")
-    .description("Run development mode for all packages")
-    .option("-f, --filter <package>", "Filter to specific package(s)")
+    .command(COMMANDS.dev)
+    .description(DESCRIPTIONS.dev)
+    .option(GLOBAL_FLAGS.filter.flag, GLOBAL_FLAGS.filter.description)
     .allowUnknownOption()
     .action(async (options, command) => {
       const unknownArgs = command.args || [];
@@ -70,9 +70,9 @@ export function registerProjectCommands(program: Command) {
     });
 
   program
-    .command("lint")
-    .description("Lint all packages in the monorepo")
-    .option("-f, --filter <package>", "Filter to specific package(s)")
+    .command(COMMANDS.lint)
+    .description(DESCRIPTIONS.lint)
+    .option(GLOBAL_FLAGS.filter.flag, GLOBAL_FLAGS.filter.description)
     .allowUnknownOption()
     .action(async (options, command) => {
       const unknownArgs = command.args || [];
@@ -80,9 +80,9 @@ export function registerProjectCommands(program: Command) {
     });
 
   program
-    .command("start")
-    .description("Start the production build for all packages")
-    .option("-f, --filter <package>", "Filter to specific package(s)")
+    .command(COMMANDS.start)
+    .description(DESCRIPTIONS.start)
+    .option(GLOBAL_FLAGS.filter.flag, GLOBAL_FLAGS.filter.description)
     .allowUnknownOption()
     .action(async (options, command) => {
       const unknownArgs = command.args || [];
