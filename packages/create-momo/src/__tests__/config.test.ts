@@ -47,9 +47,7 @@ describe("configManager", () => {
 
   describe("save", () => {
     it("should throw error if config is invalid", async () => {
-      await expect(
-        configManager.save({ manager: "invalid" } as any),
-      ).rejects.toThrow();
+      await expect(configManager.save({ manager: "invalid" } as any)).rejects.toThrow();
     });
 
     it("should write valid config to file", async () => {

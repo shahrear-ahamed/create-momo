@@ -12,24 +12,16 @@ describe("validators", () => {
 
     it("should reject empty names", () => {
       expect(validators.projectName("")).toBe("Project name cannot be empty");
-      expect(validators.projectName(undefined)).toBe(
-        "Project name cannot be empty",
-      );
+      expect(validators.projectName(undefined)).toBe("Project name cannot be empty");
     });
 
     it("should reject invalid npm names", () => {
-      expect(validators.projectName("My Project")).toContain(
-        "valid npm package name",
-      );
-      expect(validators.projectName("project!")).toContain(
-        "valid npm package name",
-      );
+      expect(validators.projectName("My Project")).toContain("valid npm package name");
+      expect(validators.projectName("project!")).toContain("valid npm package name");
     });
 
     it("should reject reserved names", () => {
-      expect(validators.projectName("node_modules")).toBe(
-        "Project name is reserved",
-      );
+      expect(validators.projectName("node_modules")).toBe("Project name is reserved");
     });
   });
 

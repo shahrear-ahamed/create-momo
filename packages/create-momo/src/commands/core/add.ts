@@ -23,11 +23,7 @@ export async function addComponent(type?: string, options: AddOptions = {}) {
   let componentType = validated.type;
 
   // 1. Determine Type (App vs Package)
-  if (
-    !componentType &&
-    !validated.options?.app &&
-    !validated.options?.package
-  ) {
+  if (!componentType && !validated.options?.app && !validated.options?.package) {
     const selectedType = await select({
       message: "What do you want to add?",
       options: [
@@ -107,11 +103,7 @@ export async function addComponent(type?: string, options: AddOptions = {}) {
     });
 
     // 4.1 Ensure config-typescript exists and has the requested flavor
-    const configPkgDir = path.join(
-      process.cwd(),
-      "packages",
-      "config-typescript",
-    );
+    const configPkgDir = path.join(process.cwd(), "packages", "config-typescript");
     const flavorFile = path.join(configPkgDir, `${flavor}.json`);
 
     // Existence checks
@@ -122,10 +114,7 @@ export async function addComponent(type?: string, options: AddOptions = {}) {
         path.join(configPkgDir, "package.json"),
         getConfigPackageJson("@momo"),
       );
-      await fileOps.writeJson(
-        path.join(configPkgDir, "base.json"),
-        getBaseConfig(),
-      );
+      await fileOps.writeJson(path.join(configPkgDir, "base.json"), getBaseConfig());
     }
 
     // Check flavor file
@@ -165,13 +154,9 @@ export async function addComponent(type?: string, options: AddOptions = {}) {
     // Add src folder
     await fileOps.ensureDir(path.join(targetDir, "src"));
 
-    spinner.stop(
-      `${componentType === "app" ? "Application" : "Package"} added successfully!`,
-    );
+    spinner.stop(`${componentType === "app" ? "Application" : "Package"} added successfully!`);
 
-    logger.success(
-      `\nCreated ${color.bold(componentName)} in ${color.underline(targetDir)}`,
-    );
+    logger.success(`\nCreated ${color.bold(componentName)} in ${color.underline(targetDir)}`);
   } catch (error) {
     spinner.stop("Failed to add component");
     logger.error((error as Error).message);
@@ -182,13 +167,8 @@ export async function addComponent(type?: string, options: AddOptions = {}) {
 export function registerAddCommand(program: Command) {
   program
     .command("add")
-    .description(
-      "Scaffold a new app, package, or configuration into the monorepo",
-    )
+    .description("Scaffold a new app, package, or configuration into the monorepo")
     .option("-a, --app", "Add a new application (Next.js, Vite, etc.)")
-    .option(
-      "-p, --package",
-      "Add a new shared library or configuration package",
-    )
+    .option("-p, --package", "Add a new shared library or configuration package")
     .action(async (type, options) => await addComponent(type, options));
 }

@@ -42,22 +42,16 @@ export const utilityCommand = {
           logger.step(`${color.red("✘")} ${check.name} missing`);
           healthy = false;
         } else {
-          logger.step(
-            `${color.yellow("!")} ${check.name} not found (optional)`,
-          );
+          logger.step(`${color.yellow("!")} ${check.name} not found (optional)`);
         }
       }
     }
 
     if (healthy) {
-      logger.success(
-        "Project is healthy! All required monorepo files are in place.",
-      );
+      logger.success("Project is healthy! All required monorepo files are in place.");
     } else {
       logger.warn("Some critical issues were found in your project setup.");
-      logger.info(
-        `Make sure you are in the root of your ${color.cyan("create-momo")} project.`,
-      );
+      logger.info(`Make sure you are in the root of your ${color.cyan("create-momo")} project.`);
     }
   },
 
