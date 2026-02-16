@@ -59,6 +59,8 @@ export const COMMANDS = {
   dev: "dev",
   lint: "lint",
   start: "start",
+  login: "login",
+  logout: "logout",
 
   // Config
   config: "config",
@@ -98,6 +100,8 @@ export const DESCRIPTIONS = {
   dev: "Run development mode for all packages",
   lint: "Lint all packages in the monorepo",
   start: "Start the production build for all packages",
+  login: "Log in to Turborepo (Remote Caching)",
+  logout: "Log out from Turborepo",
 
   // Config
   config: "Manage create-momo CLI settings",

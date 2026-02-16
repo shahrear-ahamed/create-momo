@@ -12,15 +12,11 @@ import { getNextjsConfig } from "@/templates/config-typescript/nextjs.json.js";
 import { getNodeConfig } from "@/templates/config-typescript/node.json.js";
 import { getConfigPackageJson } from "@/templates/config-typescript/package.json.js";
 import { getReactConfig } from "@/templates/config-typescript/react.json.js";
+import type { AddDepOptions, AddOptions } from "@/types/index.js";
 import { fileOps } from "@/utils/file-ops.js";
 import { createSpinner, logger } from "@/utils/logger.js";
 import { validators } from "@/utils/validators.js";
 import { workspaceUtils } from "@/utils/workspace.js";
-
-type AddOptions = {
-  app?: boolean;
-  package?: boolean;
-};
 
 export async function addComponent(type?: string, options: AddOptions = {}) {
   // Validate with Zod
@@ -185,13 +181,6 @@ export async function addComponent(type?: string, options: AddOptions = {}) {
     logger.error((error as Error).message);
     process.exit(1);
   }
-}
-
-interface AddDepOptions {
-  dev?: boolean;
-  app?: string;
-  pkg?: string;
-  root?: boolean;
 }
 
 async function addDependency(packageName: string, options: AddDepOptions) {

@@ -1,4 +1,4 @@
-export type PackageManager = "npm" | "yarn" | "pnpm" | "bun";
+import type { PackageManager } from "@/types/index.js";
 
 export const getRootPackageJson = (
   name: string,

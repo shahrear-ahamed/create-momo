@@ -61,51 +61,77 @@ The CLI will guide you through:
 ## 🛠 Command Reference
 
 ### Creation Commands
-*These are used to start new projects or initialize existing directories.*
+*Used to initialize new monorepo projects.*
 
-- **`create-momo [name]`**: The root command for project initialization.
-- **`create-momo .`**: Initialize in the current directory.
+- **`create-momo <name>`**: Initializes a fresh Turborepo project.
+- **`create-momo .`**: Initializes in the current directory (blocks nesting if already in a Momo project).
+
+---
 
 ### Management Commands
 *Run these inside your project directory to manage your monorepo.*
 
-| Command | Shortcut | Description |
+| Command | Counterpart | Description |
 | :--- | :--- | :--- |
-| **`momo dev`** | `turbo dev` | Runs development mode for all apps/packages in parallel. |
-| **`momo build`** | `turbo build` | Executes the production build for the entire monorepo. |
-| **`momo lint`** | `biome check` | Runs linting and formatting across the workspace. |
-| **`momo add`** | - | Launches the interactive wizard to add new apps or packages. |
-| **`momo setup`** | - | Subcommands for `publish`, `open-source`, or `close-source` config. |
+| **`momo build`** | `turbo build` | Build all or filtered workspaces. |
+| **`momo dev`** | `turbo dev` | Run dev servers for all or filtered workspaces. |
+| **`momo lint`** | `turbo lint` | Lint/format all packages via Biome/Turbo. |
+| **`momo start`** | `turbo start` | Start production builds of your apps. |
+| **`momo add`** | - | **Unified Scaffolding**: Add apps, packages, or deps. |
+| **`momo get`** | `pnpm add` | Alias for `momo add dep`. Installs a dependency. |
+| **`momo doctor`** | - | Check project health and structure validity. |
+| **`momo list`** | - | List available component flavors (Next.js, Node, etc.). |
+| **`momo config`** | - | Manage CLI settings (`list`, `get`, `set`). |
+| **`momo setup`** | - | Standards: `project`, `publish`, `open-source`. |
+
+#### 🎯 Turbo Filter Support
+All management commands support native Turbo flags.
+```bash
+# Target specific apps
+momo dev --filter web
+momo build -f ui
+
+# Use any Turbo flag
+momo lint --parallel --continue
+```
+
+#### 📦 Smart Dependency Addition
+`momo add dep <package>` (or `momo get`) automatically detects internal workspace packages and uses the `workspace:*` protocol.
+```bash
+momo get zod -w          # Install to root
+momo get @momo/ui -a web # Install internal package to app
+```
 
 ---
 
 ## 🏗 Project Architecture
 
-A standard **Momo** project follows a modular structure optimized for caching and reuse:
+A standard **Momo** project follows a modular structure:
 
 ```text
 my-project/
-├── apps/                # Your applications (Next.js, Vite, etc.)
+├── apps/                # Applications (Next.js, Vite, etc.)
 ├── packages/            # Shared libraries and configurations
 │   ├── config-typescript/ # Shared TS settings
 │   └── ...
-├── momo.config.json     # Project-specific CLI configuration
-├── turbo.json           # Turborepo orchestration settings
-└── package.json         # Root workspace management
+├── momo.config.json     # CLI configuration
+├── turbo.json           # Turborepo settings
+└── package.json         # Workspace root
 ```
 
 ---
 
 ## ⏳ Roadmap
 
-- [ ] **SaaS Blueprints**: Pre-configured templates with Auth, DB, and UI pre-integrated.
-- [ ] **Momo Doctor**: Automated health checks for your monorepo dependencies.
-- [ ] **Deployment Flows**: One-click deployment configurations for Vercel and Netlify.
-- [ ] **Custom Templates**: Support for user-defined blueprints.
+- [x] **Unified CLI**: Single entry point via `momo add`.
+- [x] **Turbo Orchestration**: Full pass-through flag support.
+- [x] **Context Awareness**: Blocks nested project creation.
+- [ ] **Turbo Auth**: Integrated `momo login/logout`.
+- [ ] **Premium Blueprints**: Pre-configured SaaS templates.
+- [ ] **Unified Deployment**: One-click Vercel/Netlify integration.
 
 ---
 
 ## 📄 License
 
-This project is licensed under the [MIT License](LICENSE).
-Built with ❤️ by [Shahrear Ahamed](https://github.com/shahrear-ahamed).
+MIT © [Shahrear Ahamed](https://github.com/shahrear-ahamed)

@@ -8,19 +8,14 @@ import { getBaseConfig } from "@/templates/config-typescript/base.json.js";
 import { getConfigPackageJson } from "@/templates/config-typescript/package.json.js";
 import { getGitignore } from "@/templates/gitignore.js";
 import { getMomoConfig } from "@/templates/momo.config.json.js";
-import { getRootPackageJson, type PackageManager } from "@/templates/package.json.js";
+import { getRootPackageJson } from "@/templates/package.json.js";
 import { getBaseTsConfig } from "@/templates/tsconfig.json.js";
 import { getTurboJson } from "@/templates/turbo.json.js";
+import type { CreateProjectOptions, PackageManager } from "@/types/index.js";
 import { fileOps } from "@/utils/file-ops.js";
 import { createSpinner, logger } from "@/utils/logger.js";
 import { projectUtils } from "@/utils/project.js";
 import { validators } from "@/utils/validators.js";
-
-interface CreateProjectOptions {
-  name?: string;
-  cwd?: string;
-  version?: string;
-}
 
 export async function createProject(args: CreateProjectOptions = {}) {
   // Validate args with Zod

@@ -1,12 +1,6 @@
 import path from "node:path";
 import fs from "fs-extra";
-
-export interface WorkspacePackage {
-  name: string;
-  path: string;
-  type: "app" | "package";
-  packageJson: Record<string, unknown>;
-}
+import type { WorkspacePackage } from "@/types/index.js";
 
 export const workspaceUtils = {
   /**

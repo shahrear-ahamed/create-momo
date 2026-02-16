@@ -2,12 +2,8 @@ import type { Command } from "commander";
 import { execa } from "execa";
 import color from "picocolors";
 import { COMMANDS, DESCRIPTIONS, GLOBAL_FLAGS } from "@/constants/commands.js";
+import type { TurboOptions } from "@/types/index.js";
 import { logger } from "@/utils/logger.js";
-
-interface TurboOptions {
-  filter?: string;
-  [key: string]: unknown;
-}
 
 async function runTurbo(
   command: string,
