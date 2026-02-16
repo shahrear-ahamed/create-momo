@@ -1,1 +1,1 @@
-pnpm check && pnpm build
+pnpm check && pnpm build && node scripts/changeset-verify.js
