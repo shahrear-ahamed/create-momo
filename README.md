@@ -63,13 +63,14 @@ The CLI will guide you through:
 ### Creation Commands
 *Used to initialize new monorepo projects.*
 
-- **`create-momo <name>`**: Initializes a fresh Turborepo project.
-- **`create-momo .`**: Initializes in the current directory (blocks nesting if already in a Momo project).
+- **`pnpm create momo <name>`** / **`npx create-momo <name>`**: Scaffolds a new Turborepo project.
+- **`create-momo .`**: Initializes in the current directory.
+- **`momo`** *(outside a project)*: Launches the interactive creation wizard.
 
 ---
 
-### 2. Management within a Project
-Once a project is created, `create-momo` is available as the `momo` command. Running `momo` without arguments will display the help menu.
+### Management Commands
+*Run these inside your project directory. Typing `momo` alone inside a project displays the help menu.*
 
 ---
 

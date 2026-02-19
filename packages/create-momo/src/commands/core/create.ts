@@ -1,7 +1,6 @@
 import path from "node:path";
 import process from "node:process";
 import { cancel, isCancel, select, text } from "@clack/prompts";
-import type { Command } from "commander";
 import color from "picocolors";
 import { configManager } from "@/commands/config/config.js";
 import { CreateProjectSchema } from "@/schemas/commands.schema.js";
@@ -195,13 +194,4 @@ export async function createProject(args: CreateProjectOptions = {}) {
     logger.error((error as Error).message);
     process.exit(1);
   }
-}
-
-export function registerCreateCommand(program: Command, pkgVersion: string) {
-  program
-    .command("init [project-name]")
-    .description("Create a new momo monorepo")
-    .action(async (projectName) => {
-      await createProject({ name: projectName, version: pkgVersion });
-    });
 }
