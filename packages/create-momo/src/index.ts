@@ -53,6 +53,10 @@ async function main() {
   registerProjectCommands(program);
 
   program.parse();
+
+  if (process.argv.length <= 2) {
+    program.help();
+  }
 }
 
 main().catch(console.error);

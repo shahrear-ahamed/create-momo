@@ -199,7 +199,7 @@ export async function createProject(args: CreateProjectOptions = {}) {
 
 export function registerCreateCommand(program: Command, pkgVersion: string) {
   program
-    .command("init [project-name]", { isDefault: true })
+    .command("init [project-name]")
     .description("Create a new momo monorepo")
     .action(async (projectName) => {
       await createProject({ name: projectName, version: pkgVersion });

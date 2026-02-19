@@ -113,6 +113,7 @@ export const configCommand = {
 export function registerConfigCommand(program: Command) {
   const config = program
     .command("config")
+    .usage("[command] [options]")
     .description("Manage create-momo CLI settings")
     .action(async () => await configCommand.list());
 
