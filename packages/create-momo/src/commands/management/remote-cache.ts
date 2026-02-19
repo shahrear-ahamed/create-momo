@@ -3,9 +3,7 @@ import { execa } from "execa";
 import { logger } from "@/utils/logger.js";
 
 export function registerRemoteCacheCommands(program: Command) {
-  const cache = program.command("cache").description("Manage Turborepo Remote Cache");
-
-  cache
+  program
     .command("login")
     .description("Authenticate with Turborepo Remote Cache (Vercel)")
     .action(async () => {
@@ -16,7 +14,7 @@ export function registerRemoteCacheCommands(program: Command) {
       }
     });
 
-  cache
+  program
     .command("logout")
     .description("Revoke Turborepo authentication")
     .action(async () => {
@@ -27,7 +25,7 @@ export function registerRemoteCacheCommands(program: Command) {
       }
     });
 
-  cache
+  program
     .command("link")
     .description("Link the project to a Vercel team/scope for remote caching")
     .action(async () => {
@@ -38,7 +36,7 @@ export function registerRemoteCacheCommands(program: Command) {
       }
     });
 
-  cache
+  program
     .command("unlink")
     .description("Unlink the project from remote caching")
     .action(async () => {
