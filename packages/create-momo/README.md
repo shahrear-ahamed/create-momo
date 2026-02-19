@@ -55,6 +55,8 @@ The unified scaffolding entry point.
 ### `momo dev | build | lint | start`
 High-level wrappers around `turbo`. Supports all native flags like `--filter` (alias `-f`), `--parallel`, and `--cache-dir`.
 
+| **`momo lint`** | `turbo lint` | High-level linting/formatting. |
+| **`momo start`** | `turbo start` | Production build runner. |
 | **`momo test`** | `turbo test` | Run tests with filter support. |
 | **`momo clean`** | - | Recursive workspace cleanup. |
 | **`momo graph`** | `turbo graph` | Visualize dependency graph. |

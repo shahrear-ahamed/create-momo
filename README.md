@@ -79,6 +79,7 @@ The CLI will guide you through:
 | **`momo build`** | `turbo build` | Build all or filtered workspaces. |
 | **`momo dev`** | `turbo dev` | Run dev servers for all or filtered workspaces. |
 | **`momo lint`** | `turbo lint` | Lint/format all packages via Biome/Turbo. |
+| **`momo start`** | `turbo start` | Start production builds of your apps. |
 | **`momo test`** | `turbo test` | Run workspace tests with filter support. |
 | **`momo clean`** | - | Recursive cleanup of all build artifacts. |
 | **`momo graph`** | `turbo graph` | Visualize project dependency graph. |
