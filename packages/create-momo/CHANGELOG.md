@@ -4,6 +4,12 @@
 
 ### Patch Changes
 
+- cfdf059: Fix CLI argument parsing for `pnpm create momo <name>` and `pnpm create momo .`. Modularized the CLI into separate `create-momo` (scaffolding) and `momo` (management) binaries.
+
+## 0.4.2
+
+### Patch Changes
+
 - Fix CLI argument parsing for `pnpm create momo <name>` and `pnpm create momo .`. Modularized the CLI into separate `create-momo` (scaffolding) and `momo` (management) binaries.
 
 ## 0.4.2
