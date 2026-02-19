@@ -1,81 +1,61 @@
-import path from "node:path";
-import { isCancel, select, text } from "@clack/prompts";
 import type { Command } from "commander";
-import { fileOps } from "@/utils/file-ops.js";
+import color from "picocolors";
 import { logger } from "@/utils/logger.js";
 
 export const setupCommand = {
   publish: async () => {
-    logger.info("Setting up npm publishing configuration...");
-    // Future: Add .npmrc, verify package.json fields, check changesets
-    const registry = await text({
-      message: "Enter npm registry URL",
-      initialValue: "https://registry.npmjs.org/",
-    });
-    if (isCancel(registry)) return;
-    logger.success(`NPM registry configured to: ${registry}`);
-    // Implementation: Write to .npmrc
+    logger.info(
+      `${color.bold("Coming Soon:")} NPM publishing orchestration will be available in a future update.`,
+    );
   },
 
   openSource: async () => {
-    logger.info("Adding Open Source documentation...");
-    // Future: Copy CONTRIBUTING.md, LICENSE, CODE_OF_CONDUCT.md templates
-    const license = await select({
-      message: "Select License",
-      options: [
-        { value: "MIT", label: "MIT" },
-        { value: "Apache-2.0", label: "Apache 2.0" },
-      ],
-    });
-    if (isCancel(license)) return;
-    logger.success(`Added ${license} License and community files.`);
+    logger.info(
+      `${color.bold("Coming Soon:")} Open source boilerplate generation (LICENSE, etc.) will be available in a future update.`,
+    );
   },
 
   closeSource: async () => {
-    logger.info("Configuring for Closed Source / Proprietary usage...");
-    // Future: Remove License, add proprietary headers, checks
-    await fileOps.writeJson(path.join(process.cwd(), "LICENSE"), {
-      notice: "Proprietary",
-    }); // Placeholder
-    logger.success("Project configured as closed-source.");
+    logger.info(
+      `${color.bold("Coming Soon:")} Proprietary project configuration will be available in a future update.`,
+    );
   },
 
   project: async () => {
-    logger.info("Setting up project from Blueprint...");
-    const blueprint = await select({
-      message: "Select a Blueprint",
-      options: [
-        { value: "saas", label: "SaaS Starter (Next.js + Supabase)" },
-        { value: "api", label: "API Service (Express + Docker)" },
-      ],
-    });
-    if (isCancel(blueprint)) return;
-    logger.success(`Scaffolding ${blueprint} blueprint...`);
+    logger.info(
+      `${color.bold("Coming Soon:")} Full project blueprints (SaaS, API, etc.) will be available in a future update.`,
+    );
   },
 };
 
 export function registerSetupCommands(program: Command) {
   const setup = program
     .command("setup")
-    .description("Configure project-wide standards and publishing workflows");
+    .description("Configure project-wide standards (Coming Soon)")
+    .action(async () => {
+      logger.info(
+        `${color.bold("Coming Soon:")} Project setup and standardization tools will be available in a future update.`,
+      );
+      logger.info("Try 'momo setup --help' to see upcoming subcommands.");
+    });
 
   setup
     .command("project")
-    .description("Select pre-configured blueprint")
+    .description("Select pre-configured blueprint (Coming Soon)")
     .action(async () => await setupCommand.project());
 
   setup
     .command("publish")
-    .description("Configure npm publishing")
+    .description("Configure npm publishing (Coming Soon)")
     .action(async () => await setupCommand.publish());
 
   setup
     .command("open-source")
-    .description("Add open-source files (LICENSE, CONTRIBUTING, etc.)")
+    .description("Add open-source files (Coming Soon)")
     .action(async () => await setupCommand.openSource());
 
   setup
     .command("close-source")
-    .description("Configure for proprietary use")
+    .description("Configure for proprietary use (Coming Soon)")
     .action(async () => await setupCommand.closeSource());
 }
