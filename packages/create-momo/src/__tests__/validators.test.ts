@@ -22,6 +22,12 @@ describe("validators", () => {
 
     it("should reject reserved names", () => {
       expect(validators.projectName("node_modules")).toBe("Project name is reserved");
+      expect(validators.projectName("favicon.ico")).toBe("Project name is reserved");
+    });
+
+    it("should reject names starting with _ or .", () => {
+      expect(validators.projectName("_project")).toContain("valid npm package name");
+      expect(validators.projectName(".project")).toContain("valid npm package name");
     });
   });
 

@@ -5,54 +5,21 @@
 
 ---
 
-## 📌 v0.4.1 — Patch Release (Bug Fixes & UX Polish)
+## 🔧 v0.5.0 — Minor Release (Modularization, Testing & Remote Cache)
 
-Critical fixes to ensure the CLI works correctly across all package managers and simplifies the entry point.
+Refactor codebase for better maintainability, introduce comprehensive test coverage, and enable Turborepo team features.
 
-### 1. Remove `momo init` — Unify Entry Point
-
-- **Current Behavior**: `momo init [name]` is a separate command for project creation.
-- **Proposed Change**: Remove `momo init` entirely. Project creation should **only** happen through the standard `create` convention:
-  ```bash
-  pnpm create momo my-project
-  npx create-momo@latest my-project
-  bun create momo my-project
-  ```
-- **Why**: `momo init` is redundant and confusing. The `create-*` pattern is the npm ecosystem standard. Having two ways to create a project causes ambiguity.
-
-### 2. Smart Default: `momo` Without Arguments
-
-- **Current Behavior**: Running `momo` alone shows help via `program.help()`.
-- **Proposed Change**: Make the behavior context-aware:
-  - **Outside a Momo project** → Trigger the project creation wizard (same as `pnpm create momo`).
-  - **Inside a Momo project** → Show the help menu with available management commands.
-- **Detection**: Check for the existence of `momo.config.json` in the current directory.
-- **Why**: This makes `momo` a true zero-config entry point. New users just type `momo` and get started immediately.
-
-### 3. Fix `npm create momo` / `npx create-momo` Errors
-
-- **Current Issue**: When users run `npm create momo my-project` or `npx create-momo my-project`, the CLI may fail because:
-  - The `bin` entry points `create-momo` and `momo` to the same `dist/index.js`.
-  - When invoked via `npm create`, the argument `my-project` is passed as the first positional arg, but Commander may try to match it as a subcommand instead of passing it to the default action.
-- **Proposed Fix**:
-  - Ensure that when the CLI is invoked as `create-momo <name>`, it routes directly to the project creation wizard, bypassing subcommand matching.
-  - Handle the `create-momo` binary name as a special case in `index.ts`: if the binary is `create-momo`, always run in **Creation Mode**.
-- **Verification**: Test with `npm create momo@latest test-project`, `npx create-momo@latest test-project`, and `pnpm create momo test-project`.
-
----
-
-## 🔧 v0.5.0 — Minor Release (Remote Cache & Turbo Auth)
-
-Enable team-scale features by integrating Turborepo's remote caching.
-
-| Command | Description |
-|:---|:---|
-| `momo login` | Authenticate with Turborepo Remote Cache (Vercel). Wraps `npx turbo login`. |
-| `momo logout` | Revoke Turborepo authentication. Wraps `npx turbo logout`. |
-| `momo link` | Link the project to a Vercel team/scope for remote caching. Wraps `npx turbo link`. |
-| `momo unlink` | Unlink the project from remote caching. Wraps `npx turbo unlink`. |
-| `momo clean` | Remove all `node_modules`, `dist`, and `.turbo` cache directories across the workspace. |
-| `momo test` | Turbo wrapper for `turbo test` with `--filter` support (consistent with `momo dev/build/lint`). |
+### Feature Overview
+| Category | Feature | Description |
+|:---|:---|:---|
+| **DX & Core** | **Shared CLI Core** | Extract logo, colors, and common CLI setup to a modular utility. |
+| | **Code Cleanup** | Remove duplicate logic in `index.ts` and `momo.ts`. |
+| **Testing** | **Unit Testing** | Implement Vitest suite for validators, project utils, and template logic. |
+| | **Integration Testing** | Add tests for the `create-momo` scaffolding flow. |
+| **Remote Cache** | `momo login/logout` | Authenticate with Turborepo Remote Cache (Vercel). |
+| | `momo link/unlink` | Link/unlink project to Vercel team/scope. |
+| **Management** | `momo clean` | Remove `node_modules`, `dist`, and `.turbo` cache across workspace. |
+| | `momo test` | Turbo wrapper for `turbo test` with `--filter` support. |
 
 ---
 
