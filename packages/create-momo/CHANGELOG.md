@@ -1,5 +1,16 @@
 # create-momo
 
+## 0.5.0
+
+### Minor Changes
+
+- cc09c9f: - **Modularized CLI Core**: Extracted logo and package information into shared utilities for better maintainability.
+  - **Turborepo Remote Cache**: Added `momo login`, `momo logout`, `momo link`, and `momo unlink` commands.
+  - **Project Management**: Added `momo clean` for workspace cleanup and `momo test` as a Turbo wrapper.
+  - **Dependency Graph**: Added `momo graph` to visualize the project dependency graph.
+  - **Code Quality**: Standardized all command constants and expanded unit test coverage to 61 passing tests.
+  - **Refactor**: Flattened management commands to top-level for better accessibility.
+
 ## 0.4.2
 
 ### Patch Changes
