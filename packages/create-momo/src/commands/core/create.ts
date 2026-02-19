@@ -35,7 +35,8 @@ async function getProjectName(initialName?: string): Promise<string> {
   } else if (projectName !== ".") {
     const error = validators.projectName(projectName);
     if (error) {
-      logger.error(`Invalid project name: ${error}`);
+      logger.error(`${color.bold("Invalid Project Name:")} ${error}`);
+      logger.info(`Try a name that adheres to ${color.cyan("npm package naming")} conventions.`);
       process.exit(1);
     }
   }
@@ -153,7 +154,13 @@ export async function createProject(args: CreateProjectOptions = {}) {
 
   if (projectUtils.isInsideProject()) {
     const root = projectUtils.findProjectRoot();
-    logger.error(`Detected existing create-momo project at: ${color.underline(root || "")}`);
+    logger.error(
+      `${color.bold("Existing Project Detected:")} You are already inside a Momo project at:`,
+    );
+    logger.error(`  ${color.underline(root || "")}`);
+    logger.info(
+      `To create a new project, please move outside of ${color.cyan(path.basename(root || ""))}.`,
+    );
     process.exit(1);
   }
 
@@ -190,8 +197,16 @@ export async function createProject(args: CreateProjectOptions = {}) {
     logger.step(`  ${packageManager} install`);
     logger.step(`  ${packageManager} ${packageManager === "npm" ? "run " : ""}dev`);
   } catch (error) {
-    spinner.stop("Failed to create project");
-    logger.error((error as Error).message);
+    const err = error as Error;
+    spinner.stop(`${color.red("Failed:")} Project creation halted.`);
+    logger.error(`${color.bold("Reason:")} ${err.message}`);
+
+    if (err.message.includes("permission denied")) {
+      logger.info(
+        `${color.yellow("Tip:")} Check your folder permissions or try running with elevated privileges.`,
+      );
+    }
+
     process.exit(1);
   }
 }

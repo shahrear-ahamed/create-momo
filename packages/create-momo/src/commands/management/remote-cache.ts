@@ -1,5 +1,6 @@
 import type { Command } from "commander";
 import { execa } from "execa";
+import color from "picocolors";
 import { COMMANDS, DESCRIPTIONS } from "@/constants/commands.js";
 import { logger } from "@/utils/logger.js";
 
@@ -11,7 +12,9 @@ export function registerRemoteCacheCommands(program: Command) {
       try {
         await execa("npx", ["turbo", "login"], { stdio: "inherit" });
       } catch (error) {
-        logger.error("Failed to login to Turborepo Remote Cache");
+        const err = error as Error;
+        logger.error(`${color.bold("Login Failed:")} Could not authenticate with Turborepo.`);
+        logger.error(`${color.red("Details:")} ${err.message.split("\n")[0]}`);
       }
     });
 
@@ -22,7 +25,9 @@ export function registerRemoteCacheCommands(program: Command) {
       try {
         await execa("npx", ["turbo", "logout"], { stdio: "inherit" });
       } catch (error) {
-        logger.error("Failed to logout from Turborepo Remote Cache");
+        const err = error as Error;
+        logger.error(`${color.bold("Logout Failed:")} Could not revoke Turborepo authentication.`);
+        logger.error(`${color.red("Details:")} ${err.message.split("\n")[0]}`);
       }
     });
 
@@ -33,7 +38,9 @@ export function registerRemoteCacheCommands(program: Command) {
       try {
         await execa("npx", ["turbo", "link"], { stdio: "inherit" });
       } catch (error) {
-        logger.error("Failed to link project to Turborepo Remote Cache");
+        const err = error as Error;
+        logger.error(`${color.bold("Link Failed:")} Could not link project to Vercel team.`);
+        logger.error(`${color.red("Details:")} ${err.message.split("\n")[0]}`);
       }
     });
 
@@ -44,7 +51,11 @@ export function registerRemoteCacheCommands(program: Command) {
       try {
         await execa("npx", ["turbo", "unlink"], { stdio: "inherit" });
       } catch (error) {
-        logger.error("Failed to unlink project from Turborepo Remote Cache");
+        const err = error as Error;
+        logger.error(
+          `${color.bold("Unlink Failed:")} Could not unlink project from remote caching.`,
+        );
+        logger.error(`${color.red("Details:")} ${err.message.split("\n")[0]}`);
       }
     });
 }

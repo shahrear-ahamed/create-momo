@@ -139,12 +139,13 @@ describe("shared constants", () => {
   });
 
   describe("turbo commands list", () => {
-    it("should contain all four turbo-powered commands", () => {
+    it("should contain all five turbo-powered commands", () => {
       expect(TURBO_COMMANDS).toContain("build");
       expect(TURBO_COMMANDS).toContain("dev");
       expect(TURBO_COMMANDS).toContain("lint");
       expect(TURBO_COMMANDS).toContain("start");
-      expect(TURBO_COMMANDS).toHaveLength(4);
+      expect(TURBO_COMMANDS).toContain("test");
+      expect(TURBO_COMMANDS).toHaveLength(5);
     });
   });
 

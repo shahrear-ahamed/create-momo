@@ -182,8 +182,16 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
     spinner.stop(`${componentType === "app" ? "Application" : "Package"} added successfully!`);
     logger.success(`\nCreated ${color.bold(componentName)} in ${color.underline(targetDir)}`);
   } catch (error) {
-    spinner.stop("Failed to add component");
-    logger.error((error as Error).message);
+    const err = error as Error;
+    spinner.stop(`${color.red("Failed:")} Could not add ${componentType}.`);
+    logger.error(`${color.bold("Reason:")} ${err.message}`);
+
+    if (err.message.includes("EEXIST")) {
+      logger.info(
+        `${color.yellow("Tip:")} A directory with the name ${color.cyan(componentName)} already exists.`,
+      );
+    }
+
     process.exit(1);
   }
 }
@@ -232,7 +240,10 @@ async function getInstallationTarget(
   if (options.toApp) {
     const workspace = await workspaceUtils.findWorkspace(options.toApp, rootDir);
     if (!workspace || workspace.type !== "app") {
-      logger.error(`App ${color.cyan(options.toApp)} not found.`);
+      logger.error(
+        `${color.bold("App Not Found:")} Target application ${color.cyan(options.toApp)} does not exist.`,
+      );
+      logger.info(`Run ${color.cyan("momo list")} to see all available workspaces.`);
       process.exit(1);
     }
     return { target: workspace.name, isWorkspaceRoot: false };
@@ -241,7 +252,10 @@ async function getInstallationTarget(
   if (options.toPkg) {
     const workspace = await workspaceUtils.findWorkspace(options.toPkg, rootDir);
     if (!workspace || workspace.type !== "package") {
-      logger.error(`Package ${color.cyan(options.toPkg)} not found.`);
+      logger.error(
+        `${color.bold("Package Not Found:")} Target package ${color.cyan(options.toPkg)} does not exist.`,
+      );
+      logger.info(`Run ${color.cyan("momo list")} to see all available workspaces.`);
       process.exit(1);
     }
     return { target: workspace.name, isWorkspaceRoot: false };
@@ -257,7 +271,12 @@ async function addDependency(packageName?: string, options: AddDepOptions = {}) 
   const rootDir = process.cwd();
 
   if (!fs.existsSync(path.join(rootDir, "momo.config.json"))) {
-    logger.error(`Not inside a ${color.cyan("create-momo")} project.`);
+    logger.error(
+      `${color.bold("Invalid Context:")} You must be inside a Momo project to install dependencies.`,
+    );
+    logger.info(
+      `Searching for ${color.cyan("momo.config.json")} failed in ${color.underline(rootDir)}.`,
+    );
     process.exit(1);
   }
 
@@ -293,8 +312,12 @@ async function addDependency(packageName?: string, options: AddDepOptions = {}) 
     logger.info(`Installing ${color.cyan(resolvedName as string)}...`);
     await execa(packageManager, args, { stdio: "inherit", cwd: rootDir });
     logger.success(`Successfully installed ${color.cyan(resolvedName as string)}`);
-  } catch (_error) {
-    logger.error(`Failed to install ${resolvedName}`);
+  } catch (error) {
+    const err = error as Error;
+    logger.error(
+      `\n${color.bold("Installation Failed:")} Could not install ${color.cyan(resolvedName as string)}.`,
+    );
+    logger.error(`${color.red("Details:")} ${err.message.split("\n")[0]}`);
     process.exit(1);
   }
 }

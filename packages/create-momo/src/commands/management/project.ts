@@ -30,9 +30,20 @@ async function runTurbo(
       cwd: process.cwd(),
     });
   } catch (error) {
-    // If it's a known error from turbo (like the one user got), it will already have been printed via stdio: inherit
-    // We just need to exit gracefully but indicate failure.
-    logger.error(`\n${color.bold("Error:")} Failed to execute ${color.cyan(`momo ${command}`)}`);
+    const err = error as Error;
+    logger.error(
+      `\n${color.bold("Execution Failed:")} ${color.cyan(`momo ${command}`)} encountered an error.`,
+    );
+
+    // Provide specific guidance based on error message
+    if (err.message.includes("ENOENT")) {
+      logger.error(
+        `The ${color.yellow("turbo")} executable was not found. Please ensure it is installed.`,
+      );
+    } else {
+      logger.error(`${color.red("Details:")} ${err.message.split("\n")[0]}`);
+    }
+
     process.exit(1);
   }
 }
@@ -77,7 +88,15 @@ export const projectCommand = {
       );
       logger.success("Workspace cleaned successfully!");
     } catch (error) {
-      logger.error(`Failed to clean workspace: ${(error as Error).message}`);
+      const err = error as Error;
+      logger.error(`${color.bold("Cleanup Failed:")} Could not remove all build artifacts.`);
+      logger.error(`${color.red("Reason:")} ${err.message.split("\n")[0]}`);
+
+      if (err.message.includes("permission denied")) {
+        logger.info(
+          `${color.yellow("Tip:")} Try running with elevated permissions or check file locks.`,
+        );
+      }
     }
   },
 };
