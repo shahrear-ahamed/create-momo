@@ -5,6 +5,7 @@ import { createProject } from "@/commands/core/create.js";
 import { registerDeployCommands } from "@/commands/management/deploy.js";
 import { registerProjectCommands } from "@/commands/management/project.js";
 import { registerRemoteCacheCommands } from "@/commands/management/remote-cache.js";
+import { registerTurboUtils } from "@/commands/management/turbo-utils.js";
 import { registerSetupCommands } from "@/commands/setup/setup.js";
 import { registerUtilityCommands } from "@/commands/utility/utility.js";
 import { getPkgInfo, showLogo } from "@/utils/cli-utils.js";
@@ -30,6 +31,7 @@ async function main() {
   registerUtilityCommands(program);
   registerProjectCommands(program);
   registerRemoteCacheCommands(program);
+  registerTurboUtils(program);
 
   // Smart default: no args → check context
   if (process.argv.length <= 2) {
