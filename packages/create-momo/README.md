@@ -28,7 +28,7 @@ bun create momo my-project
 ```
 
 ### 2. Management within a Project
-Once a project is created, `create-momo` is available as the `momo` command. Running `momo` without arguments will display the help menu.
+Once inside a Momo project, the `momo` command is available for management. Running `momo` alone inside a project displays the help menu. Running `momo` outside a project launches the creation wizard.
 
 ```bash
 # Add a new app via action flag
