@@ -1,6 +1,6 @@
 {
   "name": "create-momo",
-  "version": "0.4.2",
+  "version": "0.4.1",
   "description": "CLI tool to scaffold monorepo projects",
   "keywords": [
     "monorepo",
@@ -36,6 +36,7 @@
     "lint": "biome check .",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
+    "clean": "rm -rf dist",
     "momo": "tsx src/index.ts"
   },
   "dependencies": {
