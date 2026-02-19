@@ -1,4 +1,5 @@
 import path from "node:path";
+import process from "node:process";
 import { cancel, isCancel, select, text } from "@clack/prompts";
 import type { Command } from "commander";
 import color from "picocolors";
@@ -114,13 +115,14 @@ async function runScaffolding(
   projectName: string,
   scope: string,
   packageManager: PackageManager,
+  pmVersion: string,
   version: string,
 ) {
   await fileOps.ensureDir(targetDir);
 
   await fileOps.writeJson(
     path.join(targetDir, "package.json"),
-    getRootPackageJson(projectName, packageManager, version),
+    getRootPackageJson(projectName, packageManager, version, pmVersion),
   );
 
   if (packageManager === "pnpm") {
@@ -169,6 +171,7 @@ export async function createProject(args: CreateProjectOptions = {}) {
   await validateTargetDir(targetDir, projectName);
   const scope = await getProjectScope(projectName);
   const packageManager = await getPackageManager();
+  const pmVersion = await projectUtils.getPMVersion(packageManager);
 
   const spinner = createSpinner("Scaffolding project with latest dependencies...");
   try {
@@ -177,6 +180,7 @@ export async function createProject(args: CreateProjectOptions = {}) {
       projectName,
       scope,
       packageManager,
+      pmVersion,
       validated.version || "0.2.0",
     );
 

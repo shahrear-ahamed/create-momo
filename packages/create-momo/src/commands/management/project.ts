@@ -10,25 +10,29 @@ async function runTurbo(
   options: TurboOptions = {},
   additionalArgs: string[] = [],
 ) {
+  const args: string[] = [command];
+
+  // Add --filter if provided
+  if (options.filter) {
+    args.push(GLOBAL_FLAGS.filter.long, options.filter);
+  }
+
+  // Add any additional arguments passed through
+  args.push(...additionalArgs);
+
+  const fullCommand = `turbo ${args.join(" ")}`;
+  logger.info(`Running ${color.cyan(fullCommand)}...`);
+
   try {
-    const args: string[] = [command];
-
-    // Add --filter if provided (support both --filter and -f alias)
-    if (options.filter) {
-      args.push(GLOBAL_FLAGS.filter.long, options.filter);
-    }
-
-    // Add any additional arguments passed through
-    args.push(...additionalArgs);
-
-    logger.info(`Running ${color.cyan(`turbo ${args.join(" ")}`)}...`);
-
-    await execa("turbo", args, {
+    // Attempt to run via npx to ensure turbo is available even if not in PATH/global
+    await execa("npx", ["turbo", ...args], {
       stdio: "inherit",
       cwd: process.cwd(),
     });
-  } catch (_error) {
-    logger.error(`Failed to run ${command}`);
+  } catch (error) {
+    // If it's a known error from turbo (like the one user got), it will already have been printed via stdio: inherit
+    // We just need to exit gracefully but indicate failure.
+    logger.error(`\n${color.bold("Error:")} Failed to execute ${color.cyan(`momo ${command}`)}`);
     process.exit(1);
   }
 }

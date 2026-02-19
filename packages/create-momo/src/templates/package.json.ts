@@ -4,6 +4,7 @@ export const getRootPackageJson = (
   name: string,
   packageManager: PackageManager,
   createMomoVersion: string,
+  pmVersion: string,
 ) => {
   const isPnpm = packageManager === "pnpm";
 
@@ -37,9 +38,7 @@ export const getRootPackageJson = (
     base.workspaces = ["apps/*", "packages/*"];
   }
 
-  if (isPnpm) {
-    base.packageManager = "pnpm@latest"; // Use latest pnpm
-  }
+  base.packageManager = `${packageManager}@${pmVersion}`;
 
   return base;
 };
