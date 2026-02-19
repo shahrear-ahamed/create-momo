@@ -28,7 +28,7 @@ bun create momo my-project
 ```
 
 ### 2. Management within a Project
-Once a project is created, `create-momo` is available as the `momo` command.
+Once a project is created, `create-momo` is available as the `momo` command. Running `momo` without arguments will display the help menu.
 
 ```bash
 # Add a new app via action flag
@@ -55,15 +55,14 @@ The unified scaffolding entry point.
 ### `momo dev | build | lint | start`
 High-level wrappers around `turbo`. Supports all native flags like `--filter` (alias `-f`), `--parallel`, and `--cache-dir`.
 
-### `momo doctor | list | update`
-- **`doctor`**: Health checks for your monorepo.
-- **`list`**: View available component flavors.
-- **`update`**: Keep your configs in sync.
-
-### `momo setup <subcommand>`
-- **`publish`**: Automated npm publishing workflows.
-- **`open-source`**: Standard LICENSE and community files.
-- **`project`**: Adjust project blueprint settings.
+| Command | Alias | Description |
+| :------ | :---- | :---------- |
+| **`momo doctor`** | - | Health checks for your monorepo. |
+| **`momo list`** | - | View available component flavors. |
+| **`momo config`** | - | Manage CLI settings (`list`, `get`, `set`). |
+| **`momo setup`** | - | **(Coming Soon)**: Standards: `project`, `publish`, etc. |
+| **`momo deploy`** | - | **(Coming Soon)**: Unified deployment workflows. |
+| **`momo update`** | - | **(Coming Soon)**: Sync local configs with blueprints. |
 
 ---
 

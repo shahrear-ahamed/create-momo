@@ -68,8 +68,10 @@ The CLI will guide you through:
 
 ---
 
-### Management Commands
-*Run these inside your project directory to manage your monorepo.*
+### 2. Management within a Project
+Once a project is created, `create-momo` is available as the `momo` command. Running `momo` without arguments will display the help menu.
+
+---
 
 | Command | Counterpart | Description |
 | :--- | :--- | :--- |
@@ -82,7 +84,9 @@ The CLI will guide you through:
 | **`momo doctor`** | - | Check project health and structure validity. |
 | **`momo list`** | - | List available component flavors (Next.js, Node, etc.). |
 | **`momo config`** | - | Manage CLI settings (`list`, `get`, `set`). |
-| **`momo setup`** | - | Standards: `project`, `publish`, `open-source`. |
+| **`momo setup`** | - | **(Coming Soon)**: Standards: `project`, `publish`, etc. |
+| **`momo deploy`** | - | **(Coming Soon)**: Unified deployment workflows. |
+| **`momo update`** | - | **(Coming Soon)**: Sync local configs with blueprints. |
 
 #### 🎯 Turbo Filter Support
 All management commands support native Turbo flags.
