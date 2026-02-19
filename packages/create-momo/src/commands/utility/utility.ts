@@ -56,8 +56,9 @@ export const utilityCommand = {
   },
 
   update: async () => {
-    logger.info("Checking for configuration updates...");
-    logger.success("Configurations are up to date.");
+    logger.info(
+      `${color.bold("Coming Soon:")} The update command will soon allow you to synchronize your project's configurations and shared packages with the latest Momo blueprints and standards.`,
+    );
   },
 };
 
@@ -74,6 +75,6 @@ export function registerUtilityCommands(program: Command) {
 
   program
     .command("update")
-    .description("Update configurations")
+    .description("Update configurations (Coming Soon)")
     .action(async () => await utilityCommand.update());
 }

@@ -40,6 +40,7 @@ async function main() {
     .name("create-momo")
     .description("A modern CLI tool for creating and managing monorepo projects")
     .version(pkg.version, "-v, --version")
+    .enablePositionalOptions()
     .helpOption("-h, --help", "Show help");
 
   // --- REGISTER COMMANDS ---
@@ -52,6 +53,10 @@ async function main() {
   registerProjectCommands(program);
 
   program.parse();
+
+  if (process.argv.length <= 2) {
+    program.help();
+  }
 }
 
 main().catch(console.error);

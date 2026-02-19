@@ -12,8 +12,14 @@ export const AddComponentSchema = z.object({
   type: z.string().optional(),
   options: z
     .object({
-      app: z.boolean().optional(),
-      package: z.boolean().optional(),
+      app: z.union([z.boolean(), z.string()]).optional(),
+      package: z.union([z.boolean(), z.string()]).optional(),
+      dep: z.union([z.boolean(), z.string()]).optional(),
+      toApp: z.string().optional(),
+      toPkg: z.string().optional(),
+      dev: z.boolean().optional(),
+      root: z.boolean().optional(),
+      flavor: z.string().optional(),
     })
     .optional(),
 });

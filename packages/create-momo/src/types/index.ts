@@ -26,16 +26,17 @@ export interface TurboOptions {
 // ─── Add Command ─────────────────────────────────────────────────────────────
 
 export interface AddOptions {
-  app?: boolean;
-  package?: boolean;
+  app?: boolean | string;
+  package?: boolean | string;
+  dep?: boolean | string;
+  toApp?: string;
+  toPkg?: string;
+  dev?: boolean;
+  root?: boolean;
+  flavor?: string;
 }
 
-export interface AddDepOptions {
-  dev?: boolean;
-  app?: string;
-  pkg?: string;
-  root?: boolean;
-}
+export type AddDepOptions = AddOptions;
 
 // ─── Create Command ──────────────────────────────────────────────────────────
 

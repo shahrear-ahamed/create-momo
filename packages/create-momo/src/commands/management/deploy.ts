@@ -1,30 +1,39 @@
 import type { Command } from "commander";
+import color from "picocolors";
 import { logger } from "@/utils/logger.js";
 
 export const deployCommand = {
   init: async () => {
-    logger.info("Initializing deployment configuration...");
-    // Future: Detect platform (Vercel, Railway, etc.), add deploy.json
-    logger.success("Deployment config initialized.");
+    logger.info(
+      `${color.bold("Coming Soon:")} Deployment configuration initialization will be available in a future update.`,
+    );
   },
 
   push: async () => {
-    logger.info("Starting deployment process...");
-    // Future: Run turbo build, verify envs, push to target
-    logger.success("Deployment pushed successfully.");
+    logger.info(
+      `${color.bold("Coming Soon:")} Direct deployment to platforms will be available in a future update.`,
+    );
   },
 };
 
 export function registerDeployCommands(program: Command) {
-  const deploy = program.command("deploy").description("Deployment workflows");
+  const deploy = program
+    .command("deploy")
+    .description("Deployment workflows (Coming Soon)")
+    .action(async () => {
+      logger.info(
+        `${color.bold("Coming Soon:")} Deployment workflows will be available in a future update.`,
+      );
+      logger.info("Try 'momo deploy --help' to see upcoming subcommands.");
+    });
 
   deploy
     .command("init")
-    .description("Initialize deployment config")
+    .description("Initialize deployment config (Coming Soon)")
     .action(async () => await deployCommand.init());
 
   deploy
     .command("push")
-    .description("Deploy to platform")
+    .description("Deploy to platform (Coming Soon)")
     .action(async () => await deployCommand.push());
 }

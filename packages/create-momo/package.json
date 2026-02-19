@@ -35,7 +35,8 @@
     "dev": "tsup --watch",
     "lint": "biome check .",
     "type-check": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "momo": "tsx src/index.ts"
   },
   "dependencies": {
     "@clack/prompts": "^1.0.0",
@@ -52,6 +53,7 @@
     "@types/gradient-string": "^1.1.6",
     "@types/node": "^25.2.0",
     "tsup": "^8.5.1",
+    "tsx": "^4.19.2",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
   },

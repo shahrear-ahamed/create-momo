@@ -112,19 +112,43 @@ export const DESCRIPTIONS = {
   // Utility
   doctor: "Check project health",
   list: "List available component flavors",
-  update: "Update configurations",
+  update: "Update configurations (Coming Soon)",
 
   // Setup
-  setup: "Configure project-wide standards and publishing workflows",
-  setupProject: "Select pre-configured blueprint",
-  setupPublish: "Configure npm publishing",
-  setupOpenSource: "Add open-source files (LICENSE, CONTRIBUTING, etc.)",
-  setupCloseSource: "Configure for proprietary use",
+  setup: "Configure project-wide standards (Coming Soon)",
+  setupProject: "Select pre-configured blueprint (Coming Soon)",
+  setupPublish: "Configure npm publishing (Coming Soon)",
+  setupOpenSource: "Add open-source files (Coming Soon)",
+  setupCloseSource: "Configure for proprietary use (Coming Soon)",
 
   // Deploy
-  deploy: "Deployment workflows",
-  deployInit: "Initialize deployment config",
-  deployPush: "Deploy to platform",
+  deploy: "Deployment workflows (Coming Soon)",
+  deployInit: "Initialize deployment config (Coming Soon)",
+  deployPush: "Deploy to platform (Coming Soon)",
+} as const;
+
+// ─── Add Dep Flags ───────────────────────────────────────────────────────────
+
+// ─── Add Action Flags ────────────────────────────────────────────────────────
+export const ADD_ACTION_FLAGS = {
+  app: {
+    short: "-a",
+    long: "--app",
+    flag: "-a, --app [name]",
+    description: "Add a new application",
+  },
+  package: {
+    short: "-p",
+    long: "--package",
+    flag: "-p, --package [name]",
+    description: "Add a new package",
+  },
+  dep: {
+    short: "-d",
+    long: "--dep",
+    flag: "-d, --dep [name]",
+    description: "Install a dependency",
+  },
 } as const;
 
 // ─── Add Dep Flags ───────────────────────────────────────────────────────────

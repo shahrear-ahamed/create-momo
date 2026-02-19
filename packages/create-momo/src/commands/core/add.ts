@@ -5,7 +5,7 @@ import { execa } from "execa";
 import fs from "fs-extra";
 import color from "picocolors";
 import { configManager } from "@/commands/config/config.js";
-import { ADD_DEP_FLAGS, COMMANDS, DESCRIPTIONS } from "@/constants/commands.js";
+import { ADD_ACTION_FLAGS, ADD_DEP_FLAGS, COMMANDS, DESCRIPTIONS } from "@/constants/commands.js";
 import { AddComponentSchema } from "@/schemas/commands.schema.js";
 import { getBaseConfig } from "@/templates/config-typescript/base.json.js";
 import { getNextjsConfig } from "@/templates/config-typescript/nextjs.json.js";
@@ -21,7 +21,11 @@ import { workspaceUtils } from "@/utils/workspace.js";
 async function getComponentType(type?: string, options: AddOptions = {}): Promise<string> {
   let componentType = type;
 
-  if (!componentType && !options.app && !options.package) {
+  if (options.app) componentType = "app";
+  else if (options.package) componentType = "package";
+  else if (options.dep) componentType = "dep";
+
+  if (!componentType) {
     const selected = await select({
       message: "What do you want to add?",
       options: [
@@ -36,15 +40,14 @@ async function getComponentType(type?: string, options: AddOptions = {}): Promis
       process.exit(0);
     }
     componentType = selected as string;
-  } else {
-    if (options.app) componentType = "app";
-    if (options.package) componentType = "package";
   }
 
   return componentType as string;
 }
 
-async function getComponentName(componentType: string): Promise<string> {
+async function getComponentName(componentType: string, initialName?: string): Promise<string> {
+  if (initialName) return initialName;
+
   const name = await text({
     message: `What is the name of your new ${componentType}?`,
     placeholder: componentType === "app" ? "web" : "ui",
@@ -59,7 +62,9 @@ async function getComponentName(componentType: string): Promise<string> {
   return name as string;
 }
 
-async function getComponentFlavor(componentType: string): Promise<string> {
+async function getComponentFlavor(componentType: string, initialFlavor?: string): Promise<string> {
+  if (initialFlavor) return initialFlavor;
+
   const flavor = await select({
     message: `Select the flavor for your ${componentType}`,
     options: [
@@ -113,27 +118,45 @@ async function ensureSharedConfig(flavor: string) {
   }
 }
 
-export async function addComponent(type?: string, options: AddOptions = {}) {
-  const validated = AddComponentSchema.parse({ type, options });
+export async function addComponent(typeOrName?: string, options: AddOptions = {}, name?: string) {
+  let resolvedType = typeOrName;
+  let resolvedName = name;
+
+  const validTypes: string[] = ["app", "package", "dep"];
+
+  // If typeOrName is provided but isn't a known type, treat it as the name
+  if (typeOrName && !validTypes.includes(typeOrName)) {
+    resolvedName = typeOrName;
+    resolvedType = undefined;
+  }
+
+  // Handle flags (-a, -p, -d)
+  if (typeof options.app === "string") resolvedName = options.app;
+  else if (typeof options.package === "string") resolvedName = options.package;
+  else if (typeof options.dep === "string") resolvedName = options.dep;
+
+  const validated = AddComponentSchema.parse({ type: resolvedType, options });
   const componentType = await getComponentType(validated.type, validated.options);
 
   if (componentType === "dep") {
-    const packageName = await text({
-      message: "What is the name of the package?",
-      placeholder: "zod",
-    });
+    const packageName =
+      resolvedName ||
+      (await text({
+        message: "What is the name of the package?",
+        placeholder: "zod",
+      }));
     if (isCancel(packageName)) {
       cancel("Operation cancelled.");
       process.exit(0);
     }
-    return addDependency(packageName as string, {});
+    return addDependency(packageName as string, options);
   }
 
-  const componentName = await getComponentName(componentType);
+  const componentName = await getComponentName(componentType, resolvedName);
   const targetRoot = componentType === "app" ? "apps" : "packages";
   const targetDir = path.join(process.cwd(), targetRoot, componentName);
 
-  const flavor = await getComponentFlavor(componentType);
+  const flavor = await getComponentFlavor(componentType, options.flavor);
   const spinner = createSpinner(`Creating ${componentType}...`);
 
   try {
@@ -199,25 +222,26 @@ async function promptInstallationTarget(
 }
 
 async function getInstallationTarget(
-  options: AddDepOptions,
-  rootDir: string,
   packageName: string,
+  options: AddOptions = {},
 ): Promise<{ target: string | null; isWorkspaceRoot: boolean }> {
+  const rootDir = process.cwd();
+
   if (options.root) return { target: null, isWorkspaceRoot: true };
 
-  if (options.app) {
-    const workspace = await workspaceUtils.findWorkspace(options.app, rootDir);
+  if (options.toApp) {
+    const workspace = await workspaceUtils.findWorkspace(options.toApp, rootDir);
     if (!workspace || workspace.type !== "app") {
-      logger.error(`App ${color.cyan(options.app)} not found.`);
+      logger.error(`App ${color.cyan(options.toApp)} not found.`);
       process.exit(1);
     }
     return { target: workspace.name, isWorkspaceRoot: false };
   }
 
-  if (options.pkg) {
-    const workspace = await workspaceUtils.findWorkspace(options.pkg, rootDir);
+  if (options.toPkg) {
+    const workspace = await workspaceUtils.findWorkspace(options.toPkg, rootDir);
     if (!workspace || workspace.type !== "package") {
-      logger.error(`Package ${color.cyan(options.pkg)} not found.`);
+      logger.error(`Package ${color.cyan(options.toPkg)} not found.`);
       process.exit(1);
     }
     return { target: workspace.name, isWorkspaceRoot: false };
@@ -227,7 +251,7 @@ async function getInstallationTarget(
   return promptInstallationTarget(workspaces, packageName);
 }
 
-async function addDependency(packageName: string, options: AddDepOptions) {
+async function addDependency(packageName?: string, options: AddDepOptions = {}) {
   const config = await configManager.load();
   const packageManager = config.manager || "pnpm";
   const rootDir = process.cwd();
@@ -237,11 +261,25 @@ async function addDependency(packageName: string, options: AddDepOptions) {
     process.exit(1);
   }
 
-  const { target, isWorkspaceRoot } = await getInstallationTarget(options, rootDir, packageName);
-  const isInternal = await workspaceUtils.isInternalPackage(packageName, rootDir);
+  const resolvedName =
+    packageName ||
+    (await text({
+      message: "What is the name of the package?",
+      placeholder: "zod",
+    }));
+
+  if (isCancel(resolvedName) || !resolvedName) {
+    cancel("Operation cancelled.");
+    process.exit(0);
+  }
+
+  const { target, isWorkspaceRoot } = await getInstallationTarget(resolvedName as string, options);
+  const isInternal = await workspaceUtils.isInternalPackage(resolvedName as string, rootDir);
 
   if (isInternal) {
-    logger.info(`${color.cyan(packageName)} is an internal package. Using workspace protocol.`);
+    logger.info(
+      `${color.cyan(resolvedName as string)} is an internal package. Using workspace protocol.`,
+    );
   }
 
   const args: string[] = ["add"];
@@ -249,14 +287,14 @@ async function addDependency(packageName: string, options: AddDepOptions) {
   if (isWorkspaceRoot) args.push("-w");
   else if (target) args.push("--filter", target);
 
-  args.push(isInternal ? `${packageName}@workspace:*` : packageName);
+  args.push(isInternal ? `${resolvedName}@workspace:*` : (resolvedName as string));
 
   try {
-    logger.info(`Installing ${color.cyan(packageName)}...`);
+    logger.info(`Installing ${color.cyan(resolvedName as string)}...`);
     await execa(packageManager, args, { stdio: "inherit", cwd: rootDir });
-    logger.success(`Successfully installed ${color.cyan(packageName)}`);
+    logger.success(`Successfully installed ${color.cyan(resolvedName as string)}`);
   } catch (_error) {
-    logger.error(`Failed to install ${packageName}`);
+    logger.error(`Failed to install ${resolvedName}`);
     process.exit(1);
   }
 }
@@ -265,34 +303,48 @@ export function registerAddCommand(program: Command) {
   const add = program
     .command(COMMANDS.add)
     .description(DESCRIPTIONS.add)
-    .action(async (type, options) => await addComponent(type, options));
+    .option(ADD_ACTION_FLAGS.app.flag, ADD_ACTION_FLAGS.app.description)
+    .option(ADD_ACTION_FLAGS.package.flag, ADD_ACTION_FLAGS.package.description)
+    .option(ADD_ACTION_FLAGS.dep.flag, ADD_ACTION_FLAGS.dep.description)
+    .option(ADD_DEP_FLAGS.dev.flag, ADD_DEP_FLAGS.dev.description)
+    .option(ADD_DEP_FLAGS.root.flag, ADD_DEP_FLAGS.root.description)
+    .option("-l, --flavor <flavor>", "Select component flavor (base, nextjs, react, node)")
+    .action(async (options, cmd) => {
+      const remainingArgs = cmd.args;
+      const typeOrName = remainingArgs[0];
+      await addComponent(typeOrName, options);
+    });
 
   add
     .command(COMMANDS.addApp)
     .argument("[name]", "Name of the application")
     .description(DESCRIPTIONS.addApp)
-    .action(async (_name) => {
-      await addComponent("app", { app: true });
+    .option("-l, --flavor <flavor>", "Select component flavor")
+    .action(async (name, _options, cmd) => {
+      const opts = cmd.opts();
+      await addComponent("app", { ...opts, app: true }, name);
     });
 
   add
     .command(COMMANDS.addPackage)
     .argument("[name]", "Name of the package")
     .description(DESCRIPTIONS.addPackage)
-    .action(async (_name) => {
-      await addComponent("package", { package: true });
+    .option("-l, --flavor <flavor>", "Select component flavor")
+    .action(async (name, _options, cmd) => {
+      const opts = cmd.opts();
+      await addComponent("package", { ...opts, package: true }, name);
     });
 
   add
     .command(COMMANDS.addDep)
     .alias(COMMANDS.addDepAlias)
-    .argument("<package>", "Package name to install")
+    .argument("[package]", "Package name to install")
     .description(DESCRIPTIONS.addDep)
     .option(ADD_DEP_FLAGS.dev.flag, ADD_DEP_FLAGS.dev.description)
     .option(ADD_DEP_FLAGS.app.flag, ADD_DEP_FLAGS.app.description)
     .option(ADD_DEP_FLAGS.pkg.flag, ADD_DEP_FLAGS.pkg.description)
     .option(ADD_DEP_FLAGS.root.flag, ADD_DEP_FLAGS.root.description)
-    .action(async (packageName, options) => {
-      await addDependency(packageName, options);
+    .action(async (packageName, _options, cmd) => {
+      await addDependency(packageName, cmd.opts());
     });
 }

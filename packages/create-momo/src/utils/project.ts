@@ -22,4 +22,21 @@ export const projectUtils = {
   isInsideProject(dir: string = process.cwd()): boolean {
     return this.findProjectRoot(dir) !== null;
   },
+
+  /**
+   * Detects the current version of a package manager.
+   */
+  async getPMVersion(pm: string): Promise<string> {
+    try {
+      const { execa } = await import("execa");
+      const { stdout } = await execa(pm, ["--version"]);
+      return stdout.trim();
+    } catch (_error) {
+      // Fallback versions if detection fails
+      if (pm === "pnpm") return "9.0.0";
+      if (pm === "yarn") return "1.22.0";
+      if (pm === "bun") return "1.0.0";
+      return "10.0.0"; // fallback for npm
+    }
+  },
 };

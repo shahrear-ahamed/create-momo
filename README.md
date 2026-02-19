@@ -68,8 +68,10 @@ The CLI will guide you through:
 
 ---
 
-### Management Commands
-*Run these inside your project directory to manage your monorepo.*
+### 2. Management within a Project
+Once a project is created, `create-momo` is available as the `momo` command. Running `momo` without arguments will display the help menu.
+
+---
 
 | Command | Counterpart | Description |
 | :--- | :--- | :--- |
@@ -78,11 +80,13 @@ The CLI will guide you through:
 | **`momo lint`** | `turbo lint` | Lint/format all packages via Biome/Turbo. |
 | **`momo start`** | `turbo start` | Start production builds of your apps. |
 | **`momo add`** | - | **Unified Scaffolding**: Add apps, packages, or deps. |
-| **`momo get`** | `pnpm add` | Alias for `momo add dep`. Installs a dependency. |
+| **`momo get`** | `pnpm add` | Alias for `momo add -d`. Installs a dependency. |
 | **`momo doctor`** | - | Check project health and structure validity. |
 | **`momo list`** | - | List available component flavors (Next.js, Node, etc.). |
 | **`momo config`** | - | Manage CLI settings (`list`, `get`, `set`). |
-| **`momo setup`** | - | Standards: `project`, `publish`, `open-source`. |
+| **`momo setup`** | - | **(Coming Soon)**: Standards: `project`, `publish`, etc. |
+| **`momo deploy`** | - | **(Coming Soon)**: Unified deployment workflows. |
+| **`momo update`** | - | **(Coming Soon)**: Sync local configs with blueprints. |
 
 #### 🎯 Turbo Filter Support
 All management commands support native Turbo flags.
@@ -96,10 +100,11 @@ momo lint --parallel --continue
 ```
 
 #### 📦 Smart Dependency Addition
-`momo add dep <package>` (or `momo get`) automatically detects internal workspace packages and uses the `workspace:*` protocol.
+`momo add -d <package>` (or `momo get`) automatically detects internal workspace packages and uses the `workspace:*` protocol.
 ```bash
-momo get zod -w          # Install to root
-momo get @momo/ui -a web # Install internal package to app
+momo get zod -w             # Install to root
+momo get @momo/ui --to-app web # Install internal package to app
+momo add -d lodash -A web   # Short flag alias for targeting
 ```
 
 ---

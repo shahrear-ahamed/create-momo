@@ -28,20 +28,15 @@ bun create momo my-project
 ```
 
 ### 2. Management within a Project
-Once a project is created, `create-momo` is available as the `momo` command.
+Once a project is created, `create-momo` is available as the `momo` command. Running `momo` without arguments will display the help menu.
 
 ```bash
-# Add a new app or package
-momo add
+# Add a new app via action flag
+momo add -a
 
 # Install a dependency (Smart Detection)
-momo add dep zod
-momo get @momo/ui -a web
-
-# Orchestrate project tasks (Turbo Wrappers)
-momo dev --filter web
-momo build -f ui
-momo lint
+momo add -d zod
+momo get @momo/ui --to-app web
 ```
 
 ---
@@ -49,26 +44,25 @@ momo lint
 ## 🛠 Command Deep Dive
 
 ### `create-momo <name>`
-The entry point for new monorepos. Handles directory validation, scope assignment, and manager detection. Blocks creation if a nested Momo project is detected.
+The entry point for new monorepos. Handles directory validation, scope assignment, and reliable package manager version detection (e.g., `pnpm@9.1.0`).
 
-### `momo add [app|package|dep]`
+### `momo add [-a|-p|-d]`
 The unified scaffolding entry point.
-- **Apps**: Scaffold Next.js, Vite, or Node apps into `apps/`.
-- **Packages**: Create shared libraries in `packages/`.
-- **Dep**: Intelligent dependency management that handles workspace protocols automatically.
+- **-a, --app [name]**: Scaffold Next.js, Vite, or Node apps into `apps/`.
+- **-p, --package [name]**: Create shared libraries in `packages/`.
+- **-d, --dep [name]**: Intelligent dependency management that handles workspace protocols automatically. Use `--to-app` (`-A`) or `--to-pkg` (`-P`) to target specific workspaces.
 
 ### `momo dev | build | lint | start`
 High-level wrappers around `turbo`. Supports all native flags like `--filter` (alias `-f`), `--parallel`, and `--cache-dir`.
 
-### `momo doctor | list | update`
-- **`doctor`**: Health checks for your monorepo.
-- **`list`**: View available component flavors.
-- **`update`**: Keep your configs in sync.
-
-### `momo setup <subcommand>`
-- **`publish`**: Automated npm publishing workflows.
-- **`open-source`**: Standard LICENSE and community files.
-- **`project`**: Adjust project blueprint settings.
+| Command | Alias | Description |
+| :------ | :---- | :---------- |
+| **`momo doctor`** | - | Health checks for your monorepo. |
+| **`momo list`** | - | View available component flavors. |
+| **`momo config`** | - | Manage CLI settings (`list`, `get`, `set`). |
+| **`momo setup`** | - | **(Coming Soon)**: Standards: `project`, `publish`, etc. |
+| **`momo deploy`** | - | **(Coming Soon)**: Unified deployment workflows. |
+| **`momo update`** | - | **(Coming Soon)**: Sync local configs with blueprints. |
 
 ---
 
