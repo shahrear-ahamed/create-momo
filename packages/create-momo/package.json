@@ -1,6 +1,6 @@
 {
   "name": "create-momo",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "CLI tool to scaffold monorepo projects",
   "keywords": [
     "monorepo",
@@ -25,7 +25,7 @@
   "type": "module",
   "bin": {
     "create-momo": "./dist/index.js",
-    "momo": "./dist/index.js"
+    "momo": "./dist/momo.js"
   },
   "files": [
     "dist"
