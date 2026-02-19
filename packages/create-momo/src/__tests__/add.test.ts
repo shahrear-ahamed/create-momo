@@ -2,6 +2,19 @@ import { Command } from "commander";
 import { describe, expect, it, vi } from "vitest";
 import { ADD_DEP_FLAGS, COMMANDS, DESCRIPTIONS } from "../constants/commands.js";
 
+// Mock @clack/prompts
+vi.mock("@clack/prompts", () => ({
+  text: vi.fn(),
+  select: vi.fn(),
+  multiselect: vi.fn(),
+  confirm: vi.fn(),
+  cancel: vi.fn(),
+  isCancel: vi.fn().mockReturnValue(false),
+  intro: vi.fn(),
+  outro: vi.fn(),
+  note: vi.fn(),
+}));
+
 // Mock dependencies to isolate registration tests
 vi.mock("execa", () => ({
   execa: vi.fn().mockResolvedValue({ stdout: "", stderr: "" }),
@@ -109,6 +122,68 @@ describe("add command", () => {
       expect(optionLongs).toContain(ADD_DEP_FLAGS.app.long);
       expect(optionLongs).toContain(ADD_DEP_FLAGS.pkg.long);
       expect(optionLongs).toContain(ADD_DEP_FLAGS.root.long);
+    });
+  });
+
+  describe("logic", () => {
+    it("should respect name passed to app subcommand", async () => {
+      const { addComponent } = await import("../commands/core/add.js");
+      const { text, select } = await import("@clack/prompts");
+
+      vi.mocked(select).mockResolvedValue("base");
+
+      await addComponent("app", { app: true }, "my-app");
+
+      // Should NOT call text() for name since it was provided
+      expect(text).not.toHaveBeenCalledWith(
+        expect.objectContaining({ message: expect.stringContaining("name") }),
+      );
+    });
+
+    it("should treat unknown first argument as name and prompt for type", async () => {
+      const { addComponent } = await import("../commands/core/add.js");
+      const { select, text } = await import("@clack/prompts");
+
+      vi.mocked(select).mockResolvedValueOnce("app"); // User selects type
+      vi.mocked(select).mockResolvedValueOnce("base"); // User selects flavor
+
+      await addComponent("my-name", {});
+
+      // Should NOT call text() for name since "my-name" was treated as name
+      expect(text).not.toHaveBeenCalledWith(
+        expect.objectContaining({ message: expect.stringContaining("name") }),
+      );
+      // Should call select() for type
+      expect(select).toHaveBeenCalledWith(
+        expect.objectContaining({ message: expect.stringContaining("What do you want to add?") }),
+      );
+    });
+
+    it("should respect -a flag for adding app and skip name prompt", async () => {
+      const { addComponent } = await import("../commands/core/add.js");
+      const { text, select } = await import("@clack/prompts");
+
+      vi.mocked(select).mockResolvedValue("base");
+
+      await addComponent(undefined, { app: "my-app" });
+
+      expect(text).not.toHaveBeenCalledWith(
+        expect.objectContaining({ message: expect.stringContaining("name") }),
+      );
+    });
+
+    it("should prompt for name when -a is used as a boolean flag", async () => {
+      const { addComponent } = await import("../commands/core/add.js");
+      const { text, select } = await import("@clack/prompts");
+
+      vi.mocked(text).mockResolvedValue("my-app");
+      vi.mocked(select).mockResolvedValue("base");
+
+      await addComponent(undefined, { app: true });
+
+      expect(text).toHaveBeenCalledWith(
+        expect.objectContaining({ message: expect.stringContaining("name") }),
+      );
     });
   });
 });

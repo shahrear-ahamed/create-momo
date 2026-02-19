@@ -129,18 +129,42 @@ export const DESCRIPTIONS = {
 
 // ─── Add Dep Flags ───────────────────────────────────────────────────────────
 
-export const ADD_DEP_FLAGS = {
-  dev: GLOBAL_FLAGS.dev,
+// ─── Add Action Flags ────────────────────────────────────────────────────────
+export const ADD_ACTION_FLAGS = {
   app: {
     short: "-a",
     long: "--app",
-    flag: "-a, --app <name>",
+    flag: "-a, --app [name]",
+    description: "Add a new application",
+  },
+  package: {
+    short: "-p",
+    long: "--package",
+    flag: "-p, --package [name]",
+    description: "Add a new package",
+  },
+  dep: {
+    short: "-d",
+    long: "--dep",
+    flag: "-d, --dep [name]",
+    description: "Install a dependency",
+  },
+} as const;
+
+// ─── Add Dep Flags ───────────────────────────────────────────────────────────
+
+export const ADD_DEP_FLAGS = {
+  dev: GLOBAL_FLAGS.dev,
+  app: {
+    short: "-A",
+    long: "--to-app",
+    flag: "-A, --to-app <name>",
     description: "Target a specific app",
   },
   pkg: {
-    short: "-p",
-    long: "--pkg",
-    flag: "-p, --pkg <name>",
+    short: "-P",
+    long: "--to-pkg",
+    flag: "-P, --to-pkg <name>",
     description: "Target a specific package",
   },
   root: {
