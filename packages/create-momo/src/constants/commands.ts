@@ -59,8 +59,13 @@ export const COMMANDS = {
   dev: "dev",
   lint: "lint",
   start: "start",
+  test: "test",
   login: "login",
   logout: "logout",
+  link: "link",
+  unlink: "unlink",
+  clean: "clean",
+  graph: "graph",
 
   // Config
   config: "config",
@@ -100,8 +105,13 @@ export const DESCRIPTIONS = {
   dev: "Run development mode for all packages",
   lint: "Lint all packages in the monorepo",
   start: "Start the production build for all packages",
+  test: "Run tests across the workspace using Turborepo",
   login: "Log in to Turborepo (Remote Caching)",
   logout: "Log out from Turborepo",
+  link: "Link project to Vercel Team (Remote Caching)",
+  unlink: "Unlink project from Remote Caching",
+  clean: "Recursive cleanup of build artifacts",
+  graph: "Visualize the project dependency graph",
 
   // Config
   config: "Manage create-momo CLI settings",
@@ -182,6 +192,7 @@ export const TURBO_COMMANDS = [
   COMMANDS.dev,
   COMMANDS.lint,
   COMMANDS.start,
+  COMMANDS.test,
 ] as const;
 
 // ─── Component Types ─────────────────────────────────────────────────────────
