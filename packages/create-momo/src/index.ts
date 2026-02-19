@@ -6,7 +6,6 @@ const pkg = getPkgInfo(import.meta.url);
 const program = new Command();
 
 async function main() {
-  console.clear();
   showLogo();
 
   program

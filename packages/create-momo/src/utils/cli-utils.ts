@@ -22,6 +22,7 @@ export function getPkgInfo(importMetaUrl: string): PackageInfo {
  * Displays the Create Momo logo with a gradient.
  */
 export function showLogo() {
+  console.clear();
   const logo = `
  ██████╗██████╗ ███████╗ █████╗ ████████╗███████╗    ███╗   ███╗ ██████╗ ███╗   ███╗ ██████╗ 
 ██╔════╝██╔══██╗██╔════╝██╔══██╗╚══██╔══╝██╔════╝    ████╗ ████║██╔═══██╗████╗ ████║██╔═══██╗
