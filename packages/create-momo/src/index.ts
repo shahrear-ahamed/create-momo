@@ -1,33 +1,13 @@
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { intro } from "@clack/prompts";
 import { Command } from "commander";
-import fs from "fs-extra";
-import gradient from "gradient-string";
 import { createProject } from "@/commands/core/create.js";
+import { getPkgInfo, showLogo } from "@/utils/cli-utils.js";
 
-// Read package.json dynamically
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const pkgPath = path.resolve(__dirname, "../package.json");
-const pkg = fs.readJsonSync(pkgPath);
-
+const pkg = getPkgInfo(import.meta.url);
 const program = new Command();
 
 async function main() {
   console.clear();
-
-  const logo = `
- ██████╗██████╗ ███████╗ █████╗ ████████╗███████╗    ███╗   ███╗ ██████╗ ███╗   ███╗ ██████╗ 
-██╔════╝██╔══██╗██╔════╝██╔══██╗╚══██╔══╝██╔════╝    ████╗ ████║██╔═══██╗████╗ ████║██╔═══██╗
-██║     ██████╔╝█████╗  ███████║   ██║   █████╗      ██╔████╔██║██║   ██║██╔████╔██║██║   ██║
-██║     ██╔══██╗██╔══╝  ██╔══██║   ██║   ██╔══╝      ██║╚██╔╝██║██║   ██║██║╚██╔╝██║██║   ██║
-╚██████╗██║  ██║███████╗██║  ██║   ██║   ███████╗    ██║ ╚═╝ ██║╚██████╔╝██║ ╚═╝ ██║╚██████╔╝
- ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝    ╚═╝     ╚═╝ ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ 
-`;
-
-  const logoGradient = gradient(["#00FF87", "#60EFFF", "#B2EBF2", "#F0F9FF"]).multiline(logo);
-  intro(logoGradient);
+  showLogo();
 
   program
     .name("create-momo")
