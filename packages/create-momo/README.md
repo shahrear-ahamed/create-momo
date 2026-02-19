@@ -55,8 +55,10 @@ The unified scaffolding entry point.
 ### `momo dev | build | lint | start`
 High-level wrappers around `turbo`. Supports all native flags like `--filter` (alias `-f`), `--parallel`, and `--cache-dir`.
 
-| Command | Alias | Description |
-| :------ | :---- | :---------- |
+| **`momo test`** | `turbo test` | Run tests with filter support. |
+| **`momo clean`** | - | Recursive workspace cleanup. |
+| **`momo graph`** | `turbo graph` | Visualize dependency graph. |
+| **`momo login`** | `turbo login` | Auth with Turborepo Cache. |
 | **`momo doctor`** | - | Health checks for your monorepo. |
 | **`momo list`** | - | View available component flavors. |
 | **`momo config`** | - | Manage CLI settings (`list`, `get`, `set`). |

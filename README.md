@@ -79,9 +79,13 @@ The CLI will guide you through:
 | **`momo build`** | `turbo build` | Build all or filtered workspaces. |
 | **`momo dev`** | `turbo dev` | Run dev servers for all or filtered workspaces. |
 | **`momo lint`** | `turbo lint` | Lint/format all packages via Biome/Turbo. |
-| **`momo start`** | `turbo start` | Start production builds of your apps. |
+| **`momo test`** | `turbo test` | Run workspace tests with filter support. |
+| **`momo clean`** | - | Recursive cleanup of all build artifacts. |
+| **`momo graph`** | `turbo graph` | Visualize project dependency graph. |
 | **`momo add`** | - | **Unified Scaffolding**: Add apps, packages, or deps. |
 | **`momo get`** | `pnpm add` | Alias for `momo add -d`. Installs a dependency. |
+| **`momo login`** | `turbo login` | Authenticate with Turborepo Remote Cache. |
+| **`momo link`** | `turbo link` | Link project to Vercel Team for caching. |
 | **`momo doctor`** | - | Check project health and structure validity. |
 | **`momo list`** | - | List available component flavors (Next.js, Node, etc.). |
 | **`momo config`** | - | Manage CLI settings (`list`, `get`, `set`). |
@@ -132,7 +136,8 @@ my-project/
 - [x] **Unified CLI**: Single entry point via `momo add`.
 - [x] **Turbo Orchestration**: Full pass-through flag support.
 - [x] **Context Awareness**: Blocks nested project creation.
-- [ ] **Turbo Auth**: Integrated `momo login/logout`.
+- [x] **Turbo Auth**: Integrated `momo login/logout`.
+- [x] **Workspace Hygiene**: Integrated `momo clean`.
 - [ ] **Premium Blueprints**: Pre-configured SaaS templates.
 - [ ] **Unified Deployment**: One-click Vercel/Netlify integration.
 
