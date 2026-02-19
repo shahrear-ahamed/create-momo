@@ -307,8 +307,6 @@ export function registerAddCommand(program: Command) {
     .option(ADD_ACTION_FLAGS.package.flag, ADD_ACTION_FLAGS.package.description)
     .option(ADD_ACTION_FLAGS.dep.flag, ADD_ACTION_FLAGS.dep.description)
     .option(ADD_DEP_FLAGS.dev.flag, ADD_DEP_FLAGS.dev.description)
-    .option(ADD_DEP_FLAGS.app.flag, ADD_DEP_FLAGS.app.description)
-    .option(ADD_DEP_FLAGS.pkg.flag, ADD_DEP_FLAGS.pkg.description)
     .option(ADD_DEP_FLAGS.root.flag, ADD_DEP_FLAGS.root.description)
     .option("-l, --flavor <flavor>", "Select component flavor (base, nextjs, react, node)")
     .action(async (options, cmd) => {

@@ -112,19 +112,19 @@ export const DESCRIPTIONS = {
   // Utility
   doctor: "Check project health",
   list: "List available component flavors",
-  update: "Update configurations",
+  update: "Update configurations (Coming Soon)",
 
   // Setup
-  setup: "Configure project-wide standards and publishing workflows",
-  setupProject: "Select pre-configured blueprint",
-  setupPublish: "Configure npm publishing",
-  setupOpenSource: "Add open-source files (LICENSE, CONTRIBUTING, etc.)",
-  setupCloseSource: "Configure for proprietary use",
+  setup: "Configure project-wide standards (Coming Soon)",
+  setupProject: "Select pre-configured blueprint (Coming Soon)",
+  setupPublish: "Configure npm publishing (Coming Soon)",
+  setupOpenSource: "Add open-source files (Coming Soon)",
+  setupCloseSource: "Configure for proprietary use (Coming Soon)",
 
   // Deploy
-  deploy: "Deployment workflows",
-  deployInit: "Initialize deployment config",
-  deployPush: "Deploy to platform",
+  deploy: "Deployment workflows (Coming Soon)",
+  deployInit: "Initialize deployment config (Coming Soon)",
+  deployPush: "Deploy to platform (Coming Soon)",
 } as const;
 
 // ─── Add Dep Flags ───────────────────────────────────────────────────────────
@@ -156,15 +156,15 @@ export const ADD_ACTION_FLAGS = {
 export const ADD_DEP_FLAGS = {
   dev: GLOBAL_FLAGS.dev,
   app: {
-    short: "-A",
-    long: "--to-app",
-    flag: "-A, --to-app <name>",
+    short: "-a",
+    long: "--app",
+    flag: "-a, --app <name>",
     description: "Target a specific app",
   },
   pkg: {
-    short: "-P",
-    long: "--to-pkg",
-    flag: "-P, --to-pkg <name>",
+    short: "-p",
+    long: "--pkg",
+    flag: "-p, --pkg <name>",
     description: "Target a specific package",
   },
   root: {

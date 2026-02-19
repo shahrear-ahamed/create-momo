@@ -73,8 +73,8 @@ describe("project commands (turbo wrappers)", () => {
 
       await projectCommand.build();
       expect(execa).toHaveBeenCalledWith(
-        "turbo",
-        [COMMANDS.build],
+        "npx",
+        ["turbo", COMMANDS.build],
         expect.objectContaining({ stdio: "inherit" }),
       );
     });
@@ -85,8 +85,8 @@ describe("project commands (turbo wrappers)", () => {
 
       await projectCommand.dev({ filter: "web" });
       expect(execa).toHaveBeenCalledWith(
-        "turbo",
-        [COMMANDS.dev, GLOBAL_FLAGS.filter.long, "web"],
+        "npx",
+        ["turbo", COMMANDS.dev, GLOBAL_FLAGS.filter.long, "web"],
         expect.objectContaining({ stdio: "inherit" }),
       );
     });
@@ -97,8 +97,8 @@ describe("project commands (turbo wrappers)", () => {
 
       await projectCommand.lint({}, ["--continue", "--force"]);
       expect(execa).toHaveBeenCalledWith(
-        "turbo",
-        [COMMANDS.lint, "--continue", "--force"],
+        "npx",
+        ["turbo", COMMANDS.lint, "--continue", "--force"],
         expect.objectContaining({ stdio: "inherit" }),
       );
     });
@@ -109,8 +109,8 @@ describe("project commands (turbo wrappers)", () => {
 
       await projectCommand.start({ filter: "api" }, ["--parallel"]);
       expect(execa).toHaveBeenCalledWith(
-        "turbo",
-        [COMMANDS.start, GLOBAL_FLAGS.filter.long, "api", "--parallel"],
+        "npx",
+        ["turbo", COMMANDS.start, GLOBAL_FLAGS.filter.long, "api", "--parallel"],
         expect.objectContaining({ stdio: "inherit" }),
       );
     });
