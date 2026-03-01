@@ -4,6 +4,7 @@ export const CreateProjectSchema = z.object({
   name: z.string().optional(),
   cwd: z.string().optional(),
   version: z.string().optional(),
+  blueprint: z.string().optional(),
 });
 
 export type CreateProjectArgs = z.infer<typeof CreateProjectSchema>;

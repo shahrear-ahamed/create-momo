@@ -1,4 +1,5 @@
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { cancel, isCancel, select, text } from "@clack/prompts";
 import type { Command } from "commander";
 import { execa } from "execa";
@@ -7,14 +8,10 @@ import color from "picocolors";
 import { configManager } from "@/commands/config/config.js";
 import { ADD_ACTION_FLAGS, ADD_DEP_FLAGS, COMMANDS, DESCRIPTIONS } from "@/constants/commands.js";
 import { AddComponentSchema } from "@/schemas/commands.schema.js";
-import { getBaseConfig } from "@/templates/config-typescript/base.json.js";
-import { getNextjsConfig } from "@/templates/config-typescript/nextjs.json.js";
-import { getNodeConfig } from "@/templates/config-typescript/node.json.js";
-import { getConfigPackageJson } from "@/templates/config-typescript/package.json.js";
-import { getReactConfig } from "@/templates/config-typescript/react.json.js";
 import type { AddDepOptions, AddOptions } from "@/types/index.js";
 import { fileOps } from "@/utils/file-ops.js";
 import { createSpinner, logger } from "@/utils/logger.js";
+import { templateEngine } from "@/utils/template-engine.js";
 import { validators } from "@/utils/validators.js";
 import { workspaceUtils } from "@/utils/workspace.js";
 
@@ -69,9 +66,9 @@ async function getComponentFlavor(componentType: string, initialFlavor?: string)
     message: `Select the flavor for your ${componentType}`,
     options: [
       { value: "base", label: "Vanilla / Base" },
-      { value: "nextjs", label: "Next.js" },
-      { value: "react", label: "React (Vite)" },
-      { value: "node", label: "Node.js / Express" },
+      { value: "with-nextjs", label: "Next.js" },
+      { value: "with-react-vite", label: "React (Vite)" },
+      { value: "with-node-express", label: "Node.js / Express" },
     ],
   });
 
@@ -83,40 +80,7 @@ async function getComponentFlavor(componentType: string, initialFlavor?: string)
   return flavor as string;
 }
 
-async function ensureSharedConfig(flavor: string) {
-  const configPkgDir = path.join(process.cwd(), "packages", "config-typescript");
-  const flavorFile = path.join(configPkgDir, `${flavor}.json`);
-
-  const configExists = !(await fileOps.isEmpty(configPkgDir));
-  if (!configExists) {
-    await fileOps.ensureDir(configPkgDir);
-    await fileOps.writeJson(path.join(configPkgDir, "package.json"), getConfigPackageJson("@momo"));
-    await fileOps.writeJson(path.join(configPkgDir, "base.json"), getBaseConfig());
-  }
-
-  if (flavor === "base") return;
-
-  const flavorExists = await (async () => {
-    try {
-      await fileOps.readJson(flavorFile);
-      return true;
-    } catch {
-      return false;
-    }
-  })();
-
-  if (!flavorExists) {
-    let configContent: Record<string, unknown> | undefined;
-    if (flavor === "nextjs") configContent = getNextjsConfig();
-    else if (flavor === "react") configContent = getReactConfig();
-    else if (flavor === "node") configContent = getNodeConfig();
-
-    if (configContent) {
-      await fileOps.writeJson(flavorFile, configContent);
-      logger.info(`Added ${color.cyan(`${flavor}.json`)} to shared config.`);
-    }
-  }
-}
+// Legacy ensuredSharedConfig removed. Root-level templates handle this.
 
 export async function addComponent(typeOrName?: string, options: AddOptions = {}, name?: string) {
   let resolvedType = typeOrName;
@@ -159,26 +123,47 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
   const flavor = await getComponentFlavor(componentType, options.flavor);
   const spinner = createSpinner(`Creating ${componentType}...`);
 
+  const config = await configManager.load();
+  const scope = config.packageScope || config.scope || "@momo";
+
+  // Find template directory
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  let templateRoot = path.resolve(__dirname, "../../../../../templates/components");
+
+  if (!fs.existsSync(templateRoot)) {
+    templateRoot = path.resolve(__dirname, "../templates/components");
+  }
+
+  const templateDir = path.join(templateRoot, flavor);
+
   try {
-    await fileOps.ensureDir(targetDir);
-    await fileOps.writeJson(path.join(targetDir, "package.json"), {
-      name: componentName,
-      version: "0.0.0",
-      private: true,
-      scripts: { build: "echo build", dev: "echo dev" },
-    });
+    if (flavor === "base") {
+      // Fallback to legacy minimal scaffolding for "base" flavor if template doesn't exist
+      if (!fs.existsSync(templateDir)) {
+        await fileOps.ensureDir(targetDir);
+        await fileOps.writeJson(path.join(targetDir, "package.json"), {
+          name: componentName,
+          version: "0.0.0",
+          private: true,
+          scripts: { build: "echo build", dev: "echo dev" },
+        });
+        await fileOps.ensureDir(path.join(targetDir, "src"));
+      } else {
+        await templateEngine.copyTemplate(templateDir, targetDir, {
+          name: componentName,
+          scope,
+        });
+      }
+    } else {
+      if (!fs.existsSync(templateDir)) {
+        throw new Error(`Template for flavor "${flavor}" not found at ${templateDir}`);
+      }
+      await templateEngine.copyTemplate(templateDir, targetDir, {
+        name: componentName,
+        scope,
+      });
+    }
 
-    await ensureSharedConfig(flavor);
-
-    const extendPath = `../../packages/config-typescript/${flavor}.json`;
-    await fileOps.writeJson(path.join(targetDir, "tsconfig.json"), {
-      extends: extendPath,
-      compilerOptions: { outDir: "dist", rootDir: "src" },
-      include: ["src"],
-      exclude: ["node_modules", "dist"],
-    });
-
-    await fileOps.ensureDir(path.join(targetDir, "src"));
     spinner.stop(`${componentType === "app" ? "Application" : "Package"} added successfully!`);
     logger.success(`\nCreated ${color.bold(componentName)} in ${color.underline(targetDir)}`);
   } catch (error) {

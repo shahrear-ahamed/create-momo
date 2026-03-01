@@ -1,20 +1,16 @@
 import path from "node:path";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 import { cancel, isCancel, select, text } from "@clack/prompts";
+import fs from "fs-extra";
 import color from "picocolors";
 import { configManager } from "@/commands/config/config.js";
 import { CreateProjectSchema } from "@/schemas/commands.schema.js";
-import { getBaseConfig } from "@/templates/config-typescript/base.json.js";
-import { getConfigPackageJson } from "@/templates/config-typescript/package.json.js";
-import { getGitignore } from "@/templates/gitignore.js";
-import { getMomoConfig } from "@/templates/momo.config.json.js";
-import { getRootPackageJson } from "@/templates/package.json.js";
-import { getBaseTsConfig } from "@/templates/tsconfig.json.js";
-import { getTurboJson } from "@/templates/turbo.json.js";
 import type { CreateProjectOptions, PackageManager } from "@/types/index.js";
 import { fileOps } from "@/utils/file-ops.js";
 import { createSpinner, logger } from "@/utils/logger.js";
 import { projectUtils } from "@/utils/project.js";
+import { templateEngine } from "@/utils/template-engine.js";
 import { validators } from "@/utils/validators.js";
 
 async function getProjectName(initialName?: string): Promise<string> {
@@ -110,44 +106,26 @@ async function getPackageManager(): Promise<PackageManager> {
   return packageManager;
 }
 
-async function runScaffolding(
-  targetDir: string,
-  projectName: string,
-  scope: string,
-  packageManager: PackageManager,
-  pmVersion: string,
-  version: string,
-) {
-  await fileOps.ensureDir(targetDir);
+async function getBlueprint(initialBlueprint?: string): Promise<string> {
+  if (initialBlueprint) return initialBlueprint;
 
-  await fileOps.writeJson(
-    path.join(targetDir, "package.json"),
-    getRootPackageJson(projectName, packageManager, version, pmVersion),
-  );
+  const blueprint = await select({
+    message: "Which blueprint would you like to start with?",
+    options: [
+      { value: "momo-starter-minimal", label: "Minimal", hint: "Clean monorepo structure" },
+      { value: "momo-starter-saas", label: "SaaS Starter", hint: "Next.js + UI + Shared Configs" },
+    ],
+  });
 
-  if (packageManager === "pnpm") {
-    await fileOps.writeFile(
-      path.join(targetDir, "pnpm-workspace.yaml"),
-      'packages:\n  - "apps/*"\n  - "packages/*"\n',
-    );
+  if (isCancel(blueprint)) {
+    cancel("Operation cancelled.");
+    process.exit(0);
   }
 
-  await fileOps.writeJson(path.join(targetDir, "turbo.json"), getTurboJson());
-  await fileOps.writeJson(path.join(targetDir, "tsconfig.json"), getBaseTsConfig());
-  await fileOps.writeFile(path.join(targetDir, ".gitignore"), getGitignore());
-  await fileOps.writeJson(
-    path.join(targetDir, "momo.config.json"),
-    getMomoConfig(scope, packageManager),
-  );
-
-  await fileOps.ensureDir(path.join(targetDir, "apps"));
-  await fileOps.ensureDir(path.join(targetDir, "packages"));
-
-  const configDir = path.join(targetDir, "packages", "config-typescript");
-  await fileOps.ensureDir(configDir);
-  await fileOps.writeJson(path.join(configDir, "package.json"), getConfigPackageJson(scope));
-  await fileOps.writeJson(path.join(configDir, "base.json"), getBaseConfig());
+  return blueprint as string;
 }
+
+// runScaffolding removed. Template engine handles this via blueprints.
 
 export async function createProject(args: CreateProjectOptions = {}) {
   const validated = CreateProjectSchema.parse(args);
@@ -177,18 +155,36 @@ export async function createProject(args: CreateProjectOptions = {}) {
   await validateTargetDir(targetDir, projectName);
   const scope = await getProjectScope(projectName);
   const packageManager = await getPackageManager();
+  const blueprint = await getBlueprint(validated.blueprint);
   const pmVersion = await projectUtils.getPMVersion(packageManager);
+
+  // Find template directory (support both local monorepo and published package)
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  let templateRoot = path.resolve(__dirname, "../../../../../templates/blueprints");
+
+  // If not found in monorepo root, check internal package (for future bundling)
+  if (!fs.existsSync(templateRoot)) {
+    templateRoot = path.resolve(__dirname, "../templates/blueprints");
+  }
+
+  const blueprintDir = path.join(templateRoot, blueprint);
+
+  if (!fs.existsSync(blueprintDir)) {
+    logger.error(
+      `${color.bold("Blueprint Not Found:")} Could not find blueprint at ${blueprintDir}`,
+    );
+    process.exit(1);
+  }
 
   const spinner = createSpinner("Scaffolding project with latest dependencies...");
   try {
-    await runScaffolding(
-      targetDir,
-      projectName,
+    await templateEngine.copyTemplate(blueprintDir, targetDir, {
+      name: projectName,
       scope,
       packageManager,
       pmVersion,
-      validated.version || "0.2.0",
-    );
+      version: validated.version || "0.5.1",
+    });
 
     spinner.stop("Project scaffolded successfully!");
     logger.success(`\nProject created at ${color.underline(targetDir)}`);
