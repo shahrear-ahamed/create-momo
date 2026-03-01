@@ -57,21 +57,39 @@ The unified scaffolding entry point.
 ### `momo dev | build | lint | start`
 High-level wrappers around `turbo`. Supports all native flags like `--filter` (alias `-f`), `--parallel`, and `--cache-dir`.
 
-| **`momo lint`** | `turbo lint` | High-level linting/formatting. |
-| **`momo start`** | `turbo start` | Production build runner. |
-| **`momo test`** | `turbo test` | Run tests with filter support. |
-| **`momo clean`** | - | Recursive workspace cleanup. |
-| **`momo graph`** | `turbo graph` | Visualize dependency graph. |
-| **`momo login`** | `turbo login` | Auth with Turborepo Cache. |
-| **`momo logout`** | `turbo logout` | Revoke Turborepo authentication. |
-| **`momo link`** | `turbo link` | Link project to Vercel team. |
-| **`momo unlink`** | `turbo unlink` | Unlink project from remote caching. |
-| **`momo doctor`** | - | Health checks for your monorepo. |
-| **`momo list`** | - | View available component flavors. |
-| **`momo config`** | - | Manage CLI settings (`list`, `get`, `set`). |
-| **`momo setup`** | - | **(Coming Soon)**: Standards: `project`, `publish`, etc. |
-| **`momo deploy`** | - | **(Coming Soon)**: Unified deployment workflows. |
-| **`momo update`** | - | **(Coming Soon)**: Sync local configs with blueprints. |
+| Command | Counterpart | Description |
+| :--- | :--- | :--- |
+| **`momo dev`** | `turbo dev` | Orchestrate development servers. |
+| **`momo build`** | `turbo build` | Optimized mono-repo builds. |
+| **`momo lint`** | `turbo lint` | Strict Biome-powered static analysis. |
+| **`momo test`** | `turbo test` | Run tests via Vitest/Turbo. |
+| **`momo clean`** | - | Nuclear cleaning of build artifacts. |
+| **`momo doctor`** | - | Health-check for project integrity. |
+| **`momo graph`** | `turbo graph` | Interactive dependency visualization. |
+| **`momo list`** | - | Show available templates and flavors. |
+| **`momo config`** | - | Local/Global CLI preference management. |
+| **`momo login`** | `turbo login` | Authenticate with Remote Cache. |
+
+---
+
+## 🛠 Command Deep Dive
+
+### `create-momo <name> [--blueprint <type>]`
+The main entry point for new projects. Use `--blueprint` to skip the interactive selection:
+- `momo-starter-minimal`: Bare-bones essential structure.
+- `momo-starter-saas`: Full-stack with Next.js, UI, and shared configs.
+
+### `momo add <type> [name] [--flavor <flavor>]`
+Fast scaffolding for monorepo units.
+- **Flavors**: `with-nextjs`, `with-node-express`, `with-react-vite`, `with-ui-shared`.
+- **Automatic Setup**: Handles `tsconfig` extends and project namespacing out of the box.
+
+### `momo doctor`
+Validates that:
+1. `momo.config.json` is correctly configured.
+2. The package manager matches the active lockfile.
+3. Standard directories (`apps/`, `packages/`) exist.
+4. Turborepo is installed and runnable.
 
 ---
 

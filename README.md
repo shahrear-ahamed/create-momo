@@ -77,24 +77,21 @@ The CLI will guide you through:
 | Command | Counterpart | Description |
 | :--- | :--- | :--- |
 | **`momo build`** | `turbo build` | Build all or filtered workspaces. |
-| **`momo dev`** | `turbo dev` | Run dev servers for all or filtered workspaces. |
-| **`momo lint`** | `turbo lint` | Lint/format all packages via Biome/Turbo. |
-| **`momo start`** | `turbo start` | Start production builds of your apps. |
-| **`momo test`** | `turbo test` | Run workspace tests with filter support. |
-| **`momo clean`** | - | Recursive cleanup of all build artifacts. |
-| **`momo graph`** | `turbo graph` | Visualize project dependency graph. |
-| **`momo add`** | - | **Unified Scaffolding**: Add apps, packages, or deps. |
-| **`momo get`** | `pnpm add` | Alias for `momo add -d`. Installs a dependency. |
-| **`momo login`** | `turbo login` | Authenticate with Turborepo Remote Cache. |
-| **`momo logout`** | `turbo logout` | Revoke Turborepo authentication. |
-| **`momo link`** | `turbo link` | Link project to Vercel Team for caching. |
-| **`momo unlink`** | `turbo unlink` | Unlink project from remote caching. |
-| **`momo doctor`** | - | Check project health and structure validity. |
-| **`momo list`** | - | List available component flavors (Next.js, Node, etc.). |
-| **`momo config`** | - | Manage CLI settings (`list`, `get`, `set`). |
-| **`momo setup`** | - | **(Coming Soon)**: Standards: `project`, `publish`, etc. |
-| **`momo deploy`** | - | **(Coming Soon)**: Unified deployment workflows. |
-| **`momo update`** | - | **(Coming Soon)**: Sync local configs with blueprints. |
+| **`momo dev`** | `turbo dev` | Run development servers with hot-reloading. |
+| **`momo lint`** | `turbo lint` | Clean and format using Biome/Turbo. |
+| **`momo start`** | `turbo start` | Run production builds of your apps. |
+| **`momo test`** | `turbo test` | Execute unit and integration tests. |
+| **`momo clean`** | - | **Recursively** delete `node_modules`, `dist`, and cache. |
+| **`momo doctor`** | - | **Audit**: Check project health and structure. |
+| **`momo graph`** | `turbo graph` | **Graph**: Visualize project dependency map. |
+| **`momo add`** | - | **Scaffold**: Add apps, packages, or template flavors. |
+| **`momo get`** | `pnpm add` | Fast-track dependency addition (alias for `add -d`). |
+| **`momo list`** | - | List all available templates and flavors. |
+| **`momo config`** | - | **Settings**: Manage global/local CLI preferences. |
+| **`momo login`** | `turbo login` | Sync with Turborepo Remote Cache. |
+| **`momo logout`** | `turbo logout` | Revoke remote cache authentication. |
+| **`momo link`** | `turbo link` | Connect workspace to Vercel/Turbo teams. |
+| **`momo unlink`** | `turbo unlink` | Disconnect from remote caching. |
 
 #### 🎯 Turbo Filter Support
 All management commands support native Turbo flags.
@@ -123,13 +120,16 @@ A standard **Momo** project follows a modular structure:
 
 ```text
 my-project/
-├── apps/                # Applications (Next.js, Vite, etc.)
-├── packages/            # Shared libraries and configurations
-│   ├── config-typescript/ # Shared TS settings
-│   └── ...
-├── momo.config.json     # CLI configuration
-├── turbo.json           # Turborepo settings
-└── package.json         # Workspace root
+├── apps/                # High-level applications
+│   └── web/             # Next.js / Vite / React apps
+├── packages/            # Modular shared resources
+│   ├── ui/              # Shared component library
+│   ├── utils/           # Shared logic
+│   └── config-typescript/ # Centralized TS configurations
+├── templates/           # Blueprints & Component templates (Internal)
+├── momo.config.json     # CLI context & project configuration
+├── turbo.json           # Turborepo task pipelines
+└── package.json         # Workspace root definitions
 ```
 
 ---
