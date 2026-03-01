@@ -115,6 +115,17 @@ momo add -d lodash -A web   # Short flag alias for targeting
 
 ---
 
+## 🎨 Templates & Blueprints
+Momo's scaffolding is powered by a flexible, root-level template system. You can use pre-defined blueprints for new projects or component flavors for adding apps and packages.
+
+**Available Blueprints:** `momo-starter-minimal`, `momo-starter-saas`.  
+**Available Flavors:** `with-nextjs`, `with-node-express`, `with-react-vite`, `with-ui-shared`.
+
+> [!TIP]
+> Want to add your own templates? Check out our [Templates & Blueprints Guide](./docs/templates.md).
+
+---
+
 ## 🏗 Project Architecture
 
 A standard **Momo** project follows a modular structure:
