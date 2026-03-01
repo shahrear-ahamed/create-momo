@@ -1,0 +1,21 @@
+{
+  "name": "{{name}}",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "{{packageManager}}@{{pmVersion}}",
+  "scripts": {
+    "build": "momo build",
+    "dev": "momo dev",
+    "lint": "momo lint",
+    "clean": "momo clean",
+    "test": "momo test"
+  },
+  "devDependencies": {
+    "create-momo": "latest",
+    "turbo": "^2.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
