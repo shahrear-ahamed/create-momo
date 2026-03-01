@@ -17,20 +17,16 @@ Building monorepos shouldn't be complex. **Create Momo** automates the tedious p
 
 ### 🚀 Zero-Config Scaffolding
 - **Package Manager Agnostic**: Native support for **PNPM**, **NPM**, **Yarn**, and **Bun**.
-- **Instant Productivity**: Scaffolds a full Turborepo workspace with apps, packages, and shared configs in seconds.
+- **Instant Productivity**: Scaffolds full workspaces with standardized blueprints.
 
 ### 🧠 Context-Aware Intelligence
-- **Creation Mode**: Run it in an empty directory to launch the interactive project wizard.
-- **Management Mode**: Run it inside a Momo project to access powerful utility and development commands.
+- **Creation Mode**: Run in empty directories to launch the project wizard.
+- **Management Mode**: Run inside projects for powerful dev/utility commands.
 
 ### 🛠️ Integrated Project Management
-- **Command Wrappers**: Unified commands like `momo dev`, `momo build`, and `momo lint` that handle cross-package orchestration via Turborepo.
-- **Component Scaffolding**: Use `momo add` to instantly drop new apps or shared packages into your existing workspace.
-
-### 🎨 Premium Developer Experience
-- **Interactive Prompts**: Beautiful, human-friendly CLI powered by `@clack/prompts`.
-- **Branded Interface**: A polished UI with gradient logos and clear status indicators.
-- **GitHub Actions Ready**: Pre-configured CI/CD workflows for automated PR testing and releases.
+- **Command Wrappers**: Unified `momo build/dev/lint` built on Turborepo.
+- **Smart Scaffolding**: Use `momo add` to instantly drop new apps or packages.
+- **Project Health**: Integrated `momo doctor` and `momo graph` for workspace audit.
 
 ---
 
@@ -63,9 +59,14 @@ The CLI will guide you through:
 ### Creation Commands
 *Used to initialize new monorepo projects.*
 
-- **`pnpm create momo <name>`** / **`npx create-momo <name>`**: Scaffolds a new Turborepo project.
+- **`pnpm create momo <name>`** / **`npx create-momo <name>`**: Scaffolds a new project.
 - **`create-momo .`**: Initializes in the current directory.
 - **`momo`** *(outside a project)*: Launches the interactive creation wizard.
+
+#### 🏗 Scaffolding Options
+Use flags to skip interactive prompts:
+- `--blueprint <type>`: Choose from `momo-starter-minimal` or `momo-starter-saas`.
+- `--scope <name>`: Define your workspace package prefix.
 
 ---
 

@@ -4,12 +4,12 @@
 
 ## ✨ Features
 
-- **Context-Aware Architecture**: Automatically detects if it's running in a project root to switch between **Creation** and **Management** modes.
+- **Zero-Config Scaffolding**: Native support for **PNPM**, **NPM**, **Yarn**, and **Bun**.
+- **Context-Aware Intelligence**: Automatically detects project roots to switch between **Creation** and **Management** modes.
 - **Unified Task Orchestration**: Wraps complex standard tasks (`build`, `dev`, `lint`) into simple, memorable commands.
-- **Ecosystem Agnostic**: First-class support for `pnpm`, `npm`, `yarn`, and `bun` workspace structures.
-- **Standardized Scaffolding**: Provides consistent blueprints for apps and packages ensuring architectural integrity across the monorepo.
-- **Project Health Analysis**: Integrated `momo doctor` to validate monorepo structure and identify potential issues early.
-- **Configuration Management**: A centralized `momo config` system for managing both local project and global CLI settings.
+- **Premium Blueprints**: Standardized starters for SaaS and minimal projects.
+- **Project Health Analysis**: Integrated `momo doctor` to validate monorepo integrity.
+- **Smart Dependency Management**: Intelligent `momo get` handling of workspace protocols.
 
 ---
 
@@ -59,16 +59,22 @@ High-level wrappers around `turbo`. Supports all native flags like `--filter` (a
 
 | Command | Counterpart | Description |
 | :--- | :--- | :--- |
-| **`momo dev`** | `turbo dev` | Orchestrate development servers. |
-| **`momo build`** | `turbo build` | Optimized mono-repo builds. |
-| **`momo lint`** | `turbo lint` | Strict Biome-powered static analysis. |
-| **`momo test`** | `turbo test` | Run tests via Vitest/Turbo. |
-| **`momo clean`** | - | Nuclear cleaning of build artifacts. |
-| **`momo doctor`** | - | Health-check for project integrity. |
-| **`momo graph`** | `turbo graph` | Interactive dependency visualization. |
-| **`momo list`** | - | Show available templates and flavors. |
-| **`momo config`** | - | Local/Global CLI preference management. |
-| **`momo login`** | `turbo login` | Authenticate with Remote Cache. |
+| **`momo build`** | `turbo build` | Build all or filtered workspaces. |
+| **`momo dev`** | `turbo dev` | Run development servers with hot-reloading. |
+| **`momo lint`** | `turbo lint` | Clean and format using Biome/Turbo. |
+| **`momo start`** | `turbo start` | Run production builds of your apps. |
+| **`momo test`** | `turbo test` | Execute unit and integration tests. |
+| **`momo clean`** | - | **Recursively** delete `node_modules`, `dist`, and cache. |
+| **`momo doctor`** | - | **Audit**: Check project health and structure. |
+| **`momo graph`** | `turbo graph` | **Graph**: Visualize project dependency map. |
+| **`momo add`** | - | **Scaffold**: Add apps, packages, or template flavors. |
+| **`momo get`** | `pnpm add` | Fast-track dependency addition (alias for `add -d`). |
+| **`momo list`** | - | List all available templates and flavors. |
+| **`momo config`** | - | **Settings**: Manage global/local CLI preferences. |
+| **`momo login`** | `turbo login` | Sync with Turborepo Remote Cache. |
+| **`momo logout`** | `turbo logout` | Revoke remote cache authentication. |
+| **`momo link`** | `turbo link` | Connect workspace to Vercel/Turbo teams. |
+| **`momo unlink`** | `turbo unlink` | Disconnect from remote caching. |
 
 ---
 
