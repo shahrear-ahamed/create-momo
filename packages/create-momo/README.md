@@ -8,6 +8,8 @@
 - **Unified Task Orchestration**: Wraps complex standard tasks (`build`, `dev`, `lint`) into simple, memorable commands.
 - **Ecosystem Agnostic**: First-class support for `pnpm`, `npm`, `yarn`, and `bun` workspace structures.
 - **Standardized Scaffolding**: Provides consistent blueprints for apps and packages ensuring architectural integrity across the monorepo.
+- **Project Health Analysis**: Integrated `momo doctor` to validate monorepo structure and identify potential issues early.
+- **Configuration Management**: A centralized `momo config` system for managing both local project and global CLI settings.
 
 ---
 
@@ -61,6 +63,9 @@ High-level wrappers around `turbo`. Supports all native flags like `--filter` (a
 | **`momo clean`** | - | Recursive workspace cleanup. |
 | **`momo graph`** | `turbo graph` | Visualize dependency graph. |
 | **`momo login`** | `turbo login` | Auth with Turborepo Cache. |
+| **`momo logout`** | `turbo logout` | Revoke Turborepo authentication. |
+| **`momo link`** | `turbo link` | Link project to Vercel team. |
+| **`momo unlink`** | `turbo unlink` | Unlink project from remote caching. |
 | **`momo doctor`** | - | Health checks for your monorepo. |
 | **`momo list`** | - | View available component flavors. |
 | **`momo config`** | - | Manage CLI settings (`list`, `get`, `set`). |

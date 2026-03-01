@@ -86,7 +86,9 @@ The CLI will guide you through:
 | **`momo add`** | - | **Unified Scaffolding**: Add apps, packages, or deps. |
 | **`momo get`** | `pnpm add` | Alias for `momo add -d`. Installs a dependency. |
 | **`momo login`** | `turbo login` | Authenticate with Turborepo Remote Cache. |
+| **`momo logout`** | `turbo logout` | Revoke Turborepo authentication. |
 | **`momo link`** | `turbo link` | Link project to Vercel Team for caching. |
+| **`momo unlink`** | `turbo unlink` | Unlink project from remote caching. |
 | **`momo doctor`** | - | Check project health and structure validity. |
 | **`momo list`** | - | List available component flavors (Next.js, Node, etc.). |
 | **`momo config`** | - | Manage CLI settings (`list`, `get`, `set`). |
