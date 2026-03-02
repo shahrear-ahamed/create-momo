@@ -1,10 +1,3 @@
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { cancel, isCancel, select, text } from "@clack/prompts";
-import type { Command } from "commander";
-import { execa } from "execa";
-import fs from "fs-extra";
-import color from "picocolors";
 import { configManager } from "@/commands/config/config.js";
 import { ADD_ACTION_FLAGS, ADD_DEP_FLAGS, COMMANDS, DESCRIPTIONS } from "@/constants/commands.js";
 import { AddComponentSchema } from "@/schemas/commands.schema.js";
@@ -14,6 +7,13 @@ import { createSpinner, logger } from "@/utils/logger.js";
 import { templateEngine } from "@/utils/template-engine.js";
 import { validators } from "@/utils/validators.js";
 import { workspaceUtils } from "@/utils/workspace.js";
+import { cancel, isCancel, select, text } from "@clack/prompts";
+import type { Command } from "commander";
+import { execa } from "execa";
+import fs from "fs-extra";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import color from "picocolors";
 
 async function getComponentType(type?: string, options: AddOptions = {}): Promise<string> {
   let componentType = type;
@@ -24,11 +24,11 @@ async function getComponentType(type?: string, options: AddOptions = {}): Promis
 
   if (!componentType) {
     const selected = await select({
-      message: "What do you want to add?",
+      message: "what do you want to add?",
       options: [
-        { value: "app", label: "Application (in /apps)", hint: "Next.js, Vite, etc." },
-        { value: "package", label: "Package (in /packages)", hint: "Shared UI, utils, etc." },
-        { value: "dep", label: "Dependency", hint: "Install a package (main or dev)" },
+        { value: "app", label: "application (in /apps)", hint: "Next.js, Vite, etc." },
+        { value: "package", label: "package (in /packages)", hint: "Shared UI, utils, etc." },
+        { value: "dep", label: "dependency", hint: "Install a package (main or dev)" },
       ],
     });
 
@@ -46,7 +46,7 @@ async function getComponentName(componentType: string, initialName?: string): Pr
   if (initialName) return initialName;
 
   const name = await text({
-    message: `What is the name of your new ${componentType}?`,
+    message: `what is the name of your new ${componentType}?`,
     placeholder: componentType === "app" ? "web" : "ui",
     validate: (val) => validators.projectName(val),
   });
@@ -63,12 +63,12 @@ async function getComponentFlavor(componentType: string, initialFlavor?: string)
   if (initialFlavor) return initialFlavor;
 
   const flavor = await select({
-    message: `Select the flavor for your ${componentType}`,
+    message: `select the flavor for your ${componentType}`,
     options: [
-      { value: "base", label: "Vanilla / Base" },
-      { value: "with-nextjs", label: "Next.js" },
-      { value: "with-react-vite", label: "React (Vite)" },
-      { value: "with-node-express", label: "Node.js / Express" },
+      { value: "base", label: "vanilla / base" },
+      { value: "with-nextjs", label: "next.js" },
+      { value: "with-react-vite", label: "react (vite)" },
+      { value: "with-node-express", label: "node.js / express" },
     ],
   });
 
@@ -106,7 +106,7 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
     const packageName =
       resolvedName ||
       (await text({
-        message: "What is the name of the package?",
+        message: "what is the name of the package?",
         placeholder: "zod",
       }));
     if (isCancel(packageName)) {
@@ -128,11 +128,13 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
 
   // Find template directory
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  let templateRoot = path.resolve(__dirname, "../../../../../templates/components");
-
-  if (!fs.existsSync(templateRoot)) {
-    templateRoot = path.resolve(__dirname, "../templates/components");
-  }
+  // Try multiple candidates: dist/ is flat (3 up), src/commands/core/ needs 5 up, fallback to ../templates for bundled publish
+  const candidates = [
+    path.resolve(__dirname, "../../../templates/components"), // from dist/ (flat)
+    path.resolve(__dirname, "../../../../../templates/components"), // from src/commands/core/ (tests)
+    path.resolve(__dirname, "../templates/components"), // bundled publish fallback
+  ];
+  let templateRoot = candidates.find((p) => fs.existsSync(p)) || candidates[0];
 
   const templateDir = path.join(templateRoot, flavor);
 
@@ -200,7 +202,7 @@ async function promptInstallationTarget(
   });
 
   const selected = await select({
-    message: `Where should ${color.cyan(packageName)} be installed?`,
+    message: `where should ${color.cyan(packageName)} be installed?`,
     options: selections,
   });
 
@@ -268,7 +270,7 @@ async function addDependency(packageName?: string, options: AddDepOptions = {}) 
   const resolvedName =
     packageName ||
     (await text({
-      message: "What is the name of the package?",
+      message: "what is the name of the package?",
       placeholder: "zod",
     }));
 

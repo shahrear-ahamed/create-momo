@@ -5,11 +5,11 @@
   "scripts": {
     "lint": "biome check ."
   },
-  "peerDependencies": {
-    "react": ">=18"
-  },
   "devDependencies": {
     "@types/react": "^18.0.0",
     "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "react": ">=18"
   }
 }

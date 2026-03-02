@@ -4,32 +4,32 @@
   "private": true,
   "description": "A modern CLI tool for creating and managing Turborepo monorepo projects",
   "keywords": [
-    "monorepo",
-    "turborepo",
     "cli",
-    "scaffolding",
-    "typescript",
     "generator",
+    "monorepo",
+    "scaffolding",
     "starter",
-    "template"
+    "template",
+    "turborepo",
+    "typescript"
   ],
   "homepage": "https://github.com/shahrear-ahamed/create-momo#readme",
   "bugs": {
     "url": "https://github.com/shahrear-ahamed/create-momo/issues"
   },
+  "license": "MIT",
+  "author": "Shahrear Ahamed",
   "repository": {
     "type": "git",
     "url": "https://github.com/shahrear-ahamed/create-momo.git"
   },
-  "license": "MIT",
-  "author": "Shahrear Ahamed",
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",
     "test": "turbo test",
-    "check": "biome check --write .",
-    "format": "biome format --write .",
+    "check": "oxlint . && oxfmt --check .",
+    "format": "oxfmt .",
     "clean": "turbo clean && rm -rf node_modules",
     "changeset": "changeset",
     "version": "changeset version",
@@ -37,19 +37,19 @@
     "prepare": "husky"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.14",
     "@changesets/cli": "^2.29.8",
     "@types/node": "^25.2.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
-    "prettier": "^3.8.1",
+    "oxfmt": "^0.36.0",
+    "oxlint": "^1.51.0",
     "turbo": "^2.8.2",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
   },
-  "packageManager": "pnpm@9.1.0",
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=8.0.0"
-  }
+  },
+  "packageManager": "pnpm@9.1.0"
 }

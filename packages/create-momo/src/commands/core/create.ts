@@ -1,9 +1,3 @@
-import path from "node:path";
-import process from "node:process";
-import { fileURLToPath } from "node:url";
-import { cancel, isCancel, select, text } from "@clack/prompts";
-import fs from "fs-extra";
-import color from "picocolors";
 import { configManager } from "@/commands/config/config.js";
 import { CreateProjectSchema } from "@/schemas/commands.schema.js";
 import type { CreateProjectOptions, PackageManager } from "@/types/index.js";
@@ -12,13 +6,19 @@ import { createSpinner, logger } from "@/utils/logger.js";
 import { projectUtils } from "@/utils/project.js";
 import { templateEngine } from "@/utils/template-engine.js";
 import { validators } from "@/utils/validators.js";
+import { cancel, isCancel, select, text } from "@clack/prompts";
+import fs from "fs-extra";
+import path from "node:path";
+import process from "node:process";
+import { fileURLToPath } from "node:url";
+import color from "picocolors";
 
 async function getProjectName(initialName?: string): Promise<string> {
   let projectName = initialName;
 
   if (!projectName) {
     const name = await text({
-      message: "What is the name of your monorepo?",
+      message: "what is the name of your monorepo?",
       placeholder: "my-momo-project",
       validate: (value) => (value === "." ? undefined : validators.projectName(value)),
     });
@@ -44,10 +44,10 @@ async function validateTargetDir(targetDir: string, projectName: string) {
   const isEmpty = await fileOps.isEmpty(targetDir);
   if (!isEmpty) {
     const overwrite = await select({
-      message: `Directory "${projectName === "." ? "Current Directory" : projectName}" is not empty. Proceed?`,
+      message: `directory "${projectName === "." ? "current directory" : projectName}" is not empty. proceed?`,
       options: [
-        { value: "cancel", label: "Cancel operation" },
-        { value: "ignore", label: "Ignore (files might be overwritten)" },
+        { value: "cancel", label: "cancel operation" },
+        { value: "ignore", label: "ignore (files might be overwritten)" },
       ],
     });
 
@@ -66,7 +66,7 @@ async function getProjectScope(projectName: string): Promise<string> {
     `@${projectName.replace(/[^a-zA-Z0-9-]/g, "").toLowerCase()}`;
 
   const scope = await text({
-    message: "What is the package scope?",
+    message: "what is the package scope?",
     placeholder: "@momo",
     initialValue: defaultScope,
     validate: validators.scopeName,
@@ -88,13 +88,13 @@ async function getPackageManager(): Promise<PackageManager> {
   else if (userAgent.includes("npm")) detectedPM = "npm";
 
   const packageManager = (await select({
-    message: "Which package manager do you want to use?",
+    message: "which package manager do you want to use?",
     initialValue: detectedPM,
     options: [
-      { value: "bun", label: "Bun" },
-      { value: "npm", label: "NPM" },
-      { value: "pnpm", label: "PNPM" },
-      { value: "yarn", label: "Yarn" },
+      { value: "bun", label: "bun" },
+      { value: "npm", label: "npm" },
+      { value: "pnpm", label: "pnpm" },
+      { value: "yarn", label: "yarn" },
     ],
   })) as PackageManager;
 
@@ -110,10 +110,11 @@ async function getBlueprint(initialBlueprint?: string): Promise<string> {
   if (initialBlueprint) return initialBlueprint;
 
   const blueprint = await select({
-    message: "Which blueprint would you like to start with?",
+    message: "which blueprint would you like to start with?",
     options: [
-      { value: "momo-starter-minimal", label: "Minimal", hint: "Clean monorepo structure" },
-      { value: "momo-starter-saas", label: "SaaS Starter", hint: "Next.js + UI + Shared Configs" },
+      { value: "momo-starter-blank", label: "blank", hint: "Empty monorepo, no apps or packages" },
+      { value: "momo-starter-minimal", label: "minimal", hint: "Clean monorepo structure" },
+      { value: "momo-starter-saas", label: "saas starter", hint: "Next.js + UI + Shared Configs" },
     ],
   });
 
@@ -159,13 +160,14 @@ export async function createProject(args: CreateProjectOptions = {}) {
   const pmVersion = await projectUtils.getPMVersion(packageManager);
 
   // Find template directory (support both local monorepo and published package)
+  // Try multiple candidates: dist/ is flat (3 up), src/commands/core/ needs 5 up, fallback to ../templates for bundled publish
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  let templateRoot = path.resolve(__dirname, "../../../../../templates/blueprints");
-
-  // If not found in monorepo root, check internal package (for future bundling)
-  if (!fs.existsSync(templateRoot)) {
-    templateRoot = path.resolve(__dirname, "../templates/blueprints");
-  }
+  const candidates = [
+    path.resolve(__dirname, "../../../templates/blueprints"), // from dist/ (flat)
+    path.resolve(__dirname, "../../../../../templates/blueprints"), // from src/commands/core/ (tests)
+    path.resolve(__dirname, "../templates/blueprints"), // bundled publish fallback
+  ];
+  let templateRoot = candidates.find((p) => fs.existsSync(p)) || candidates[0];
 
   const blueprintDir = path.join(templateRoot, blueprint);
 

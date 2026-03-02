@@ -56,6 +56,11 @@ vi.mock("../utils/workspace.js", () => ({
     isInternalPackage: vi.fn().mockResolvedValue(false),
   },
 }));
+vi.mock("../utils/template-engine.js", () => ({
+  templateEngine: {
+    copyTemplate: vi.fn().mockResolvedValue(undefined),
+  },
+}));
 
 describe("add command", () => {
   describe("command registration", () => {
@@ -155,7 +160,7 @@ describe("add command", () => {
       );
       // Should call select() for type
       expect(select).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.stringContaining("What do you want to add?") }),
+        expect.objectContaining({ message: expect.stringContaining("what do you want to add?") }),
       );
     });
 

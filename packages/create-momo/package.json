@@ -3,26 +3,22 @@
   "version": "0.5.1",
   "description": "CLI tool to scaffold monorepo projects",
   "keywords": [
-    "monorepo",
     "cli",
     "generator",
+    "monorepo",
     "turborepo"
   ],
-  "author": "Shahrear Ahamed",
+  "homepage": "https://github.com/shahrear-ahamed/create-momo/tree/main/packages/create-momo#readme",
+  "bugs": {
+    "url": "https://github.com/shahrear-ahamed/create-momo/issues"
+  },
   "license": "MIT",
+  "author": "Shahrear Ahamed",
   "repository": {
     "type": "git",
     "url": "https://github.com/shahrear-ahamed/create-momo.git",
     "directory": "packages/create-momo"
   },
-  "homepage": "https://github.com/shahrear-ahamed/create-momo/tree/main/packages/create-momo#readme",
-  "bugs": {
-    "url": "https://github.com/shahrear-ahamed/create-momo/issues"
-  },
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
-  "type": "module",
   "bin": {
     "create-momo": "./dist/index.js",
     "momo": "./dist/momo.js"
@@ -30,10 +26,18 @@
   "files": [
     "dist"
   ],
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "lint": "biome check .",
+    "lint": "oxlint .",
+    "format": "oxfmt .",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "clean": "rm -rf dist",
@@ -57,8 +61,5 @@
     "tsx": "^4.19.2",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
-  },
-  "publishConfig": {
-    "access": "public"
   }
 }

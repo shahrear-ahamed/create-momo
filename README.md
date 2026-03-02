@@ -16,14 +16,17 @@ Building monorepos shouldn't be complex. **Create Momo** automates the tedious p
 ## ✨ Key Features
 
 ### 🚀 Zero-Config Scaffolding
+
 - **Package Manager Agnostic**: Native support for **PNPM**, **NPM**, **Yarn**, and **Bun**.
 - **Instant Productivity**: Scaffolds full workspaces with standardized blueprints.
 
 ### 🧠 Context-Aware Intelligence
+
 - **Creation Mode**: Run in empty directories to launch the project wizard.
 - **Management Mode**: Run inside projects for powerful dev/utility commands.
 
 ### 🛠️ Integrated Project Management
+
 - **Command Wrappers**: Unified `momo build/dev/lint` built on Turborepo.
 - **Smart Scaffolding**: Use `momo add` to instantly drop new apps or packages.
 - **Project Health**: Integrated `momo doctor` and `momo graph` for workspace audit.
@@ -35,6 +38,7 @@ Building monorepos shouldn't be complex. **Create Momo** automates the tedious p
 You can start a new project immediately without any global installation:
 
 ### 1. Initialize Project
+
 ```bash
 # Using PNPM (Recommended)
 pnpm create momo my-project
@@ -47,7 +51,9 @@ bun create momo my-project
 ```
 
 ### 2. Follow the Wizard
+
 The CLI will guide you through:
+
 - Project name and directory setup
 - Package scope (e.g., `@momo`)
 - Your preferred package manager
@@ -57,45 +63,51 @@ The CLI will guide you through:
 ## 🛠 Command Reference
 
 ### Creation Commands
-*Used to initialize new monorepo projects.*
+
+_Used to initialize new monorepo projects._
 
 - **`pnpm create momo <name>`** / **`npx create-momo <name>`**: Scaffolds a new project.
 - **`create-momo .`**: Initializes in the current directory.
-- **`momo`** *(outside a project)*: Launches the interactive creation wizard.
+- **`momo`** _(outside a project)_: Launches the interactive creation wizard.
 
 #### 🏗 Scaffolding Options
+
 Use flags to skip interactive prompts:
+
 - `--blueprint <type>`: Choose from `momo-starter-minimal` or `momo-starter-saas`.
 - `--scope <name>`: Define your workspace package prefix.
 
 ---
 
 ### Management Commands
-*Run these inside your project directory. Typing `momo` alone inside a project displays the help menu.*
+
+_Run these inside your project directory. Typing `momo` alone inside a project displays the help menu._
 
 ---
 
-| Command | Counterpart | Description |
-| :--- | :--- | :--- |
-| **`momo build`** | `turbo build` | Build all or filtered workspaces. |
-| **`momo dev`** | `turbo dev` | Run development servers with hot-reloading. |
-| **`momo lint`** | `turbo lint` | Clean and format using Biome/Turbo. |
-| **`momo start`** | `turbo start` | Run production builds of your apps. |
-| **`momo test`** | `turbo test` | Execute unit and integration tests. |
-| **`momo clean`** | - | **Recursively** delete `node_modules`, `dist`, and cache. |
-| **`momo doctor`** | - | **Audit**: Check project health and structure. |
-| **`momo graph`** | `turbo graph` | **Graph**: Visualize project dependency map. |
-| **`momo add`** | - | **Scaffold**: Add apps, packages, or template flavors. |
-| **`momo get`** | `pnpm add` | Fast-track dependency addition (alias for `add -d`). |
-| **`momo list`** | - | List all available templates and flavors. |
-| **`momo config`** | - | **Settings**: Manage global/local CLI preferences. |
-| **`momo login`** | `turbo login` | Sync with Turborepo Remote Cache. |
-| **`momo logout`** | `turbo logout` | Revoke remote cache authentication. |
-| **`momo link`** | `turbo link` | Connect workspace to Vercel/Turbo teams. |
-| **`momo unlink`** | `turbo unlink` | Disconnect from remote caching. |
+| Command           | Counterpart    | Description                                               |
+| :---------------- | :------------- | :-------------------------------------------------------- |
+| **`momo build`**  | `turbo build`  | Build all or filtered workspaces.                         |
+| **`momo dev`**    | `turbo dev`    | Run development servers with hot-reloading.               |
+| **`momo lint`**   | `turbo lint`   | Clean and format using Biome/Turbo.                       |
+| **`momo start`**  | `turbo start`  | Run production builds of your apps.                       |
+| **`momo test`**   | `turbo test`   | Execute unit and integration tests.                       |
+| **`momo clean`**  | -              | **Recursively** delete `node_modules`, `dist`, and cache. |
+| **`momo doctor`** | -              | **Audit**: Check project health and structure.            |
+| **`momo graph`**  | `turbo graph`  | **Graph**: Visualize project dependency map.              |
+| **`momo add`**    | -              | **Scaffold**: Add apps, packages, or template flavors.    |
+| **`momo get`**    | `pnpm add`     | Fast-track dependency addition (alias for `add -d`).      |
+| **`momo list`**   | -              | List all available templates and flavors.                 |
+| **`momo config`** | -              | **Settings**: Manage global/local CLI preferences.        |
+| **`momo login`**  | `turbo login`  | Sync with Turborepo Remote Cache.                         |
+| **`momo logout`** | `turbo logout` | Revoke remote cache authentication.                       |
+| **`momo link`**   | `turbo link`   | Connect workspace to Vercel/Turbo teams.                  |
+| **`momo unlink`** | `turbo unlink` | Disconnect from remote caching.                           |
 
 #### 🎯 Turbo Filter Support
+
 All management commands support native Turbo flags.
+
 ```bash
 # Target specific apps
 momo dev --filter web
@@ -106,7 +118,9 @@ momo lint --parallel --continue
 ```
 
 #### 📦 Smart Dependency Addition
+
 `momo add -d <package>` (or `momo get`) automatically detects internal workspace packages and uses the `workspace:*` protocol.
+
 ```bash
 momo get zod -w             # Install to root
 momo get @momo/ui --to-app web # Install internal package to app
@@ -116,6 +130,7 @@ momo add -d lodash -A web   # Short flag alias for targeting
 ---
 
 ## 🎨 Templates & Blueprints
+
 Momo's scaffolding is powered by a flexible, root-level template system. You can use pre-defined blueprints for new projects or component flavors for adding apps and packages.
 
 **Available Blueprints:** `momo-starter-minimal`, `momo-starter-saas`.  

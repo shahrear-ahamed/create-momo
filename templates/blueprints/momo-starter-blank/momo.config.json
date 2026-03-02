@@ -1,0 +1,4 @@
+{
+  "packageScope": "{{scope}}",
+  "manager": "{{packageManager}}"
+}
