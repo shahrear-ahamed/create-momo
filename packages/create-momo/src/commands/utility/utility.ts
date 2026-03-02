@@ -1,17 +1,44 @@
-import path from "node:path";
+import { configManager } from "@/commands/config/config.js";
+import { createSpinner, logger } from "@/utils/logger.js";
 import type { Command } from "commander";
 import fs from "fs-extra";
+import path from "node:path";
 import color from "picocolors";
-import { configManager } from "@/commands/config/config.js";
-import { logger } from "@/utils/logger.js";
 
 export const utilityCommand = {
-  list: async () => {
-    logger.info("Available component flavors:");
-    console.log(`  ${color.cyan("base")}      Vanilla / Generic TypeScript`);
-    console.log(`  ${color.cyan("nextjs")}    Next.js Optimized`);
-    console.log(`  ${color.cyan("react")}     React (Vite) Optimized`);
-    console.log(`  ${color.cyan("node")}      Node.js / Express Optimized`);
+  list: async (options: { remote?: boolean } = {}) => {
+    if (options.remote) {
+      const spinner = createSpinner("Fetching remote templates...");
+      try {
+        const { execa } = await import("execa");
+        // We simulate remote fetch by listing from the official repo's templates directory via curl/github api
+        // For now, we point to the main branch of create-momo
+        const repoUrl =
+          "https://api.github.com/repos/shahrear-ahamed/create-momo/contents/templates/components";
+        const { stdout } = await execa("curl", ["-s", repoUrl]);
+        const files = JSON.parse(stdout) as { name: string; type: string }[];
+
+        spinner.stop("Remote templates fetched successfully!");
+        logger.info("Available remote component templates:");
+        files
+          .filter((f) => f.type === "dir")
+          .forEach((f) => {
+            console.log(`  ${color.cyan(f.name)}`);
+          });
+      } catch (error) {
+        spinner.stop(`${color.red("Failed:")} Could not fetch remote templates.`);
+        logger.error(`Error: ${(error as Error).message}`);
+      }
+      return;
+    }
+
+    logger.info("Available component flavors (local):");
+    console.log(`  ${color.cyan("base")}              Vanilla / Generic TypeScript`);
+    console.log(`  ${color.cyan("with-nextjs")}       Next.js Optimized`);
+    console.log(`  ${color.cyan("with-react-vite")}   React (Vite) Optimized`);
+    console.log(`  ${color.cyan("with-node-express")} Node.js / Express Optimized`);
+    console.log(`  ${color.cyan("with-expo")}         Expo / React Native`);
+    console.log(`  ${color.cyan("with-tanstack-start")} TanStack Start`);
   },
 
   doctor: async () => {
@@ -66,7 +93,8 @@ export function registerUtilityCommands(program: Command) {
   program
     .command("list")
     .description("List available component flavors")
-    .action(async () => await utilityCommand.list());
+    .option("-r, --remote", "Fetch available templates from remote registry")
+    .action(async (options) => await utilityCommand.list(options));
 
   program
     .command("doctor")

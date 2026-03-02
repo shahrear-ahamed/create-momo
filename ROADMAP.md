@@ -5,9 +5,9 @@
 
 ---
 
-## 🔧 v0.5.0 — Minor Release (Modularization, Testing & Remote Cache)
+## ✅ v0.5.0 — Minor Release (Modularization, Testing & OXC Migration)
 
-Refactor codebase for better maintainability, introduce comprehensive test coverage, and enable Turborepo team features.
+Refactor codebase for better maintainability, introduce comprehensive test coverage, and migrate to OXC (oxlint & oxfmt).
 
 ### Feature Overview
 
@@ -21,20 +21,34 @@ Refactor codebase for better maintainability, introduce comprehensive test cover
 |                  | `momo link/unlink`      | Link/unlink project to Vercel team/scope.                                 |
 | **Management**   | `momo clean`            | Remove `node_modules`, `dist`, and `.turbo` cache across workspace.       |
 |                  | `momo test`             | Turbo wrapper for `turbo test` with `--filter` support.                   |
+| **OXC**          | **OXC Migration**       | Full migration to `oxlint` and `oxfmt` across project and templates.      |
 
 ---
 
-## 🎨 v0.6.0 — Minor Release (Templates & Scaffolding Enhancements)
+## ✅ v0.6.0 — Minor Release (Templates & Scaffolding Enhancements)
 
-Expand the scaffolding system with richer templates and configuration options.
+Expanding the scaffolding system with richer templates, configuration options, and automated project setup.
 
-| Feature                    | Description                                                                                                                |
-| :------------------------- | :------------------------------------------------------------------------------------------------------------------------- |
-| **Premium App Blueprints** | Add `--flavor saas`, `--flavor ecommerce`, `--flavor dashboard` for pre-wired app templates with auth, DB, and API routes. |
-| **Package Templates**      | Add `--flavor ui-library`, `--flavor shared-utils`, `--flavor api-client` for common internal package patterns.            |
-| **Template Registry**      | Allow users to register custom templates via `momo config set templates.custom /path/to/template`.                         |
-| **`momo add config`**      | Scaffold shared configuration packages (ESLint, Prettier, Biome, Tailwind) into `packages/`.                               |
-| **`momo list --remote`**   | Fetch and display available templates from a remote registry (future).                                                     |
+### Feature Overview
+
+| Category           | Feature                  | Description                                                                                          |
+| :----------------- | :----------------------- | :--------------------------------------------------------------------------------------------------- |
+| **Scaffolding**    | **`momo add config`**    | Scaffold shared configuration packages (`oxc`, `typescript`, `tailwind`, `vitest`) into `packages/`. |
+|                    | **Industry Standards**   | All blueprints now use `src/` directory, OXC for linting/formatting, and scoped naming.              |
+|                    | **Component Flavors**    | Updated `expo`, `nextjs`, `react-vite`, and `tanstack-start` to match latest industry standards.     |
+| **Remote Access**  | **`momo list --remote`** | Fetch and display available templates directly from the official GitHub repository.                  |
+| **DevOps & Env**   | **`momo setup ci`**      | Automatically generate GitHub Actions workflow with caching and multi-package support.               |
+|                    | **`momo setup env`**     | Synchronize environment variables across workspaces by scanning for `.env.example` files.            |
+| **Project Health** | **`momo doctor`**        | Validate project structure, dependencies, and configuration health (Turbo, Workspaces, etc.).        |
+
+### Status
+
+- [x] Refactor all blueprints and templates to `src/` + OXC.
+- [x] Implement `momo add config` for core monorepo configurations.
+- [x] Implement `momo list --remote` with GitHub API integration.
+- [x] Implement `momo setup ci` (GitHub Actions focus).
+- [x] Implement `momo setup env` for cross-workspace sync.
+- [x] Add functional `momo doctor` audit.
 
 ---
 
@@ -127,11 +141,10 @@ Features that would enhance the CLI but are not yet prioritized. Community feedb
 
 ### 🔴 High Priority
 
-| Idea             | Description                                                                                                        |
-| :--------------- | :----------------------------------------------------------------------------------------------------------------- |
-| **`momo graph`** | Visualize workspace dependency graph. Wraps `turbo graph` and opens an interactive SVG/HTML viewer.                |
-| **`momo ci`**    | Generate GitHub Actions / GitLab CI templates pre-configured for the monorepo (build, test, deploy per-workspace). |
-| **`momo env`**   | Manage `.env` files across workspaces. Share common vars, scope secrets per-app.                                   |
+| Idea              | Description                                                                                         |
+| :---------------- | :-------------------------------------------------------------------------------------------------- |
+| **`momo graph`**  | Visualize workspace dependency graph. Wraps `turbo graph` and opens an interactive SVG/HTML viewer. |
+| **`momo deploy`** | Simple build-to-deploy workflow.                                                                    |
 
 ### 🟡 Medium Priority
 

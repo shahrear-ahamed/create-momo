@@ -51,6 +51,7 @@ export const COMMANDS = {
   // Add subcommands
   addApp: "app",
   addPackage: "package",
+  addConfig: "config",
   addDep: "dep",
   addDepAlias: "get",
 
@@ -84,6 +85,8 @@ export const COMMANDS = {
   setupPublish: "publish",
   setupOpenSource: "open-source",
   setupCloseSource: "close-source",
+  setupCi: "ci",
+  setupEnv: "env",
 
   // Deploy
   deploy: "deploy",
@@ -95,10 +98,11 @@ export const COMMANDS = {
 
 export const DESCRIPTIONS = {
   // Core
-  add: "Add components or dependencies to the monorepo",
-  addApp: "Add a new application",
-  addPackage: "Add a new package",
-  addDep: "Install a dependency",
+  add: "add components or dependencies to the monorepo",
+  addApp: "add a new application",
+  addPackage: "add a new package",
+  addConfig: "add a shared configuration package",
+  addDep: "install a dependency",
 
   // Turbo-powered management
   build: "Build all packages in the monorepo",
@@ -126,10 +130,10 @@ export const DESCRIPTIONS = {
 
   // Setup
   setup: "Configure project-wide standards (Coming Soon)",
-  setupProject: "Select pre-configured blueprint (Coming Soon)",
-  setupPublish: "Configure npm publishing (Coming Soon)",
-  setupOpenSource: "Add open-source files (Coming Soon)",
-  setupCloseSource: "Configure for proprietary use (Coming Soon)",
+  setupOpenSource: "add open-source files (Coming Soon)",
+  setupCloseSource: "configure for proprietary use (Coming Soon)",
+  setupCi: "configure GitHub Actions or GitLab CI",
+  setupEnv: "manage environment variables across workspaces",
 
   // Deploy
   deploy: "Deployment workflows (Coming Soon)",
@@ -158,6 +162,12 @@ export const ADD_ACTION_FLAGS = {
     long: "--dep",
     flag: "-d, --dep [name]",
     description: "Install a dependency",
+  },
+  config: {
+    short: "-c",
+    long: "--config",
+    flag: "-c, --config [name]",
+    description: "Add a shared configuration package",
   },
 } as const;
 
@@ -200,6 +210,7 @@ export const TURBO_COMMANDS = [
 export const COMPONENT_TYPES = {
   app: "app",
   package: "package",
+  config: "config",
   dep: "dep",
 } as const;
 

@@ -28,6 +28,7 @@ async function getComponentType(type?: string, options: AddOptions = {}): Promis
       options: [
         { value: "app", label: "application (in /apps)", hint: "Next.js, Vite, etc." },
         { value: "package", label: "package (in /packages)", hint: "Shared UI, utils, etc." },
+        { value: "config", label: "shared configuration", hint: "ESLint, Tailwind, etc." },
         { value: "dep", label: "dependency", hint: "Install a package (main or dev)" },
       ],
     });
@@ -47,7 +48,7 @@ async function getComponentName(componentType: string, initialName?: string): Pr
 
   const name = await text({
     message: `what is the name of your new ${componentType}?`,
-    placeholder: componentType === "app" ? "web" : "ui",
+    placeholder: componentType === "app" ? "web" : componentType === "config" ? "tailwind" : "ui",
     validate: (val) => validators.projectName(val),
   });
 
@@ -62,14 +63,20 @@ async function getComponentName(componentType: string, initialName?: string): Pr
 async function getComponentFlavor(componentType: string, initialFlavor?: string): Promise<string> {
   if (initialFlavor) return initialFlavor;
 
+  const options = [
+    { value: "base", label: "vanilla / base" },
+    { value: "with-nextjs", label: "next.js" },
+    { value: "with-react-vite", label: "react (vite)" },
+    { value: "with-node-express", label: "node.js / express" },
+  ];
+
+  if (componentType === "config") {
+    return "config-" + (initialFlavor || "base");
+  }
+
   const flavor = await select({
     message: `select the flavor for your ${componentType}`,
-    options: [
-      { value: "base", label: "vanilla / base" },
-      { value: "with-nextjs", label: "next.js" },
-      { value: "with-react-vite", label: "react (vite)" },
-      { value: "with-node-express", label: "node.js / express" },
-    ],
+    options,
   });
 
   if (isCancel(flavor)) {
@@ -86,7 +93,7 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
   let resolvedType = typeOrName;
   let resolvedName = name;
 
-  const validTypes: string[] = ["app", "package", "dep"];
+  const validTypes: string[] = ["app", "package", "config", "dep"];
 
   // If typeOrName is provided but isn't a known type, treat it as the name
   if (typeOrName && !validTypes.includes(typeOrName)) {
@@ -97,6 +104,7 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
   // Handle flags (-a, -p, -d)
   if (typeof options.app === "string") resolvedName = options.app;
   else if (typeof options.package === "string") resolvedName = options.package;
+  else if (typeof options.config === "string") resolvedName = options.config;
   else if (typeof options.dep === "string") resolvedName = options.dep;
 
   const validated = AddComponentSchema.parse({ type: resolvedType, options });
@@ -118,9 +126,13 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
 
   const componentName = await getComponentName(componentType, resolvedName);
   const targetRoot = componentType === "app" ? "apps" : "packages";
-  const targetDir = path.join(process.cwd(), targetRoot, componentName);
+  const finalName = componentType === "config" ? `config-${componentName}` : componentName;
+  const targetDir = path.join(process.cwd(), targetRoot, finalName);
 
-  const flavor = await getComponentFlavor(componentType, options.flavor);
+  const flavor =
+    componentType === "config"
+      ? `config-${componentName}`
+      : await getComponentFlavor(componentType, options.flavor);
   const spinner = createSpinner(`Creating ${componentType}...`);
 
   const config = await configManager.load();
@@ -166,8 +178,10 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
       });
     }
 
-    spinner.stop(`${componentType === "app" ? "Application" : "Package"} added successfully!`);
-    logger.success(`\nCreated ${color.bold(componentName)} in ${color.underline(targetDir)}`);
+    spinner.stop(
+      `${componentType === "app" ? "Application" : componentType === "config" ? "Configuration" : "Package"} added successfully!`,
+    );
+    logger.success(`\nCreated ${color.bold(finalName)} in ${color.underline(targetDir)}`);
   } catch (error) {
     const err = error as Error;
     spinner.stop(`${color.red("Failed:")} Could not add ${componentType}.`);
@@ -315,6 +329,7 @@ export function registerAddCommand(program: Command) {
     .description(DESCRIPTIONS.add)
     .option(ADD_ACTION_FLAGS.app.flag, ADD_ACTION_FLAGS.app.description)
     .option(ADD_ACTION_FLAGS.package.flag, ADD_ACTION_FLAGS.package.description)
+    .option(ADD_ACTION_FLAGS.config.flag, ADD_ACTION_FLAGS.config.description)
     .option(ADD_ACTION_FLAGS.dep.flag, ADD_ACTION_FLAGS.dep.description)
     .option(ADD_DEP_FLAGS.dev.flag, ADD_DEP_FLAGS.dev.description)
     .option(ADD_DEP_FLAGS.root.flag, ADD_DEP_FLAGS.root.description)
@@ -323,6 +338,15 @@ export function registerAddCommand(program: Command) {
       const remainingArgs = cmd.args;
       const typeOrName = remainingArgs[0];
       await addComponent(typeOrName, options);
+    });
+
+  add
+    .command(COMMANDS.addConfig)
+    .argument("[name]", "Name of the configuration (e.g., tailwind, oxc)")
+    .description(DESCRIPTIONS.addConfig)
+    .action(async (name, _options, cmd) => {
+      const opts = cmd.opts();
+      await addComponent("config", { ...opts, config: true }, name);
     });
 
   add

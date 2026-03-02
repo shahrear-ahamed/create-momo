@@ -55,4 +55,11 @@ export const fileOps = {
   writeFile: async (file: string, content: string): Promise<void> => {
     await fs.outputFile(file, content);
   },
+  /**
+   * Find files matching a pattern
+   */
+  findFiles: async (pattern: string, cwd: string): Promise<string[]> => {
+    const { globby } = await import("globby");
+    return (globby as any)(pattern, { cwd, absolute: true });
+  },
 };

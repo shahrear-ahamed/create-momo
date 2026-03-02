@@ -6,8 +6,10 @@
 
 - **Zero-Config Scaffolding**: Native support for **PNPM**, **NPM**, **Yarn**, and **Bun**.
 - **Context-Aware Intelligence**: Automatically detects project roots to switch between **Creation** and **Management** modes.
-- **Unified Task Orchestration**: Wraps complex standard tasks (`build`, `dev`, `lint`) into simple, memorable commands.
-- **Premium Blueprints**: Standardized starters for SaaS and minimal projects.
+- **Unified Task Orchestration**: Wraps complex standard tasks (`build`, `dev`, `lint`) using OXC and Turborepo.
+- **Premium Blueprints**: Standardized industry-ready starters (`blank`, `minimal`, `saas`).
+- **Advanced Scaffolding**: Scaffold apps, packages, or shared configs (`tailwind`, `oxc`, etc.).
+- **DevOps Sync**: Automated CI generation and environment variable synchronization.
 - **Project Health Analysis**: Integrated `momo doctor` to validate monorepo integrity.
 - **Smart Dependency Management**: Intelligent `momo get` handling of workspace protocols.
 
@@ -73,9 +75,10 @@ High-level wrappers around `turbo`. Supports all native flags like `--filter` (a
 | **`momo clean`**  | -              | **Recursively** delete `node_modules`, `dist`, and cache. |
 | **`momo doctor`** | -              | **Audit**: Check project health and structure.            |
 | **`momo graph`**  | `turbo graph`  | **Graph**: Visualize project dependency map.              |
-| **`momo add`**    | -              | **Scaffold**: Add apps, packages, or template flavors.    |
+| **`momo add`**    | -              | **Scaffold**: Add apps, packages, or shared configs.      |
+| **`momo setup`**  | -              | **Orchestrator**: Configure CI/CD and env files.          |
 | **`momo get`**    | `pnpm add`     | Fast-track dependency addition (alias for `add -d`).      |
-| **`momo list`**   | -              | List all available templates and flavors.                 |
+| **`momo list`**   | -              | List local or remote templates (`--remote`).              |
 | **`momo config`** | -              | **Settings**: Manage global/local CLI preferences.        |
 | **`momo login`**  | `turbo login`  | Sync with Turborepo Remote Cache.                         |
 | **`momo logout`** | `turbo logout` | Revoke remote cache authentication.                       |
@@ -97,8 +100,17 @@ The main entry point for new projects. Use `--blueprint` to skip the interactive
 
 Fast scaffolding for monorepo units.
 
-- **Flavors**: `with-nextjs`, `with-node-express`, `with-react-vite`, `with-ui-shared`.
+- **Types**: `app`, `package`, `config`.
+- **Flavors**: `with-nextjs`, `with-expo`, `with-tanstack-start`, `with-react-vite`.
+- **Configs**: `oxc`, `typescript`, `tailwind`, `vitest`.
 - **Automatic Setup**: Handles `tsconfig` extends and project namespacing out of the box.
+
+### `momo setup <subcommand>`
+
+Automate project-wide orchestration.
+
+- **ci**: Generate GitHub Actions workflow.
+- **env**: Sync `.env` files from examples across the workspace.
 
 ### `momo doctor`
 
@@ -108,6 +120,7 @@ Validates that:
 2. The package manager matches the active lockfile.
 3. Standard directories (`apps/`, `packages/`) exist.
 4. Turborepo is installed and runnable.
+5. All required monorepo config files are present.
 
 ---
 

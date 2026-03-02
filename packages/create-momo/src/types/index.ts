@@ -28,6 +28,7 @@ export interface TurboOptions {
 export interface AddOptions {
   app?: boolean | string;
   package?: boolean | string;
+  config?: boolean | string;
   dep?: boolean | string;
   toApp?: string;
   toPkg?: string;

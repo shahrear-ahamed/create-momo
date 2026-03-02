@@ -27,8 +27,9 @@ Building monorepos shouldn't be complex. **Create Momo** automates the tedious p
 
 ### 🛠️ Integrated Project Management
 
-- **Command Wrappers**: Unified `momo build/dev/lint` built on Turborepo.
-- **Smart Scaffolding**: Use `momo add` to instantly drop new apps or packages.
+- **Command Wrappers**: Unified `momo build/dev/lint` built on OXC and Turborepo.
+- **Advanced Scaffolding**: Use `momo add` for apps, packages, or shared configs.
+- **Project Setup**: Automated `momo setup ci` and `momo setup env` for rapid orchestration.
 - **Project Health**: Integrated `momo doctor` and `momo graph` for workspace audit.
 
 ---
@@ -95,9 +96,10 @@ _Run these inside your project directory. Typing `momo` alone inside a project d
 | **`momo clean`**  | -              | **Recursively** delete `node_modules`, `dist`, and cache. |
 | **`momo doctor`** | -              | **Audit**: Check project health and structure.            |
 | **`momo graph`**  | `turbo graph`  | **Graph**: Visualize project dependency map.              |
-| **`momo add`**    | -              | **Scaffold**: Add apps, packages, or template flavors.    |
+| **`momo add`**    | -              | **Scaffold**: Add apps, packages, or shared configs.      |
+| **`momo setup`**  | -              | **Orchestrator**: Configure CI/CD, envs, and standards.   |
 | **`momo get`**    | `pnpm add`     | Fast-track dependency addition (alias for `add -d`).      |
-| **`momo list`**   | -              | List all available templates and flavors.                 |
+| **`momo list`**   | -              | List local or remote templates (`--remote`).              |
 | **`momo config`** | -              | **Settings**: Manage global/local CLI preferences.        |
 | **`momo login`**  | `turbo login`  | Sync with Turborepo Remote Cache.                         |
 | **`momo logout`** | `turbo logout` | Revoke remote cache authentication.                       |
@@ -133,8 +135,9 @@ momo add -d lodash -A web   # Short flag alias for targeting
 
 Momo's scaffolding is powered by a flexible, root-level template system. You can use pre-defined blueprints for new projects or component flavors for adding apps and packages.
 
-**Available Blueprints:** `momo-starter-minimal`, `momo-starter-saas`.  
-**Available Flavors:** `with-nextjs`, `with-node-express`, `with-react-vite`, `with-ui-shared`.
+**Available Blueprints:** `blank`, `minimal`, `saas`.  
+**Available Flavors:** `with-nextjs`, `with-node-express`, `with-react-vite`, `with-expo`, `with-tanstack-start`.
+**Config Scaffolding:** `oxc`, `typescript`, `tailwind`, `vitest`.
 
 > [!TIP]
 > Want to add your own templates? Check out our [Templates & Blueprints Guide](./docs/templates.md).
@@ -168,7 +171,8 @@ my-project/
 - [x] **Context Awareness**: Blocks nested project creation.
 - [x] **Turbo Auth**: Integrated `momo login/logout`.
 - [x] **Workspace Hygiene**: Integrated `momo clean`.
-- [ ] **Premium Blueprints**: Pre-configured SaaS templates.
+- [x] **Advanced Scaffolding**: `momo add config` and `momo setup`.
+- [ ] **Premium Blueprints**: Pre-configured SaaS templates (Ecommerce, Dashboards).
 - [ ] **Unified Deployment**: One-click Vercel/Netlify integration.
 
 ---

@@ -1,0 +1,13 @@
+{
+  "name": "{{scope}}/config-vitest",
+  "version": "0.0.0",
+  "private": true,
+  "files": [
+    "vitest.config.ts"
+  ],
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "jsdom": "latest",
+    "vitest": "latest"
+  }
+}
