@@ -60,31 +60,31 @@ momo install shadcn:dialog
 
 ### Management (Structure & Code)
 
-| Command        | Description                                      |
-| :------------- | :----------------------------------------------- |
-| `momo create`  | Bootstrap a new monorepo project (Blueprints)    |
-| `momo add`     | Add new **Workspaces** (Apps, Packages, Configs) |
-| `momo install` | Inject **Code** or **Components** (NPM, Shadcn)  |
-| `momo list`    | List available templates and blueprints          |
+| Command        | Description                                        | Context       |
+| :------------- | :------------------------------------------------- | :------------ |
+| `momo create`  | Bootstrap a new monorepo project (Blueprints)      | **Creation**  |
+| `momo add`     | Add new **Workspaces** (Apps, Packages, Configs)   | **Structure** |
+| `momo install` | Inject **Code** or **Components** (NPM, `shadcn:`) | **Content**   |
+| `momo list`    | List available component flavors (Local & Remote)  | **Utility**   |
 
 ### Orchestration & Infrastructure
 
-| Command       | Description                                          |
-| :------------ | :--------------------------------------------------- |
-| `momo setup`  | Configure project infrastructure (CI, Env, Registry) |
-| `momo config` | Manage global/local CLI preferences                  |
-| `momo doctor` | Run a project health and standards audit             |
-| `momo graph`  | Visualize the project dependency graph               |
+| Command       | Description                                          | Context       |
+| :------------ | :--------------------------------------------------- | :------------ |
+| `momo setup`  | Configure project infra (CI Workflows, Env packages) | **Orchestra** |
+| `momo config` | Manage global/local CLI preferences                  | **Settings**  |
+| `momo doctor` | Run a project health and standards audit             | **Utility**   |
+| `momo graph`  | Visualize the project dependency graph               | **Utility**   |
 
 ### Execution & Deployment (Turbo-Powered)
 
-| Command       | Description                                    |
-| :------------ | :--------------------------------------------- |
-| `momo run`    | Execute workspace tasks (powered by Turborepo) |
-| `momo build`  | Build all or filtered packages                 |
-| `momo dev`    | Run development mode across the workspace      |
-| `momo login`  | Sync with Turborepo Remote Caching             |
-| `momo deploy` | Unified deployment workflows (Vercel, etc.)    |
+| Command       | Description                                    | Detail        |
+| :------------ | :--------------------------------------------- | :------------ |
+| `momo run`    | Execute workspace tasks (powered by Turborepo) | `turbo run`   |
+| `momo build`  | Build all or filtered packages                 | **Shorthand** |
+| `momo dev`    | Run development mode across the workspace      | **Shorthand** |
+| `momo login`  | Sync with Turborepo Remote Caching             | **Infra**     |
+| `momo deploy` | Unified deployment workflows (Coming Soon)     | **Orchestra** |
 
 ---
 

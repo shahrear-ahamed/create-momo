@@ -40,3 +40,8 @@ lerna-debug.log*
 *.log
 .tmp
 .temp
+
+
+# Test Project
+/test
+/test-momo

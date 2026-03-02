@@ -1,4 +1,5 @@
 import { configManager } from "@/commands/config/config.js";
+import { COMMANDS, DESCRIPTIONS } from "@/constants/commands.js";
 import { createSpinner, logger } from "@/utils/logger.js";
 import type { Command } from "commander";
 import fs from "fs-extra";
@@ -11,8 +12,6 @@ export const utilityCommand = {
       const spinner = createSpinner("Fetching remote templates...");
       try {
         const { execa } = await import("execa");
-        // We simulate remote fetch by listing from the official repo's templates directory via curl/github api
-        // For now, we point to the main branch of create-momo
         const repoUrl =
           "https://api.github.com/repos/shahrear-ahamed/create-momo/contents/templates/components";
         const { stdout } = await execa("curl", ["-s", repoUrl]);
@@ -91,18 +90,18 @@ export const utilityCommand = {
 
 export function registerUtilityCommands(program: Command) {
   program
-    .command("list")
-    .description("List available component flavors")
+    .command(COMMANDS.list)
+    .description(DESCRIPTIONS.list)
     .option("-r, --remote", "Fetch available templates from remote registry")
     .action(async (options) => await utilityCommand.list(options));
 
   program
-    .command("doctor")
-    .description("Check project health")
+    .command(COMMANDS.doctor)
+    .description(DESCRIPTIONS.doctor)
     .action(async () => await utilityCommand.doctor());
 
   program
-    .command("update")
-    .description("Update configurations (Coming Soon)")
+    .command(COMMANDS.update)
+    .description(DESCRIPTIONS.update)
     .action(async () => await utilityCommand.update());
 }

@@ -1,3 +1,4 @@
+import { COMMANDS, DESCRIPTIONS } from "@/constants/commands.js";
 import { fileOps } from "@/utils/file-ops.js";
 import { logger } from "@/utils/logger.js";
 import { confirm, select } from "@clack/prompts";
@@ -131,14 +132,13 @@ export const setupCommand = {
     }
 
     await fileOps.findFiles("**/ .env.example", rootDir);
-    // ... rest of the existing logic
   },
 };
 
 export function registerSetupCommands(program: Command) {
   const setup = program
-    .command("setup")
-    .description("Configure project-wide standards (Coming Soon)")
+    .command(COMMANDS.setup)
+    .description(DESCRIPTIONS.setup)
     .action(async () => {
       logger.info(
         `${color.bold("Coming Soon:")} Project setup and standardization tools will be available in a future update.`,
@@ -147,34 +147,34 @@ export function registerSetupCommands(program: Command) {
     });
 
   setup
-    .command("project")
-    .description("Select pre-configured blueprint (Coming Soon)")
+    .command(COMMANDS.setupProject)
+    .description(DESCRIPTIONS.setupProject)
     .action(async () => await setupCommand.project());
 
   setup
-    .command("publish")
-    .description("Configure npm publishing (Coming Soon)")
+    .command(COMMANDS.setupPublish)
+    .description(DESCRIPTIONS.setupPublish)
     .action(async () => await setupCommand.publish());
 
   setup
-    .command("open-source")
-    .description("Add open-source files (Coming Soon)")
+    .command(COMMANDS.setupOpenSource)
+    .description(DESCRIPTIONS.setupOpenSource)
     .action(async () => await setupCommand.openSource());
 
   setup
-    .command("close-source")
-    .description("Configure for proprietary use (Coming Soon)")
+    .command(COMMANDS.setupCloseSource)
+    .description(DESCRIPTIONS.setupCloseSource)
     .action(async () => await setupCommand.closeSource());
 
   setup
-    .command("ci")
-    .description("Configure continuous integration workflows")
+    .command(COMMANDS.setupCi)
+    .description(DESCRIPTIONS.setupCi)
     .option("-t, --type <type>", "workflow type (standard, release, deploy)")
     .action(async (options) => await setupCommand.ci(options));
 
   setup
-    .command("env")
-    .description("Manage environment variables")
+    .command(COMMANDS.setupEnv)
+    .description(DESCRIPTIONS.setupEnv)
     .option("--t3", "scaffold type-safe env using t3-env")
     .action(async (options) => await setupCommand.env(options));
 }

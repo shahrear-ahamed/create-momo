@@ -1,3 +1,4 @@
+import { COMMANDS, DESCRIPTIONS } from "@/constants/commands.js";
 import { type MomoConfig, MomoConfigSchema } from "@/schemas/config.schema.js";
 import { fileOps } from "@/utils/file-ops.js";
 import { logger } from "@/utils/logger.js";
@@ -112,24 +113,26 @@ export const configCommand = {
 
 export function registerConfigCommand(program: Command) {
   const config = program
-    .command("config")
+    .command(COMMANDS.config)
     .usage("[command] [options]")
-    .description("Manage create-momo CLI settings")
+    .description(DESCRIPTIONS.config)
     .action(async () => await configCommand.list());
 
   config
-    .command("list")
-    .description("List all configurations")
+    .command(COMMANDS.configList)
+    .description(DESCRIPTIONS.configList)
     .action(async () => await configCommand.list());
 
   config
-    .command("get")
+    .command(COMMANDS.configGet)
     .argument("<key>", "Configuration key")
+    .description(DESCRIPTIONS.configGet)
     .action(async (key) => await configCommand.get(key));
 
   config
-    .command("set")
+    .command(COMMANDS.configSet)
     .argument("<key>", "Configuration key")
     .argument("<value>", "Configuration value")
+    .description(DESCRIPTIONS.configSet)
     .action(async (key, value) => await configCommand.set(key, value));
 }

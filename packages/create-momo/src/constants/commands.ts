@@ -135,7 +135,15 @@ export const DESCRIPTIONS = {
   link: "Link project to Vercel Team (Remote Caching)",
   unlink: "Unlink project from Remote Caching",
   deploy: "Deployment workflows (Coming Soon)",
+  deployInit: "Initialize deployment config (Coming Soon)",
+  deployPush: "Deploy to platform (Coming Soon)",
   graph: "Visualize the project dependency graph",
+  setupProject: "Select pre-configured blueprint (Coming Soon)",
+  setupPublish: "Configure npm publishing (Coming Soon)",
+  setupOpenSource: "Add open-source files (Coming Soon)",
+  setupCloseSource: "Configure for proprietary use (Coming Soon)",
+  setupCi: "Configure continuous integration workflows",
+  setupEnv: "Manage environment variables",
 } as const;
 
 // ─── Add Action Flags ────────────────────────────────────────────────────────
