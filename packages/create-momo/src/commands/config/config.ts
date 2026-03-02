@@ -1,11 +1,11 @@
-import os from "node:os";
-import path from "node:path";
-import type { Command } from "commander";
-import fs from "fs-extra";
-import color from "picocolors";
 import { type MomoConfig, MomoConfigSchema } from "@/schemas/config.schema.js";
 import { fileOps } from "@/utils/file-ops.js";
 import { logger } from "@/utils/logger.js";
+import type { Command } from "commander";
+import fs from "fs-extra";
+import os from "node:os";
+import path from "node:path";
+import color from "picocolors";
 
 const CONFIG_FILE_NAME = "momo.config.json";
 const GLOBAL_CONFIG_DIR = path.join(os.homedir(), ".momo");
@@ -39,7 +39,7 @@ export const configManager = {
       }
       logger.warn(`Invalid configuration in ${configPath}. Using defaults.`);
       return MomoConfigSchema.parse(defaultConfig);
-    } catch (_error) {
+    } catch {
       return MomoConfigSchema.parse(defaultConfig);
     }
   },

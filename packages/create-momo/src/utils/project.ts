@@ -1,5 +1,5 @@
-import path from "node:path";
 import fs from "fs-extra";
+import path from "node:path";
 
 export const projectUtils = {
   /**
@@ -31,7 +31,7 @@ export const projectUtils = {
       const { execa } = await import("execa");
       const { stdout } = await execa(pm, ["--version"]);
       return stdout.trim();
-    } catch (_error) {
+    } catch {
       // Fallback versions if detection fails
       if (pm === "pnpm") return "9.0.0";
       if (pm === "yarn") return "1.22.0";

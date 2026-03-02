@@ -4,9 +4,7 @@ export default function Page() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Hello world!</Text>
-      <Text style={styles.subtitle}>
-        This is the first page of your Expo app.
-      </Text>
+      <Text style={styles.subtitle}>This is the first page of your Expo app.</Text>
     </View>
   );
 }
