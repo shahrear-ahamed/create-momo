@@ -4,23 +4,24 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
+    "dev": "vinxi dev",
+    "build": "vinxi build",
+    "start": "vinxi start",
     "lint": "oxlint .",
     "format": "oxfmt ."
   },
   "dependencies": {
+    "@tanstack/react-router": "latest",
+    "@tanstack/start": "latest",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "vinxi": "latest"
   },
   "devDependencies": {
     "@types/react": "latest",
     "@types/react-dom": "latest",
-    "@vitejs/plugin-react": "latest",
     "oxfmt": "latest",
     "oxlint": "latest",
-    "typescript": "latest",
-    "vite": "latest"
+    "typescript": "latest"
   }
 }

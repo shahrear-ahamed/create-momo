@@ -1,6 +1,6 @@
-import path from "node:path";
 import * as prompts from "@clack/prompts";
 import fs from "fs-extra";
+import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { addComponent } from "../commands/core/add.js";
 import { createProject } from "../commands/core/create.js";
@@ -72,6 +72,6 @@ describe("Blueprint Integration", () => {
     expect(fs.existsSync(path.join(appDir, "src/app/page.tsx"))).toBe(true);
 
     const appPkgJson = await fs.readJson(path.join(appDir, "package.json"));
-    expect(appPkgJson.name).toBe("web-app");
+    expect(appPkgJson.name).toBe("@test-scope/web-app");
   });
 });

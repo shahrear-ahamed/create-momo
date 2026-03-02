@@ -1,17 +1,10 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-
 function App() {
   return (
-    <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h1>Momo React + Vite: {{ name }}</h1>
-      <p>Happy coding in your new monorepo component!</p>
+    <div className="App">
+      <h1>Vite + React</h1>
+      <p className="read-the-docs">Scaffolded with Momo</p>
     </div>
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-);
+export default App;
