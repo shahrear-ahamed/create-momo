@@ -111,7 +111,7 @@ async function getComponentFlavor(componentType: string, initialFlavor?: string)
   return flavor as string;
 }
 
-export async function handleExternalFramework(framework: string, options: any) {
+export async function handleExternalFramework(framework: string, _options: any) {
   const componentName = await getComponentName("app");
   const targetDir = path.join(process.cwd(), "apps", componentName);
 
@@ -225,7 +225,7 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
             );
             break;
           }
-        } catch (err) {
+        } catch (_err) {
           /* ignore */
         }
       }

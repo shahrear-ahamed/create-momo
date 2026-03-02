@@ -130,7 +130,7 @@ export const setupCommand = {
       return;
     }
 
-    const envExamples = await fileOps.findFiles("**/ .env.example", rootDir);
+    await fileOps.findFiles("**/ .env.example", rootDir);
     // ... rest of the existing logic
   },
 };
