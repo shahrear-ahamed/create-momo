@@ -425,7 +425,7 @@ export async function addDependency(packageName?: string, options: AddDepOptions
     logger.info(`Installing ${color.cyan(resolvedName as string)}...`);
     await execa(packageManager, args, { stdio: "inherit", cwd: rootDir });
     logger.success(`Successfully installed ${color.cyan(resolvedName as string)}`);
-  } catch (_error) {
+  } catch {
     logger.error(
       `\n${color.bold("Installation Failed:")} Could not install ${color.cyan(
         resolvedName as string,
