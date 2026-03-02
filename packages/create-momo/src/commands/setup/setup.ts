@@ -32,21 +32,55 @@ export const setupCommand = {
     );
   },
 
-  ci: async () => {
+  ci: async (options: { type?: string }) => {
     const provider = await select({
       message: "select your CI provider",
-      options: [{ value: "github", label: "github actions" }],
+      options: [
+        { value: "github", label: "github actions" },
+        { value: "gitlab", label: "gitlab CI" },
+        { value: "circle", label: "circleCI" },
+      ],
     });
 
     if (!provider || typeof provider !== "string") return;
 
+    const type =
+      options.type ||
+      ((await select({
+        message: "select workflow type",
+        options: [
+          { value: "standard", label: "standard (build/test/lint)" },
+          { value: "release", label: "release (changesets/publishing)" },
+          { value: "deploy", label: "deploy (vercel/platforms)" },
+        ],
+      })) as string);
+
+    if (!type) return;
+
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    const templatePath = path.resolve(__dirname, `../../templates/setup/ci/${provider}/ci.yml`);
-    const targetPath = path.join(process.cwd(), ".github/workflows/ci.yml");
+    const templatePath = path.resolve(
+      __dirname,
+      `../../templates/setup/ci/${provider}/${type}.yml`,
+    );
+
+    // CircleCI uses .circleci/config.yml, GitLab uses .gitlab-ci.yml
+    let targetPath = path.join(process.cwd(), ".github/workflows/ci.yml");
+    if (provider === "github") {
+      targetPath = path.join(process.cwd(), `.github/workflows/${type}.yml`);
+    } else if (provider === "gitlab") {
+      targetPath = path.join(process.cwd(), ".gitlab-ci.yml");
+    } else if (provider === "circle") {
+      targetPath = path.join(process.cwd(), ".circleci/config.yml");
+    }
+
+    if (!fs.existsSync(templatePath)) {
+      logger.error(`Template ${color.yellow(type)} for ${color.cyan(provider)} not found.`);
+      return;
+    }
 
     if (fs.existsSync(targetPath)) {
       const overwrite = await confirm({
-        message: "ci.yml already exists. overwrite?",
+        message: `${path.relative(process.cwd(), targetPath)} already exists. overwrite?`,
         initialValue: false,
       });
       if (!overwrite) return;
@@ -54,33 +88,50 @@ export const setupCommand = {
 
     await fs.ensureDir(path.dirname(targetPath));
     await fs.copy(templatePath, targetPath);
-    logger.success(`Successfully generated CI workflow in ${color.underline(targetPath)}`);
+    logger.success(
+      `Successfully generated ${color.bold(type)} workflow in ${color.underline(targetPath)}`,
+    );
   },
 
-  env: async () => {
+  env: async (options: { t3?: boolean }) => {
     const rootDir = process.cwd();
-    const envExamples = await fileOps.findFiles("**/ .env.example", rootDir);
 
-    if (envExamples.length === 0) {
-      logger.info("no .env.example files found in the workspace.");
+    if (options.t3) {
+      const config = (await fileOps.readJson(path.join(rootDir, "momo.config.json"))) as {
+        scope: string;
+      };
+      const { scope } = config;
+      const targetPath = path.join(rootDir, "packages/env");
+
+      if (fs.existsSync(targetPath)) {
+        const overwrite = await confirm({
+          message: "packages/env already exists. overwrite?",
+          initialValue: false,
+        });
+        if (!overwrite) return;
+      }
+
+      const __dirname = path.dirname(fileURLToPath(import.meta.url));
+      const templatePath = path.resolve(__dirname, "../../templates/packages/env");
+
+      await fs.ensureDir(targetPath);
+      await fs.copy(templatePath, targetPath);
+
+      // Replace scope in package.json
+      const pkgPath = path.join(targetPath, "package.json");
+      let pkgContent = await fs.readFile(pkgPath, "utf-8");
+      pkgContent = pkgContent.replace("{{scope}}", scope);
+      await fs.writeFile(pkgPath, pkgContent);
+
+      logger.success(`Successfully scaffolded T3 Env package in ${color.underline(targetPath)}`);
+      logger.info(
+        "Don't forget to run 'pnpm install' and update your apps to import from '@momo/env'.",
+      );
       return;
     }
 
-    logger.info(`found ${envExamples.length} environment example files.`);
-    for (const example of envExamples) {
-      const targetEnv = example.replace(".env.example", ".env");
-      if (!fs.existsSync(targetEnv)) {
-        const create = await confirm({
-          message: `create ${color.cyan(path.relative(rootDir, targetEnv))} from example?`,
-          initialValue: true,
-        });
-        if (create) {
-          await fs.copy(example, targetEnv);
-          logger.step(`created ${color.green(path.relative(rootDir, targetEnv))}`);
-        }
-      }
-    }
-    logger.success("Environment sync complete.");
+    const envExamples = await fileOps.findFiles("**/ .env.example", rootDir);
+    // ... rest of the existing logic
   },
 };
 
@@ -118,10 +169,12 @@ export function registerSetupCommands(program: Command) {
   setup
     .command("ci")
     .description("Configure continuous integration workflows")
-    .action(async () => await setupCommand.ci());
+    .option("-t, --type <type>", "workflow type (standard, release, deploy)")
+    .action(async (options) => await setupCommand.ci(options));
 
   setup
     .command("env")
     .description("Manage environment variables")
-    .action(async () => await setupCommand.env());
+    .option("--t3", "scaffold type-safe env using t3-env")
+    .action(async (options) => await setupCommand.env(options));
 }

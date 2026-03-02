@@ -44,104 +44,99 @@ export const CLI = {
 // ─── Command Names ───────────────────────────────────────────────────────────
 
 export const COMMANDS = {
-  // Core
-  add: "add",
-  create: "create-momo",
+  // ─── Management ────────────────────────────────────────────────────────────
+  create: "create", // Shorthand for bootstrap
+  add: "add", // Grow with templates (local/remote/shadcn)
+  install: "install", // Add NPM dependencies
+  list: "list", // List available components/blueprints
 
-  // Add subcommands
+  // ─── Subcommands (Required for Logic & Tests) ──────────────────────────────
   addApp: "app",
   addPackage: "package",
   addConfig: "config",
   addDep: "dep",
   addDepAlias: "get",
 
-  // Turbo-powered management
-  build: "build",
-  dev: "dev",
-  lint: "lint",
-  start: "start",
-  test: "test",
-  login: "login",
-  logout: "logout",
-  link: "link",
-  unlink: "unlink",
-  clean: "clean",
-  graph: "graph",
+  // ─── Orchestration ─────────────────────────────────────────────────────────
+  setup: "setup", // Infra (CI, Env, etc.)
+  config: "config", // CLI Preferences
+  doctor: "doctor", // Health Check
 
-  // Config
-  config: "config",
+  // Legacy/Internal Subkeys (Satisfying existing tests)
   configList: "list",
   configGet: "get",
   configSet: "set",
-
-  // Utility
-  doctor: "doctor",
-  list: "list",
-  update: "update",
-
-  // Setup
-  setup: "setup",
   setupProject: "project",
   setupPublish: "publish",
   setupOpenSource: "open-source",
   setupCloseSource: "close-source",
   setupCi: "ci",
   setupEnv: "env",
-
-  // Deploy
-  deploy: "deploy",
   deployInit: "init",
   deployPush: "push",
+  update: "update",
+
+  // ─── Execution (Turbo-powered) ─────────────────────────────────────────────
+  run: "run", // Execute turbo tasks
+  build: "build",
+  dev: "dev",
+  lint: "lint",
+  test: "test",
+  start: "start",
+  clean: "clean",
+
+  // ─── Infrastructure ────────────────────────────────────────────────────────
+  login: "login",
+  logout: "logout",
+  link: "link",
+  unlink: "unlink",
+  deploy: "deploy",
+  graph: "graph",
 } as const;
 
 // ─── Command Descriptions ────────────────────────────────────────────────────
 
 export const DESCRIPTIONS = {
-  // Core
-  add: "add components or dependencies to the monorepo",
+  // Management
+  create: "bootstrap a new monorepo project",
+  add: "add components, apps, or UI libraries (shadcn:)",
+  install: "install and link NPM dependencies to workspaces",
+  list: "List available component flavors",
+
+  // Subcommands & Utility (Preserving legacy text for tests)
   addApp: "add a new application",
   addPackage: "add a new package",
   addConfig: "add a shared configuration package",
   addDep: "install a dependency",
+  doctor: "Check project health",
+  update: "Update configurations (Coming Soon)",
 
-  // Turbo-powered management
+  // Orchestration
+  setup: "Configure project-wide standards (Coming Soon)",
+  config: "Manage create-momo CLI settings",
+
+  // Config subcommands
+  configList: "List all configurations",
+  configGet: "Get a configuration value",
+  configSet: "Set a configuration value",
+
+  // Execution
+  run: "execute workspace tasks (powered by Turborepo)",
   build: "Build all packages in the monorepo",
   dev: "Run development mode for all packages",
   lint: "Lint all packages in the monorepo",
   start: "Start the production build for all packages",
   test: "Run tests across the workspace using Turborepo",
+  clean: "Recursive cleanup of build artifacts",
+
+  // Infrastructure
   login: "Log in to Turborepo (Remote Caching)",
   logout: "Log out from Turborepo",
   link: "Link project to Vercel Team (Remote Caching)",
   unlink: "Unlink project from Remote Caching",
-  clean: "Recursive cleanup of build artifacts",
-  graph: "Visualize the project dependency graph",
-
-  // Config
-  config: "Manage create-momo CLI settings",
-  configList: "List all configurations",
-  configGet: "Get a configuration value",
-  configSet: "Set a configuration value",
-
-  // Utility
-  doctor: "Check project health",
-  list: "List available component flavors",
-  update: "Update configurations (Coming Soon)",
-
-  // Setup
-  setup: "Configure project-wide standards (Coming Soon)",
-  setupOpenSource: "add open-source files (Coming Soon)",
-  setupCloseSource: "configure for proprietary use (Coming Soon)",
-  setupCi: "configure GitHub Actions or GitLab CI",
-  setupEnv: "manage environment variables across workspaces",
-
-  // Deploy
   deploy: "Deployment workflows (Coming Soon)",
-  deployInit: "Initialize deployment config (Coming Soon)",
-  deployPush: "Deploy to platform (Coming Soon)",
+  graph: "Visualize the project dependency graph",
 } as const;
-
-// ─── Add Dep Flags ───────────────────────────────────────────────────────────
 
 // ─── Add Action Flags ────────────────────────────────────────────────────────
 export const ADD_ACTION_FLAGS = {
