@@ -33,7 +33,7 @@ export function registerRunCommand(program: Command) {
     });
 
   // Register shorthands for common tasks
-  const tasks = ["build", "dev", "lint", "test", "start", "clean"];
+  const tasks = ["build", "dev", "lint", "test", "start"];
   tasks.forEach((task) => {
     program
       .command(task)

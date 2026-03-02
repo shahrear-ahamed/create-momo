@@ -7,7 +7,7 @@ import { createSpinner, logger } from "@/utils/logger.js";
 import { templateEngine } from "@/utils/template-engine.js";
 import { validators } from "@/utils/validators.js";
 import { workspaceUtils } from "@/utils/workspace.js";
-import { cancel, isCancel, select, text } from "@clack/prompts";
+import { cancel, confirm, isCancel, select, text } from "@clack/prompts";
 import type { Command } from "commander";
 import { execa } from "execa";
 import fs from "fs-extra";
@@ -232,14 +232,23 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
     }
   }
 
-  // Generic Framework Fallback
+  // Generic Framework Fallback (Guided)
   if (resolvedName && !componentType) {
     const isFlavorAvailable = fs.existsSync(path.join(templateRoot, resolvedName));
     const isWithFlavorAvailable = fs.existsSync(path.join(templateRoot, `with-${resolvedName}`));
 
     if (!isFlavorAvailable && !isWithFlavorAvailable) {
-      // If name looks like a framework (no internal template), handle as external
-      return handleExternalFramework(resolvedName, options);
+      // Ask user for confirmation before jumping to external initializer
+      const shouldExternal = await confirm({
+        message: `I couldn't find a local template for "${color.bold(resolvedName)}". Would you like to use it as an external framework initializer (powered by ${color.cyan("pnpm create")})?`,
+        initialValue: true,
+      });
+
+      if (isCancel(shouldExternal) || !shouldExternal) {
+        logger.info(`${color.dim("ℹ")} Okay, let's try selecting a component type manually.`);
+      } else {
+        return handleExternalFramework(resolvedName, options);
+      }
     }
   }
 
