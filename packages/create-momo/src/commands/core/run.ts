@@ -17,7 +17,7 @@ export async function runTask(task: string, options: { filter?: string } = {}) {
   try {
     logger.info(`Running ${color.cyan(task)} via ${color.bold("Turborepo")}...`);
     await execa(manager, args, { stdio: "inherit" });
-  } catch (_error) {
+  } catch {
     // Turbo handles its own error output generally
   }
 }

@@ -225,7 +225,7 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
             );
             break;
           }
-        } catch (_err) {
+        } catch {
           /* ignore */
         }
       }
