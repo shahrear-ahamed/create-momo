@@ -20,7 +20,7 @@ vi.mock("../utils/logger.js", () => ({
 
 describe("project commands (turbo wrappers)", () => {
   describe("command registration", () => {
-    it("should register build, dev, lint, start commands", async () => {
+    it("should register graph and clean commands", async () => {
       // Dynamically import after mocks are set
       const { registerProjectCommands } = await import("../commands/management/project.js");
 
@@ -28,10 +28,8 @@ describe("project commands (turbo wrappers)", () => {
       registerProjectCommands(program);
 
       const registeredNames = program.commands.map((cmd) => cmd.name());
-      expect(registeredNames).toContain(COMMANDS.build);
-      expect(registeredNames).toContain(COMMANDS.dev);
-      expect(registeredNames).toContain(COMMANDS.lint);
-      expect(registeredNames).toContain(COMMANDS.start);
+      expect(registeredNames).toContain(COMMANDS.graph);
+      expect(registeredNames).toContain(COMMANDS.clean);
     });
 
     it("should have correct descriptions from shared constants", async () => {
@@ -40,29 +38,23 @@ describe("project commands (turbo wrappers)", () => {
       const program = new Command();
       registerProjectCommands(program);
 
-      const buildCmd = program.commands.find((cmd) => cmd.name() === COMMANDS.build);
-      const devCmd = program.commands.find((cmd) => cmd.name() === COMMANDS.dev);
-      const lintCmd = program.commands.find((cmd) => cmd.name() === COMMANDS.lint);
-      const startCmd = program.commands.find((cmd) => cmd.name() === COMMANDS.start);
+      const graphCmd = program.commands.find((cmd) => cmd.name() === COMMANDS.graph);
+      const cleanCmd = program.commands.find((cmd) => cmd.name() === COMMANDS.clean);
 
-      expect(buildCmd?.description()).toBe(DESCRIPTIONS.build);
-      expect(devCmd?.description()).toBe(DESCRIPTIONS.dev);
-      expect(lintCmd?.description()).toBe(DESCRIPTIONS.lint);
-      expect(startCmd?.description()).toBe(DESCRIPTIONS.start);
+      expect(graphCmd?.description()).toBe(DESCRIPTIONS.graph);
+      expect(cleanCmd?.description()).toBe(DESCRIPTIONS.clean);
     });
 
-    it("should have --filter option on all turbo commands", async () => {
+    it("should have --filter option on graph command", async () => {
       const { registerProjectCommands } = await import("../commands/management/project.js");
 
       const program = new Command();
       registerProjectCommands(program);
 
-      for (const cmdName of [COMMANDS.build, COMMANDS.dev, COMMANDS.lint, COMMANDS.start]) {
-        const cmd = program.commands.find((c) => c.name() === cmdName);
-        const filterOption = cmd?.options.find((opt) => opt.long === GLOBAL_FLAGS.filter.long);
-        expect(filterOption).toBeDefined();
-        expect(filterOption?.short).toBe(GLOBAL_FLAGS.filter.short);
-      }
+      const graphCmd = program.commands.find((c) => c.name() === COMMANDS.graph);
+      const filterOption = graphCmd?.options.find((opt) => opt.long === GLOBAL_FLAGS.filter.long);
+      expect(filterOption).toBeDefined();
+      expect(filterOption?.short).toBe(GLOBAL_FLAGS.filter.short);
     });
   });
 

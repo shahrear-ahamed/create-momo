@@ -24,7 +24,8 @@
     "momo": "./dist/momo.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "templates"
   ],
   "type": "module",
   "main": "dist/index.js",

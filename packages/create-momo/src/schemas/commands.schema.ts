@@ -5,6 +5,8 @@ export const CreateProjectSchema = z.object({
   cwd: z.string().optional(),
   version: z.string().optional(),
   blueprint: z.string().optional(),
+  scope: z.string().optional(),
+  manager: z.enum(["npm", "yarn", "pnpm", "bun"]).optional(),
 });
 
 export type CreateProjectArgs = z.infer<typeof CreateProjectSchema>;

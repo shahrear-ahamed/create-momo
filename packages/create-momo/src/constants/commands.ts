@@ -54,8 +54,6 @@ export const COMMANDS = {
   addApp: "app",
   addPackage: "package",
   addConfig: "config",
-  addDep: "dep",
-  addDepAlias: "get",
 
   // ─── Orchestration ─────────────────────────────────────────────────────────
   setup: "setup", // Infra (CI, Env, etc.)
@@ -107,7 +105,6 @@ export const DESCRIPTIONS = {
   addApp: "add a new application",
   addPackage: "add a new package",
   addConfig: "add a shared configuration package",
-  addDep: "install a dependency",
   doctor: "Check project health",
   update: "Update configurations (Coming Soon)",
 
@@ -160,41 +157,11 @@ export const ADD_ACTION_FLAGS = {
     flag: "-p, --package [name]",
     description: "Add a new package",
   },
-  dep: {
-    short: "-d",
-    long: "--dep",
-    flag: "-d, --dep [name]",
-    description: "Install a dependency",
-  },
   config: {
     short: "-c",
     long: "--config",
     flag: "-c, --config [name]",
     description: "Add a shared configuration package",
-  },
-} as const;
-
-// ─── Add Dep Flags ───────────────────────────────────────────────────────────
-
-export const ADD_DEP_FLAGS = {
-  dev: GLOBAL_FLAGS.dev,
-  app: {
-    short: "-a",
-    long: "--app",
-    flag: "-a, --app <name>",
-    description: "Target a specific app",
-  },
-  pkg: {
-    short: "-p",
-    long: "--pkg",
-    flag: "-p, --pkg <name>",
-    description: "Target a specific package",
-  },
-  root: {
-    short: "-w",
-    long: "--root",
-    flag: "-w, --root",
-    description: "Install to workspace root",
   },
 } as const;
 
@@ -214,13 +181,12 @@ export const COMPONENT_TYPES = {
   app: "app",
   package: "package",
   config: "config",
-  dep: "dep",
 } as const;
 
 // ─── Flavors ─────────────────────────────────────────────────────────────────
 
 export const FLAVORS = {
-  base: { value: "base", label: "Vanilla / Base" },
+  blank: { value: "blank", label: "blank (minimal package.json)" },
   nextjs: { value: "nextjs", label: "Next.js" },
   react: { value: "react", label: "React (Vite)" },
   node: { value: "node", label: "Node.js / Express" },

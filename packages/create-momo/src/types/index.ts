@@ -45,4 +45,7 @@ export interface CreateProjectOptions {
   name?: string;
   cwd?: string;
   version?: string;
+  blueprint?: string;
+  scope?: string;
+  manager?: PackageManager;
 }

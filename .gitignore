@@ -45,3 +45,5 @@ lerna-debug.log*
 # Test Project
 /test
 /test-momo
+/test-momo-e2e
+/demo-project

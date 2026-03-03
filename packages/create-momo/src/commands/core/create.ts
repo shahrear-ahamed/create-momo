@@ -58,7 +58,8 @@ async function validateTargetDir(targetDir: string, projectName: string) {
   }
 }
 
-async function getProjectScope(projectName: string): Promise<string> {
+async function getProjectScope(projectName: string, initialScope?: string): Promise<string> {
+  if (initialScope) return initialScope;
   const config = await configManager.load();
   const defaultScope =
     config.packageScope ||
@@ -80,7 +81,8 @@ async function getProjectScope(projectName: string): Promise<string> {
   return scope as string;
 }
 
-async function getPackageManager(): Promise<PackageManager> {
+async function getPackageManager(initialManager?: PackageManager): Promise<PackageManager> {
+  if (initialManager) return initialManager;
   const userAgent = process.env.npm_config_user_agent || "";
   let detectedPM: PackageManager = "pnpm";
   if (userAgent.includes("yarn")) detectedPM = "yarn";
@@ -154,8 +156,8 @@ export async function createProject(args: CreateProjectOptions = {}) {
   }
 
   await validateTargetDir(targetDir, projectName);
-  const scope = await getProjectScope(projectName);
-  const packageManager = await getPackageManager();
+  const scope = await getProjectScope(projectName, validated.scope);
+  const packageManager = await getPackageManager(validated.manager);
   const blueprint = await getBlueprint(validated.blueprint);
   const pmVersion = await projectUtils.getPMVersion(packageManager);
 
@@ -163,9 +165,8 @@ export async function createProject(args: CreateProjectOptions = {}) {
   // Try multiple candidates: dist/ is flat (3 up), src/commands/core/ needs 5 up, fallback to ../templates for bundled publish
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const candidates = [
-    path.resolve(__dirname, "../../../templates/blueprints"), // from dist/ (flat)
-    path.resolve(__dirname, "../../../../../templates/blueprints"), // from src/commands/core/ (tests)
-    path.resolve(__dirname, "../templates/blueprints"), // bundled publish fallback
+    path.resolve(__dirname, "../templates/blueprints"), // internal to package (dist/ -> templates/)
+    path.resolve(__dirname, "../../../templates/blueprints"), // dev mode (src/commands/core/ -> templates/)
   ];
   let templateRoot = candidates.find((p) => fs.existsSync(p)) || candidates[0];
 

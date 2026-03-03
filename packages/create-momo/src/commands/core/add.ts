@@ -1,8 +1,7 @@
 import { configManager } from "@/commands/config/config.js";
-import { ADD_ACTION_FLAGS, ADD_DEP_FLAGS, COMMANDS, DESCRIPTIONS } from "@/constants/commands.js";
+import { ADD_ACTION_FLAGS, COMMANDS, DESCRIPTIONS } from "@/constants/commands.js";
 import { AddComponentSchema } from "@/schemas/commands.schema.js";
 import type { AddDepOptions, AddOptions } from "@/types/index.js";
-import { fileOps } from "@/utils/file-ops.js";
 import { createSpinner, logger } from "@/utils/logger.js";
 import { templateEngine } from "@/utils/template-engine.js";
 import { validators } from "@/utils/validators.js";
@@ -28,7 +27,6 @@ async function getComponentType(type?: string, options: AddOptions = {}): Promis
 
   if (options.app) componentType = "app";
   else if (options.package) componentType = "package";
-  else if (options.dep) componentType = "dep";
 
   if (!componentType) {
     const selected = await select({
@@ -48,11 +46,6 @@ async function getComponentType(type?: string, options: AddOptions = {}): Promis
           value: "config",
           label: "shared configuration",
           hint: "ESLint, Tailwind, etc.",
-        },
-        {
-          value: "dep",
-          label: "dependency",
-          hint: "Install a package (main or dev)",
         },
       ],
     });
@@ -87,14 +80,24 @@ async function getComponentName(componentType: string, initialName?: string): Pr
 async function getComponentFlavor(componentType: string, initialFlavor?: string): Promise<string> {
   if (initialFlavor) return initialFlavor;
 
-  const options = [
-    { value: "base", label: "vanilla / base" },
-    { value: "with-nextjs", label: "next.js" },
-    { value: "with-react-vite", label: "react (vite)" },
-    { value: "with-node-express", label: "node.js / express" },
-  ];
+  let options: { value: string; label: string; hint?: string }[] = [];
 
-  if (componentType === "config") {
+  if (componentType === "app") {
+    options = [
+      { value: "blank", label: "blank (minimal package.json)" },
+      { value: "with-nextjs", label: "next.js" },
+      { value: "with-react-vite", label: "react (vite)" },
+      { value: "with-node-express", label: "node.js / express" },
+      { value: "with-expo", label: "expo / react native" },
+      { value: "with-tanstack-start", label: "tanstack start" },
+      { value: "external", label: "Fresh / External Framework (pnpm create)" },
+    ];
+  } else if (componentType === "package") {
+    options = [
+      { value: "blank", label: "blank (minimal package.json)" },
+      { value: "with-ui-shared", label: "shared ui library" },
+    ];
+  } else if (componentType === "config") {
     return "config-" + (initialFlavor || "base");
   }
 
@@ -177,7 +180,7 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
   let resolvedType = typeOrName;
   let resolvedName = name;
 
-  const validTypes: string[] = ["app", "package", "config", "dep"];
+  const validTypes: string[] = ["app", "package", "config"];
 
   if (typeOrName && !validTypes.includes(typeOrName)) {
     resolvedName = typeOrName;
@@ -187,7 +190,6 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
   if (typeof options.app === "string") resolvedName = options.app;
   else if (typeof options.package === "string") resolvedName = options.package;
   else if (typeof options.config === "string") resolvedName = options.config;
-  else if (typeof options.dep === "string") resolvedName = options.dep;
 
   // Handle shadcn: prefix
   if (resolvedName?.startsWith("shadcn:")) {
@@ -201,9 +203,8 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
   // Find template directory early for Smart Routing
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const candidates = [
-    path.resolve(__dirname, "../../../templates/components"),
-    path.resolve(__dirname, "../../../../../templates/components"),
-    path.resolve(__dirname, "../templates/components"),
+    path.resolve(__dirname, "../templates/components"), // internal to package (dist/ -> templates/)
+    path.resolve(__dirname, "../../../templates/components"), // dev mode (src/commands/core/ -> templates/)
   ];
   const templateRoot = candidates.find((p) => fs.existsSync(p)) || candidates[0];
 
@@ -254,31 +255,37 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
 
   componentType = await getComponentType(componentType, validated.options);
 
-  if (componentType === "dep") {
-    const packageName =
-      resolvedName ||
-      (await text({
-        message: "what is the name of the package?",
-        placeholder: "zod",
-      }));
-    if (isCancel(packageName)) {
-      cancel("Operation cancelled.");
-      process.exit(0);
-    }
-    return addDependency(packageName as string, options);
-  }
-
   const componentName = await getComponentName(componentType, resolvedName);
   const targetRoot = componentType === "app" ? "apps" : "packages";
   const finalName = componentType === "config" ? `config-${componentName}` : componentName;
   const targetDir = path.join(process.cwd(), targetRoot, finalName);
 
-  const flavor =
+  let flavor =
     resolvedName && fs.existsSync(path.join(templateRoot, resolvedName))
       ? resolvedName
       : componentType === "config"
         ? `config-${componentName}`
         : await getComponentFlavor(componentType, options.flavor);
+
+  if (flavor === "external") {
+    const framework = await text({
+      message: "which framework do you want to use? (e.g. svelte, nest, nuxt)",
+      placeholder: "svelte",
+      validate: (val) => (val && val.length > 0 ? undefined : "Framework name is required"),
+    });
+
+    if (isCancel(framework)) {
+      cancel("Operation cancelled.");
+      process.exit(0);
+    }
+
+    return handleExternalFramework(framework as string, options);
+  }
+
+  // Map 'blank' to the single blank template
+  if (flavor === "blank") {
+    flavor = "blank";
+  }
 
   const templateDir = path.join(templateRoot, flavor);
   const spinner = createSpinner(`Creating ${componentType}...`);
@@ -287,30 +294,14 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
     const config = await configManager.load();
     const scope = config.packageScope || config.scope || "@momo";
 
-    if (flavor === "base") {
-      if (!fs.existsSync(templateDir)) {
-        await fileOps.ensureDir(targetDir);
-        await fileOps.writeJson(path.join(targetDir, "package.json"), {
-          name: componentName,
-          version: "0.0.0",
-          private: true,
-          scripts: { build: "echo build", dev: "echo dev" },
-        });
-        await fileOps.ensureDir(path.join(targetDir, "src"));
-      } else {
-        await templateEngine.copyTemplate(templateDir, targetDir, {
-          name: componentName,
-          scope,
-        });
-      }
-    } else {
-      if (!fs.existsSync(templateDir))
-        throw new Error(`Template for flavor "${flavor}" not found at ${templateDir}`);
-      await templateEngine.copyTemplate(templateDir, targetDir, {
-        name: componentName,
-        scope,
-      });
+    if (!fs.existsSync(templateDir)) {
+      throw new Error(`Template for flavor "${flavor}" not found at ${templateDir}`);
     }
+
+    await templateEngine.copyTemplate(templateDir, targetDir, {
+      name: componentName,
+      scope,
+    });
 
     spinner.stop(
       `${
@@ -453,10 +444,7 @@ export function registerAddCommand(program: Command) {
     .option(ADD_ACTION_FLAGS.app.flag, ADD_ACTION_FLAGS.app.description)
     .option(ADD_ACTION_FLAGS.package.flag, ADD_ACTION_FLAGS.package.description)
     .option(ADD_ACTION_FLAGS.config.flag, ADD_ACTION_FLAGS.config.description)
-    .option(ADD_ACTION_FLAGS.dep.flag, ADD_ACTION_FLAGS.dep.description)
-    .option(ADD_DEP_FLAGS.dev.flag, ADD_DEP_FLAGS.dev.description)
-    .option(ADD_DEP_FLAGS.root.flag, ADD_DEP_FLAGS.root.description)
-    .option("-l, --flavor <flavor>", "Select component flavor (base, nextjs, react, node)")
+    .option("-l, --flavor <flavor>", "Select component flavor (blank, nextjs, react, node)")
     .action(async (options, cmd) => {
       const typeOrName = cmd.args[0];
       await addComponent(typeOrName, options);
@@ -480,14 +468,4 @@ export function registerAddCommand(program: Command) {
     .description(DESCRIPTIONS.addPackage)
     .option("-l, --flavor <flavor>", "Select component flavor")
     .action((name, _opts, cmd) => addComponent("package", { ...cmd.opts(), package: true }, name));
-  add
-    .command(COMMANDS.addDep)
-    .alias(COMMANDS.addDepAlias)
-    .argument("[package]")
-    .description(DESCRIPTIONS.addDep)
-    .option(ADD_DEP_FLAGS.dev.flag, ADD_DEP_FLAGS.dev.description)
-    .option(ADD_DEP_FLAGS.app.flag, ADD_DEP_FLAGS.app.description)
-    .option(ADD_DEP_FLAGS.pkg.flag, ADD_DEP_FLAGS.pkg.description)
-    .option(ADD_DEP_FLAGS.root.flag, ADD_DEP_FLAGS.root.description)
-    .action((packageName, _opts, cmd) => addDependency(packageName, cmd.opts()));
 }
