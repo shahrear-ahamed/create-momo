@@ -35,6 +35,7 @@ export interface AddOptions {
   dev?: boolean;
   root?: boolean;
   flavor?: string;
+  name?: string;
 }
 
 export type AddDepOptions = AddOptions;

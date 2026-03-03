@@ -190,6 +190,7 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
   if (typeof options.app === "string") resolvedName = options.app;
   else if (typeof options.package === "string") resolvedName = options.package;
   else if (typeof options.config === "string") resolvedName = options.config;
+  else if (options.name) resolvedName = options.name;
 
   // Handle shadcn: prefix
   if (resolvedName?.startsWith("shadcn:")) {
@@ -444,6 +445,7 @@ export function registerAddCommand(program: Command) {
     .option(ADD_ACTION_FLAGS.app.flag, ADD_ACTION_FLAGS.app.description)
     .option(ADD_ACTION_FLAGS.package.flag, ADD_ACTION_FLAGS.package.description)
     .option(ADD_ACTION_FLAGS.config.flag, ADD_ACTION_FLAGS.config.description)
+    .option(ADD_ACTION_FLAGS.name.flag, ADD_ACTION_FLAGS.name.description)
     .option("-l, --flavor <flavor>", "Select component flavor (blank, nextjs, react, node)")
     .action(async (options, cmd) => {
       const typeOrName = cmd.args[0];

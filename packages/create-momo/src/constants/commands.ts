@@ -163,6 +163,12 @@ export const ADD_ACTION_FLAGS = {
     flag: "-c, --config [name]",
     description: "Add a shared configuration package",
   },
+  name: {
+    short: "-n",
+    long: "--name",
+    flag: "-n, --name [name]",
+    description: "Specify the name of the new workspace",
+  },
 } as const;
 
 // ─── Turbo Command Mapping ───────────────────────────────────────────────────
