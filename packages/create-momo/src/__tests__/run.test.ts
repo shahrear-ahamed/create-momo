@@ -2,6 +2,22 @@ import { Command } from "commander";
 import { describe, expect, it, vi } from "vitest";
 import { COMMANDS, GLOBAL_FLAGS } from "../constants/commands.js";
 
+// Mock fs properly to simulate node_modules presence
+vi.mock("fs-extra", () => ({
+  default: {
+    existsSync: vi.fn().mockReturnValue(true),
+    readJson: vi.fn(),
+    writeJson: vi.fn(),
+    ensureDir: vi.fn(),
+    copy: vi.fn(),
+    readdir: vi.fn(),
+    stat: vi.fn(),
+    readFile: vi.fn(),
+    writeFile: vi.fn(),
+  },
+  existsSync: vi.fn().mockReturnValue(true),
+}));
+
 // Mock execa
 vi.mock("execa", () => ({
   execa: vi.fn().mockResolvedValue({ stdout: "", stderr: "" }),
@@ -72,10 +88,10 @@ describe("run command & tasks", () => {
       const { execa } = await import("execa");
       const { runTask } = await import("../commands/core/run.js");
 
-      await runTask("build");
+      await runTask("dev");
       expect(execa).toHaveBeenCalledWith(
         "pnpm",
-        ["run", "build"],
+        ["exec", "turbo", "dev", "--ui", "tui"],
         expect.objectContaining({ stdio: "inherit" }),
       );
     });
@@ -84,10 +100,10 @@ describe("run command & tasks", () => {
       const { execa } = await import("execa");
       const { runTask } = await import("../commands/core/run.js");
 
-      await runTask("test", { filter: "utils" });
+      await runTask("test", { filter: "utils" }, ["--watch"]);
       expect(execa).toHaveBeenCalledWith(
         "pnpm",
-        ["run", "test", "--filter", "utils"],
+        ["exec", "turbo", "test", "--filter", "utils", "--watch"],
         expect.objectContaining({ stdio: "inherit" }),
       );
     });

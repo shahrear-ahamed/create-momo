@@ -2,6 +2,22 @@ import { Command } from "commander";
 import { describe, expect, it, vi } from "vitest";
 import { COMMANDS, DESCRIPTIONS, GLOBAL_FLAGS } from "../constants/commands.js";
 
+// Mock fs properly to simulate node_modules presence
+vi.mock("fs-extra", () => ({
+  default: {
+    existsSync: vi.fn().mockReturnValue(true),
+    readJson: vi.fn(),
+    writeJson: vi.fn(),
+    ensureDir: vi.fn(),
+    copy: vi.fn(),
+    readdir: vi.fn(),
+    stat: vi.fn(),
+    readFile: vi.fn(),
+    writeFile: vi.fn(),
+  },
+  existsSync: vi.fn().mockReturnValue(true),
+}));
+
 // Mock execa so no actual turbo process is spawned
 vi.mock("execa", () => ({
   execa: vi.fn().mockResolvedValue({ stdout: "", stderr: "" }),
@@ -15,6 +31,13 @@ vi.mock("../utils/logger.js", () => ({
     warn: vi.fn(),
     success: vi.fn(),
     step: vi.fn(),
+  },
+}));
+
+// Mock configManager
+vi.mock("../commands/config/config.js", () => ({
+  configManager: {
+    load: vi.fn().mockResolvedValue({ manager: "pnpm" }),
   },
 }));
 
@@ -65,8 +88,8 @@ describe("project commands (turbo wrappers)", () => {
 
       await projectCommand.build();
       expect(execa).toHaveBeenCalledWith(
-        "npx",
-        ["turbo", COMMANDS.build],
+        "pnpm",
+        ["exec", "turbo", COMMANDS.build],
         expect.objectContaining({ stdio: "inherit" }),
       );
     });
@@ -77,8 +100,8 @@ describe("project commands (turbo wrappers)", () => {
 
       await projectCommand.dev({ filter: "web" });
       expect(execa).toHaveBeenCalledWith(
-        "npx",
-        ["turbo", COMMANDS.dev, GLOBAL_FLAGS.filter.long, "web"],
+        "pnpm",
+        ["exec", "turbo", COMMANDS.dev, GLOBAL_FLAGS.filter.long, "web", "--ui", "tui"],
         expect.objectContaining({ stdio: "inherit" }),
       );
     });
@@ -89,8 +112,8 @@ describe("project commands (turbo wrappers)", () => {
 
       await projectCommand.lint({}, ["--continue", "--force"]);
       expect(execa).toHaveBeenCalledWith(
-        "npx",
-        ["turbo", COMMANDS.lint, "--continue", "--force"],
+        "pnpm",
+        ["exec", "turbo", COMMANDS.lint, "--continue", "--force"],
         expect.objectContaining({ stdio: "inherit" }),
       );
     });
@@ -101,8 +124,17 @@ describe("project commands (turbo wrappers)", () => {
 
       await projectCommand.start({ filter: "api" }, ["--parallel"]);
       expect(execa).toHaveBeenCalledWith(
-        "npx",
-        ["turbo", COMMANDS.start, GLOBAL_FLAGS.filter.long, "api", "--parallel"],
+        "pnpm",
+        [
+          "exec",
+          "turbo",
+          COMMANDS.start,
+          GLOBAL_FLAGS.filter.long,
+          "api",
+          "--parallel",
+          "--ui",
+          "tui",
+        ],
         expect.objectContaining({ stdio: "inherit" }),
       );
     });

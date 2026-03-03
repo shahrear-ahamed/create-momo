@@ -3,22 +3,53 @@ import { COMMANDS, DESCRIPTIONS } from "@/constants/commands.js";
 import { logger } from "@/utils/logger.js";
 import type { Command } from "commander";
 import { execa } from "execa";
+import fs from "fs-extra";
+import path from "node:path";
 import color from "picocolors";
 
-export async function runTask(task: string, options: { filter?: string } = {}) {
+export async function runTask(
+  task: string,
+  options: { filter?: string } = {},
+  extraArgs: string[] = [],
+) {
   const config = await configManager.load();
   const manager = config.manager || "pnpm";
+  const rootDir = process.cwd();
 
-  const args = ["run", task];
+  // Check if node_modules exists
+  if (!fs.existsSync(path.join(rootDir, "node_modules"))) {
+    logger.warn(
+      `\n${color.bold("Dependencies Missing:")} ${color.yellow("node_modules")} folder not found.`,
+    );
+    logger.info(`Please run ${color.cyan("momo install")} first to set up your project.`);
+    process.exit(1);
+  }
+
+  // Use the package manager to run turbo directly to avoid recursion
+  // Command mapping: pnpm exec turbo, yarn turbo, bun x turbo, npm exec turbo
+  let args: string[] = [];
+  if (manager === "pnpm") args = ["exec", "turbo", task];
+  else if (manager === "yarn") args = ["turbo", task];
+  else if (manager === "bun") args = ["x", "turbo", task];
+  else args = ["exec", "turbo", "--", task];
+
   if (options.filter) {
     args.push("--filter", options.filter);
   }
 
+  // Add any additional arguments passed through
+  args.push(...extraArgs);
+
+  // Force TUI for dev and start if not explicitly set to something else
+  if ((task === "dev" || task === "start") && !args.some((a) => a.startsWith("--ui"))) {
+    args.push("--ui", "tui");
+  }
+
   try {
-    logger.info(`Running ${color.cyan(task)} via ${color.bold("Turborepo")}...`);
     await execa(manager, args, { stdio: "inherit" });
-  } catch {
+  } catch (error) {
     // Turbo handles its own error output generally
+    process.exit(1);
   }
 }
 
@@ -28,8 +59,11 @@ export function registerRunCommand(program: Command) {
     .argument("<task>", "The task to execute (e.g., build, dev, test)")
     .description(DESCRIPTIONS.run)
     .option("-f, --filter <package>", "Filter to specific package(s)")
-    .action(async (task, options) => {
-      await runTask(task, options);
+    .allowUnknownOption()
+    .action(async (task, options, cmd) => {
+      // Capture unknown options/args
+      const extraArgs = cmd.args.slice(1);
+      await runTask(task, options, extraArgs);
     });
 
   // Register shorthands for common tasks
@@ -39,8 +73,11 @@ export function registerRunCommand(program: Command) {
       .command(task)
       .description(`Shorthand for 'momo run ${task}'`)
       .option("-f, --filter <package>", "Filter to specific package(s)")
-      .action(async (options) => {
-        await runTask(task, options);
+      .allowUnknownOption()
+      .action(async (options, cmd) => {
+        // Capture unknown options/args
+        const extraArgs = cmd.args;
+        await runTask(task, options, extraArgs);
       });
   });
 }

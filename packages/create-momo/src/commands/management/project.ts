@@ -1,8 +1,11 @@
+import { configManager } from "@/commands/config/config.js";
 import { COMMANDS, DESCRIPTIONS, GLOBAL_FLAGS } from "@/constants/commands.js";
 import type { TurboOptions } from "@/types/index.js";
 import { logger } from "@/utils/logger.js";
 import type { Command } from "commander";
 import { execa } from "execa";
+import fs from "fs-extra";
+import path from "node:path";
 import color from "picocolors";
 
 async function runTurbo(
@@ -10,7 +13,26 @@ async function runTurbo(
   options: TurboOptions = {},
   additionalArgs: string[] = [],
 ) {
-  const args: string[] = [command];
+  const config = await configManager.load();
+  const manager = config.manager || "pnpm";
+  const rootDir = process.cwd();
+
+  // Check if node_modules exists
+  if (!fs.existsSync(path.join(rootDir, "node_modules"))) {
+    logger.warn(
+      `\n${color.bold("Dependencies Missing:")} ${color.yellow("node_modules")} folder not found.`,
+    );
+    logger.info(`Please run ${color.cyan("momo install")} first to set up your project.`);
+    process.exit(1);
+  }
+
+  // Use the package manager to run turbo directly
+  // Command mapping: pnpm exec turbo, yarn turbo, bun x turbo, npm exec turbo
+  let args: string[] = [];
+  if (manager === "pnpm") args = ["exec", "turbo", command];
+  else if (manager === "yarn") args = ["turbo", command];
+  else if (manager === "bun") args = ["x", "turbo", command];
+  else args = ["exec", "turbo", "--", command];
 
   // Add --filter if provided
   if (options.filter) {
@@ -20,12 +42,13 @@ async function runTurbo(
   // Add any additional arguments passed through
   args.push(...additionalArgs);
 
-  const fullCommand = `turbo ${args.join(" ")}`;
-  logger.info(`Running ${color.cyan(fullCommand)}...`);
+  // Force TUI for dev and start if not explicitly set to something else
+  if ((command === "dev" || command === "start") && !args.some((a) => a.startsWith("--ui"))) {
+    args.push("--ui", "tui");
+  }
 
   try {
-    // Attempt to run via npx to ensure turbo is available even if not in PATH/global
-    await execa("npx", ["turbo", ...args], {
+    await execa(manager, args, {
       stdio: "inherit",
       cwd: process.cwd(),
     });
@@ -38,7 +61,7 @@ async function runTurbo(
     // Provide specific guidance based on error message
     if (err.message.includes("ENOENT")) {
       logger.error(
-        `The ${color.yellow("turbo")} executable was not found. Please ensure it is installed.`,
+        `The ${color.yellow(manager)} executable was not found. Please ensure it is installed.`,
       );
     } else {
       logger.error(`${color.red("Details:")} ${err.message.split("\n")[0]}`);

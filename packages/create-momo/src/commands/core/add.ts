@@ -402,35 +402,36 @@ export async function addDependency(packageName?: string, options: AddDepOptions
     process.exit(1);
   }
 
-  const resolvedName =
-    packageName ||
-    (await text({
-      message: "what is the name of the package?",
-      placeholder: "zod",
-    }));
-  if (isCancel(resolvedName) || !resolvedName) {
-    cancel("Operation cancelled.");
-    process.exit(0);
+  // If no package name, perform a bare install
+  if (!packageName) {
+    try {
+      logger.info(`Installing project dependencies via ${color.bold(packageManager)}...`);
+      await execa(packageManager, ["install"], { stdio: "inherit", cwd: rootDir });
+      logger.success("Dependencies installed successfully!");
+      return;
+    } catch (error) {
+      logger.error(`\n${color.bold("Installation Failed:")} Could not install dependencies.`);
+      process.exit(1);
+    }
   }
 
-  const { target, isWorkspaceRoot } = await getInstallationTarget(resolvedName as string, options);
-  const isInternal = await workspaceUtils.isInternalPackage(resolvedName as string, rootDir);
+  const resolvedName = packageName;
+  const { target, isWorkspaceRoot } = await getInstallationTarget(resolvedName, options);
+  const isInternal = await workspaceUtils.isInternalPackage(resolvedName, rootDir);
 
   const args: string[] = ["add"];
   if (options.dev) args.push("-D");
   if (isWorkspaceRoot) args.push("-w");
   else if (target) args.push("--filter", target);
-  args.push(isInternal ? `${resolvedName}@workspace:*` : (resolvedName as string));
+  args.push(isInternal ? `${resolvedName}@workspace:*` : resolvedName);
 
   try {
-    logger.info(`Installing ${color.cyan(resolvedName as string)}...`);
+    logger.info(`Installing ${color.cyan(resolvedName)}...`);
     await execa(packageManager, args, { stdio: "inherit", cwd: rootDir });
-    logger.success(`Successfully installed ${color.cyan(resolvedName as string)}`);
+    logger.success(`Successfully installed ${color.cyan(resolvedName)}`);
   } catch {
     logger.error(
-      `\n${color.bold("Installation Failed:")} Could not install ${color.cyan(
-        resolvedName as string,
-      )}.`,
+      `\n${color.bold("Installation Failed:")} Could not install ${color.cyan(resolvedName)}.`,
     );
     process.exit(1);
   }

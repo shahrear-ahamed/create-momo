@@ -16,7 +16,12 @@ const pkg = getPkgInfo(import.meta.url);
 const program = new Command();
 
 async function main() {
-  showLogo();
+  const tuiCommands = ["dev", "start"];
+  const isTuiCommand = tuiCommands.includes(process.argv[2]);
+
+  if (!isTuiCommand) {
+    showLogo();
+  }
 
   program
     .name("momo")
