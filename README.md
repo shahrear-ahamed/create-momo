@@ -16,29 +16,21 @@ Building monorepos shouldn't be complex. **Create Momo** automates the tedious p
 ## ✨ Key Features
 
 ### 🚀 Zero-Config Scaffolding
+
 - **Package Manager Agnostic**: Native support for **PNPM**, **NPM**, **Yarn**, and **Bun**.
-- **Instant Productivity**: Scaffolds a full Turborepo workspace with apps, packages, and shared configs in seconds.
+- **Instant Productivity**: Scaffolds full workspaces with standardized blueprints.
 
 ### 🧠 Context-Aware Intelligence
-- **Creation Mode**: Run it in an empty directory to launch the interactive project wizard.
-- **Management Mode**: Run it inside a Momo project to access powerful utility and development commands.
 
-### 🛠️ Integrated Project Management
-- **Command Wrappers**: Unified commands like `momo dev`, `momo build`, and `momo lint` that handle cross-package orchestration via Turborepo.
-- **Component Scaffolding**: Use `momo add` to instantly drop new apps or shared packages into your existing workspace.
-
-### 🎨 Premium Developer Experience
-- **Interactive Prompts**: Beautiful, human-friendly CLI powered by `@clack/prompts`.
-- **Branded Interface**: A polished UI with gradient logos and clear status indicators.
-- **GitHub Actions Ready**: Pre-configured CI/CD workflows for automated PR testing and releases.
+- **Creation Mode**: Run in empty directories to launch the project wizard.
+- **Management Mode**: Run inside projects for powerful dev/utility commands.
 
 ---
 
 ## 🚀 Quick Start
 
-You can start a new project immediately without any global installation:
+Initialize a new project in seconds:
 
-### 1. Initialize Project
 ```bash
 # Using PNPM (Recommended)
 pnpm create momo my-project
@@ -50,97 +42,75 @@ npx create-momo@latest my-project
 bun create momo my-project
 ```
 
-### 2. Follow the Wizard
-The CLI will guide you through:
-- Project name and directory setup
-- Package scope (e.g., `@momo`)
-- Your preferred package manager
-
 ---
 
 ## 🛠 Command Reference
 
-### Creation Commands
-*Used to initialize new monorepo projects.*
+### 🏗 Management (Code & Structure)
 
-- **`pnpm create momo <name>`** / **`npx create-momo <name>`**: Scaffolds a new Turborepo project.
-- **`create-momo .`**: Initializes in the current directory.
-- **`momo`** *(outside a project)*: Launches the interactive creation wizard.
+| Command            | Description                                            | Context       |
+| :----------------- | :----------------------------------------------------- | :------------ |
+| **`momo create`**  | Bootstrap a new monorepo project (Blueprints)          | **Creation**  |
+| **`momo add`**     | Add new workspaces (Apps, Packages, Configs)           | **Structure** |
+| **`momo install`** | Inject dependencies (NPM) or UI components (`shadcn:`) | **Content**   |
+| **`momo list`**    | List available component flavors and config types      | **Utility**   |
+
+### ⚡️ Execution (Turbo-Powered)
+
+| Command          | Description                                    | Detail        |
+| :--------------- | :--------------------------------------------- | :------------ |
+| **`momo run`**   | Execute workspace tasks (powered by Turborepo) | `turbo run`   |
+| **`momo build`** | Build all packages in the monorepo             | **Shorthand** |
+| **`momo dev`**   | Run development mode for all packages          | **Shorthand** |
+| **`momo lint`**  | Lint all packages in the monorepo              | **Shorthand** |
+| **`momo test`**  | Run tests across the workspace using Turborepo | **Shorthand** |
+| **`momo start`** | Start production build for all packages        | **Shorthand** |
+| **`momo clean`** | Recursive cleanup of build artifacts           | **Utility**   |
+
+### 🔧 Orchestration & Utility
+
+| Command           | Description                              | Detail          |
+| :---------------- | :--------------------------------------- | :-------------- |
+| **`momo graph`**  | Visualize the project dependency graph   | **Utility**     |
+| **`momo doctor`** | Check project health and standards audit | **Utility**     |
+| **`momo config`** | Manage CLI settings and project context  | **Settings**    |
+| **`momo setup`**  | Configure project-wide standards         | **Coming Soon** |
+| **`momo update`** | Update project configurations            | **Coming Soon** |
+
+### 🌐 Infrastructure (Remote Caching)
+
+| Command           | Description                                  | Detail          |
+| :---------------- | :------------------------------------------- | :-------------- |
+| **`momo login`**  | Log in to Turborepo (Remote Caching)         | **Auth**        |
+| **`momo logout`** | Log out from Turborepo                       | **Auth**        |
+| **`momo link`**   | Link project to Vercel Team (Remote Caching) | **Infra**       |
+| **`momo unlink`** | Unlink project from Remote Caching           | **Infra**       |
+| **`momo deploy`** | Deployment workflows                         | **Coming Soon** |
 
 ---
 
-### Management Commands
-*Run these inside your project directory. Typing `momo` alone inside a project displays the help menu.*
+## 📦 Smart Content Integration
 
----
+`momo install` handles workspace protocols and target detection automatically.
 
-| Command | Counterpart | Description |
-| :--- | :--- | :--- |
-| **`momo build`** | `turbo build` | Build all or filtered workspaces. |
-| **`momo dev`** | `turbo dev` | Run dev servers for all or filtered workspaces. |
-| **`momo lint`** | `turbo lint` | Lint/format all packages via Biome/Turbo. |
-| **`momo start`** | `turbo start` | Start production builds of your apps. |
-| **`momo test`** | `turbo test` | Run workspace tests with filter support. |
-| **`momo clean`** | - | Recursive cleanup of all build artifacts. |
-| **`momo graph`** | `turbo graph` | Visualize project dependency graph. |
-| **`momo add`** | - | **Unified Scaffolding**: Add apps, packages, or deps. |
-| **`momo get`** | `pnpm add` | Alias for `momo add -d`. Installs a dependency. |
-| **`momo login`** | `turbo login` | Authenticate with Turborepo Remote Cache. |
-| **`momo link`** | `turbo link` | Link project to Vercel Team for caching. |
-| **`momo doctor`** | - | Check project health and structure validity. |
-| **`momo list`** | - | List available component flavors (Next.js, Node, etc.). |
-| **`momo config`** | - | Manage CLI settings (`list`, `get`, `set`). |
-| **`momo setup`** | - | **(Coming Soon)**: Standards: `project`, `publish`, etc. |
-| **`momo deploy`** | - | **(Coming Soon)**: Unified deployment workflows. |
-| **`momo update`** | - | **(Coming Soon)**: Sync local configs with blueprints. |
-
-#### 🎯 Turbo Filter Support
-All management commands support native Turbo flags.
 ```bash
-# Target specific apps
-momo dev --filter web
-momo build -f ui
-
-# Use any Turbo flag
-momo lint --parallel --continue
-```
-
-#### 📦 Smart Dependency Addition
-`momo add -d <package>` (or `momo get`) automatically detects internal workspace packages and uses the `workspace:*` protocol.
-```bash
-momo get zod -w             # Install to root
-momo get @momo/ui --to-app web # Install internal package to app
-momo add -d lodash -A web   # Short flag alias for targeting
+momo install zod -w             # Install to workspace root
+momo install shadcn:button      # Inject component to /packages/ui
+momo install @momo/ui --app web # Link internal package to app
 ```
 
 ---
 
 ## 🏗 Project Architecture
 
-A standard **Momo** project follows a modular structure:
-
 ```text
 my-project/
-├── apps/                # Applications (Next.js, Vite, etc.)
-├── packages/            # Shared libraries and configurations
-│   ├── config-typescript/ # Shared TS settings
-│   └── ...
-├── momo.config.json     # CLI configuration
-├── turbo.json           # Turborepo settings
-└── package.json         # Workspace root
+├── apps/                # High-level applications
+├── packages/            # Modular shared resources
+├── momo.config.json     # CLI context & configuration
+├── turbo.json           # Turborepo task pipelines
+└── package.json         # Workspace root definitions
 ```
-
----
-
-## ⏳ Roadmap
-
-- [x] **Unified CLI**: Single entry point via `momo add`.
-- [x] **Turbo Orchestration**: Full pass-through flag support.
-- [x] **Context Awareness**: Blocks nested project creation.
-- [x] **Turbo Auth**: Integrated `momo login/logout`.
-- [x] **Workspace Hygiene**: Integrated `momo clean`.
-- [ ] **Premium Blueprints**: Pre-configured SaaS templates.
-- [ ] **Unified Deployment**: One-click Vercel/Netlify integration.
 
 ---
 

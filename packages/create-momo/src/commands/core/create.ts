@@ -1,28 +1,24 @@
-import path from "node:path";
-import process from "node:process";
-import { cancel, isCancel, select, text } from "@clack/prompts";
-import color from "picocolors";
 import { configManager } from "@/commands/config/config.js";
 import { CreateProjectSchema } from "@/schemas/commands.schema.js";
-import { getBaseConfig } from "@/templates/config-typescript/base.json.js";
-import { getConfigPackageJson } from "@/templates/config-typescript/package.json.js";
-import { getGitignore } from "@/templates/gitignore.js";
-import { getMomoConfig } from "@/templates/momo.config.json.js";
-import { getRootPackageJson } from "@/templates/package.json.js";
-import { getBaseTsConfig } from "@/templates/tsconfig.json.js";
-import { getTurboJson } from "@/templates/turbo.json.js";
 import type { CreateProjectOptions, PackageManager } from "@/types/index.js";
 import { fileOps } from "@/utils/file-ops.js";
 import { createSpinner, logger } from "@/utils/logger.js";
 import { projectUtils } from "@/utils/project.js";
+import { templateEngine } from "@/utils/template-engine.js";
 import { validators } from "@/utils/validators.js";
+import { cancel, isCancel, select, text } from "@clack/prompts";
+import fs from "fs-extra";
+import path from "node:path";
+import process from "node:process";
+import { fileURLToPath } from "node:url";
+import color from "picocolors";
 
 async function getProjectName(initialName?: string): Promise<string> {
   let projectName = initialName;
 
   if (!projectName) {
     const name = await text({
-      message: "What is the name of your monorepo?",
+      message: "what is the name of your monorepo?",
       placeholder: "my-momo-project",
       validate: (value) => (value === "." ? undefined : validators.projectName(value)),
     });
@@ -48,10 +44,10 @@ async function validateTargetDir(targetDir: string, projectName: string) {
   const isEmpty = await fileOps.isEmpty(targetDir);
   if (!isEmpty) {
     const overwrite = await select({
-      message: `Directory "${projectName === "." ? "Current Directory" : projectName}" is not empty. Proceed?`,
+      message: `directory "${projectName === "." ? "current directory" : projectName}" is not empty. proceed?`,
       options: [
-        { value: "cancel", label: "Cancel operation" },
-        { value: "ignore", label: "Ignore (files might be overwritten)" },
+        { value: "cancel", label: "cancel operation" },
+        { value: "ignore", label: "ignore (files might be overwritten)" },
       ],
     });
 
@@ -62,7 +58,8 @@ async function validateTargetDir(targetDir: string, projectName: string) {
   }
 }
 
-async function getProjectScope(projectName: string): Promise<string> {
+async function getProjectScope(projectName: string, initialScope?: string): Promise<string> {
+  if (initialScope) return initialScope;
   const config = await configManager.load();
   const defaultScope =
     config.packageScope ||
@@ -70,7 +67,7 @@ async function getProjectScope(projectName: string): Promise<string> {
     `@${projectName.replace(/[^a-zA-Z0-9-]/g, "").toLowerCase()}`;
 
   const scope = await text({
-    message: "What is the package scope?",
+    message: "what is the package scope?",
     placeholder: "@momo",
     initialValue: defaultScope,
     validate: validators.scopeName,
@@ -84,7 +81,8 @@ async function getProjectScope(projectName: string): Promise<string> {
   return scope as string;
 }
 
-async function getPackageManager(): Promise<PackageManager> {
+async function getPackageManager(initialManager?: PackageManager): Promise<PackageManager> {
+  if (initialManager) return initialManager;
   const userAgent = process.env.npm_config_user_agent || "";
   let detectedPM: PackageManager = "pnpm";
   if (userAgent.includes("yarn")) detectedPM = "yarn";
@@ -92,13 +90,13 @@ async function getPackageManager(): Promise<PackageManager> {
   else if (userAgent.includes("npm")) detectedPM = "npm";
 
   const packageManager = (await select({
-    message: "Which package manager do you want to use?",
+    message: "which package manager do you want to use?",
     initialValue: detectedPM,
     options: [
-      { value: "bun", label: "Bun" },
-      { value: "npm", label: "NPM" },
-      { value: "pnpm", label: "PNPM" },
-      { value: "yarn", label: "Yarn" },
+      { value: "bun", label: "bun" },
+      { value: "npm", label: "npm" },
+      { value: "pnpm", label: "pnpm" },
+      { value: "yarn", label: "yarn" },
     ],
   })) as PackageManager;
 
@@ -110,44 +108,27 @@ async function getPackageManager(): Promise<PackageManager> {
   return packageManager;
 }
 
-async function runScaffolding(
-  targetDir: string,
-  projectName: string,
-  scope: string,
-  packageManager: PackageManager,
-  pmVersion: string,
-  version: string,
-) {
-  await fileOps.ensureDir(targetDir);
+async function getBlueprint(initialBlueprint?: string): Promise<string> {
+  if (initialBlueprint) return initialBlueprint;
 
-  await fileOps.writeJson(
-    path.join(targetDir, "package.json"),
-    getRootPackageJson(projectName, packageManager, version, pmVersion),
-  );
+  const blueprint = await select({
+    message: "which blueprint would you like to start with?",
+    options: [
+      { value: "momo-starter-blank", label: "blank", hint: "Empty monorepo, no apps or packages" },
+      { value: "momo-starter-minimal", label: "minimal", hint: "Clean monorepo structure" },
+      { value: "momo-starter-saas", label: "saas starter", hint: "Next.js + UI + Shared Configs" },
+    ],
+  });
 
-  if (packageManager === "pnpm") {
-    await fileOps.writeFile(
-      path.join(targetDir, "pnpm-workspace.yaml"),
-      'packages:\n  - "apps/*"\n  - "packages/*"\n',
-    );
+  if (isCancel(blueprint)) {
+    cancel("Operation cancelled.");
+    process.exit(0);
   }
 
-  await fileOps.writeJson(path.join(targetDir, "turbo.json"), getTurboJson());
-  await fileOps.writeJson(path.join(targetDir, "tsconfig.json"), getBaseTsConfig());
-  await fileOps.writeFile(path.join(targetDir, ".gitignore"), getGitignore());
-  await fileOps.writeJson(
-    path.join(targetDir, "momo.config.json"),
-    getMomoConfig(scope, packageManager),
-  );
-
-  await fileOps.ensureDir(path.join(targetDir, "apps"));
-  await fileOps.ensureDir(path.join(targetDir, "packages"));
-
-  const configDir = path.join(targetDir, "packages", "config-typescript");
-  await fileOps.ensureDir(configDir);
-  await fileOps.writeJson(path.join(configDir, "package.json"), getConfigPackageJson(scope));
-  await fileOps.writeJson(path.join(configDir, "base.json"), getBaseConfig());
+  return blueprint as string;
 }
+
+// runScaffolding removed. Template engine handles this via blueprints.
 
 export async function createProject(args: CreateProjectOptions = {}) {
   const validated = CreateProjectSchema.parse(args);
@@ -175,20 +156,38 @@ export async function createProject(args: CreateProjectOptions = {}) {
   }
 
   await validateTargetDir(targetDir, projectName);
-  const scope = await getProjectScope(projectName);
-  const packageManager = await getPackageManager();
+  const scope = await getProjectScope(projectName, validated.scope);
+  const packageManager = await getPackageManager(validated.manager);
+  const blueprint = await getBlueprint(validated.blueprint);
   const pmVersion = await projectUtils.getPMVersion(packageManager);
+
+  // Find template directory (support both local monorepo and published package)
+  // Try multiple candidates: dist/ is flat (3 up), src/commands/core/ needs 5 up, fallback to ../templates for bundled publish
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  const candidates = [
+    path.resolve(__dirname, "../templates/blueprints"), // internal to package (dist/ -> templates/)
+    path.resolve(__dirname, "../../../templates/blueprints"), // dev mode (src/commands/core/ -> templates/)
+  ];
+  let templateRoot = candidates.find((p) => fs.existsSync(p)) || candidates[0];
+
+  const blueprintDir = path.join(templateRoot, blueprint);
+
+  if (!fs.existsSync(blueprintDir)) {
+    logger.error(
+      `${color.bold("Blueprint Not Found:")} Could not find blueprint at ${blueprintDir}`,
+    );
+    process.exit(1);
+  }
 
   const spinner = createSpinner("Scaffolding project with latest dependencies...");
   try {
-    await runScaffolding(
-      targetDir,
-      projectName,
+    await templateEngine.copyTemplate(blueprintDir, targetDir, {
+      name: projectName,
       scope,
       packageManager,
       pmVersion,
-      validated.version || "0.2.0",
-    );
+      version: validated.version || "0.5.1",
+    });
 
     spinner.stop("Project scaffolded successfully!");
     logger.success(`\nProject created at ${color.underline(targetDir)}`);

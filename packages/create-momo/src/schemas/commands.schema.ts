@@ -4,6 +4,9 @@ export const CreateProjectSchema = z.object({
   name: z.string().optional(),
   cwd: z.string().optional(),
   version: z.string().optional(),
+  blueprint: z.string().optional(),
+  scope: z.string().optional(),
+  manager: z.enum(["npm", "yarn", "pnpm", "bun"]).optional(),
 });
 
 export type CreateProjectArgs = z.infer<typeof CreateProjectSchema>;
@@ -14,6 +17,7 @@ export const AddComponentSchema = z.object({
     .object({
       app: z.union([z.boolean(), z.string()]).optional(),
       package: z.union([z.boolean(), z.string()]).optional(),
+      config: z.union([z.boolean(), z.string()]).optional(),
       dep: z.union([z.boolean(), z.string()]).optional(),
       toApp: z.string().optional(),
       toPkg: z.string().optional(),

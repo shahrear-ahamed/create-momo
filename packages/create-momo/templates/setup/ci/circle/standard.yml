@@ -1,0 +1,42 @@
+version: 2.1
+
+executors:
+  node-executor:
+    docker:
+      - image: cimg/node:20.0.0
+    working_directory: ~/repo
+
+jobs:
+  build-and-test:
+    executor: node-executor
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "pnpm-lock.yaml" }}
+            - v1-dependencies-
+      - run:
+          name: Install pnpm
+          command: sudo npm install -g pnpm
+      - run:
+          name: Install Dependencies
+          command: pnpm install --frozen-lockfile
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "pnpm-lock.yaml" }}
+      - run:
+          name: Lint
+          command: pnpm lint
+      - run:
+          name: Test
+          command: pnpm test
+      - run:
+          name: Build
+          command: pnpm build
+
+workflows:
+  version: 2
+  welcome:
+    jobs:
+      - build-and-test

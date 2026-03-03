@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  ADD_DEP_FLAGS,
   CLI,
   COMMANDS,
   COMPONENT_TYPES,
@@ -62,8 +61,6 @@ describe("shared constants", () => {
     it("should have add subcommands", () => {
       expect(COMMANDS.addApp).toBe("app");
       expect(COMMANDS.addPackage).toBe("package");
-      expect(COMMANDS.addDep).toBe("dep");
-      expect(COMMANDS.addDepAlias).toBe("get");
     });
 
     it("should have config subcommands", () => {
@@ -106,7 +103,6 @@ describe("shared constants", () => {
       expect(DESCRIPTIONS.add).toBeDefined();
       expect(DESCRIPTIONS.addApp).toBeDefined();
       expect(DESCRIPTIONS.addPackage).toBeDefined();
-      expect(DESCRIPTIONS.addDep).toBeDefined();
     });
 
     it("should have descriptions for config, utility, setup, deploy", () => {
@@ -114,27 +110,6 @@ describe("shared constants", () => {
       expect(DESCRIPTIONS.doctor).toBeDefined();
       expect(DESCRIPTIONS.setup).toBeDefined();
       expect(DESCRIPTIONS.deploy).toBeDefined();
-    });
-  });
-
-  describe("add dep flags", () => {
-    it("should have dev flag referencing global dev flag", () => {
-      expect(ADD_DEP_FLAGS.dev).toBe(GLOBAL_FLAGS.dev);
-    });
-
-    it("should have app flag with -a shorthand", () => {
-      expect(ADD_DEP_FLAGS.app.short).toBe("-a");
-      expect(ADD_DEP_FLAGS.app.flag).toContain("--app");
-    });
-
-    it("should have pkg flag with -p shorthand", () => {
-      expect(ADD_DEP_FLAGS.pkg.short).toBe("-p");
-      expect(ADD_DEP_FLAGS.pkg.flag).toContain("--pkg");
-    });
-
-    it("should have root flag with -w shorthand", () => {
-      expect(ADD_DEP_FLAGS.root.short).toBe("-w");
-      expect(ADD_DEP_FLAGS.root.flag).toContain("--root");
     });
   });
 
@@ -150,16 +125,16 @@ describe("shared constants", () => {
   });
 
   describe("component types", () => {
-    it("should have app, package, and dep", () => {
+    it("should have app, package, and config", () => {
       expect(COMPONENT_TYPES.app).toBe("app");
       expect(COMPONENT_TYPES.package).toBe("package");
-      expect(COMPONENT_TYPES.dep).toBe("dep");
+      expect(COMPONENT_TYPES.config).toBe("config");
     });
   });
 
   describe("flavors", () => {
     it("should have all four flavors with value and label", () => {
-      expect(FLAVORS.base.value).toBe("base");
+      expect(FLAVORS.blank.value).toBe("blank");
       expect(FLAVORS.nextjs.value).toBe("nextjs");
       expect(FLAVORS.react.value).toBe("react");
       expect(FLAVORS.node.value).toBe("node");

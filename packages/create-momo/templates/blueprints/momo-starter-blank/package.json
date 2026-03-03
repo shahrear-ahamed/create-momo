@@ -1,0 +1,25 @@
+{
+  "name": "{{name}}",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "momo build",
+    "dev": "momo dev",
+    "lint": "momo lint",
+    "check": "oxlint . && oxfmt --check .",
+    "format": "oxfmt .",
+    "clean": "momo clean",
+    "test": "momo test"
+  },
+  "devDependencies": {
+    "create-momo": "latest",
+    "oxfmt": "latest",
+    "oxlint": "latest",
+    "turbo": "^2.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "{{packageManager}}@{{pmVersion}}"
+}

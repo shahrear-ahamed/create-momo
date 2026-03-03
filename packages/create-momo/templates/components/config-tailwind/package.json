@@ -1,0 +1,13 @@
+{
+  "name": "{{scope}}/config-tailwind",
+  "version": "0.0.0",
+  "private": true,
+  "files": [
+    "tailwind.config.ts"
+  ],
+  "dependencies": {
+    "autoprefixer": "latest",
+    "postcss": "latest",
+    "tailwindcss": "latest"
+  }
+}

@@ -28,12 +28,14 @@ export interface TurboOptions {
 export interface AddOptions {
   app?: boolean | string;
   package?: boolean | string;
+  config?: boolean | string;
   dep?: boolean | string;
   toApp?: string;
   toPkg?: string;
   dev?: boolean;
   root?: boolean;
   flavor?: string;
+  name?: string;
 }
 
 export type AddDepOptions = AddOptions;
@@ -44,4 +46,7 @@ export interface CreateProjectOptions {
   name?: string;
   cwd?: string;
   version?: string;
+  blueprint?: string;
+  scope?: string;
+  manager?: PackageManager;
 }

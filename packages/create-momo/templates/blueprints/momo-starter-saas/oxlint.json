@@ -1,0 +1,11 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+  "rules": {
+    "correctness": "warn",
+    "perf": "warn",
+    "restriction": "off",
+    "style": "warn",
+    "suspicious": "warn",
+    "nursery": "off"
+  }
+}

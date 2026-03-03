@@ -1,11 +1,12 @@
-import os from "node:os";
-import path from "node:path";
-import type { Command } from "commander";
-import fs from "fs-extra";
-import color from "picocolors";
+import { COMMANDS, DESCRIPTIONS } from "@/constants/commands.js";
 import { type MomoConfig, MomoConfigSchema } from "@/schemas/config.schema.js";
 import { fileOps } from "@/utils/file-ops.js";
 import { logger } from "@/utils/logger.js";
+import type { Command } from "commander";
+import fs from "fs-extra";
+import os from "node:os";
+import path from "node:path";
+import color from "picocolors";
 
 const CONFIG_FILE_NAME = "momo.config.json";
 const GLOBAL_CONFIG_DIR = path.join(os.homedir(), ".momo");
@@ -39,7 +40,7 @@ export const configManager = {
       }
       logger.warn(`Invalid configuration in ${configPath}. Using defaults.`);
       return MomoConfigSchema.parse(defaultConfig);
-    } catch (_error) {
+    } catch {
       return MomoConfigSchema.parse(defaultConfig);
     }
   },
@@ -112,24 +113,26 @@ export const configCommand = {
 
 export function registerConfigCommand(program: Command) {
   const config = program
-    .command("config")
+    .command(COMMANDS.config)
     .usage("[command] [options]")
-    .description("Manage create-momo CLI settings")
+    .description(DESCRIPTIONS.config)
     .action(async () => await configCommand.list());
 
   config
-    .command("list")
-    .description("List all configurations")
+    .command(COMMANDS.configList)
+    .description(DESCRIPTIONS.configList)
     .action(async () => await configCommand.list());
 
   config
-    .command("get")
+    .command(COMMANDS.configGet)
     .argument("<key>", "Configuration key")
+    .description(DESCRIPTIONS.configGet)
     .action(async (key) => await configCommand.get(key));
 
   config
-    .command("set")
+    .command(COMMANDS.configSet)
     .argument("<key>", "Configuration key")
     .argument("<value>", "Configuration value")
+    .description(DESCRIPTIONS.configSet)
     .action(async (key, value) => await configCommand.set(key, value));
 }
