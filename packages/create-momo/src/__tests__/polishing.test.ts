@@ -46,12 +46,12 @@ describe("Polishing & Synchronization Regressions", () => {
       expect(version).toBe("0.7.0-test");
     });
 
-    it("should fallback to 0.7.0 if reading fails", async () => {
+    it("should fallback to 0.6.1 if reading fails", async () => {
       const { projectUtils } = await import("../utils/project.js");
       (fs.readJson as any).mockRejectedValue(new Error("Read failed"));
 
       const version = await projectUtils.getMomoVersion();
-      expect(version).toBe("0.7.0");
+      expect(version).toBe("0.6.1");
     });
   });
 
