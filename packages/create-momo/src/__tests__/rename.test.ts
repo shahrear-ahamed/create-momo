@@ -72,7 +72,7 @@ describe("Rename Command", () => {
   });
 
   it("should error if target package is not found", async () => {
-    vi.mocked(fileOps.findFiles).mockResolvedValue(["apps/web/package.json"]);
+    vi.mocked(fileOps.findFiles).mockResolvedValue([path.join(rootDir, "apps/web/package.json")]);
 
     // Web package, but we're renaming 'missing-app'
     vi.spyOn(fs, "readJson").mockResolvedValueOnce({ name: "@momo/web" });
@@ -83,8 +83,8 @@ describe("Rename Command", () => {
 
   it("should correctly update and rename target and references", async () => {
     vi.mocked(fileOps.findFiles).mockResolvedValue([
-      "apps/web/package.json",
-      "packages/ui/package.json",
+      path.join(rootDir, "apps/web/package.json"),
+      path.join(rootDir, "packages/ui/package.json"),
     ]);
 
     vi.spyOn(fs, "readJson").mockImplementation((p) => {
