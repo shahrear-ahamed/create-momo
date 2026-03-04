@@ -227,13 +227,16 @@ export async function createProject(args: CreateProjectOptions = {}) {
   }
 
   const spinner = createSpinner("Scaffolding project with latest dependencies...");
+  const momoVersion = await projectUtils.getMomoVersion();
+
   try {
     await templateEngine.copyTemplate(blueprintDir, targetDir, {
       name: projectName,
       scope,
       packageManager,
       pmVersion,
-      version: validated.version || "0.5.1",
+      momoVersion,
+      version: validated.version || "0.1.0",
     });
 
     spinner.stop("Project scaffolded successfully!");
