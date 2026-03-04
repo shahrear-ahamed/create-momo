@@ -43,25 +43,38 @@ export const utilityCommand = {
   doctor: async () => {
     logger.info("Checking project health...");
 
-    const config = await configManager.load();
+    const rootDir = process.cwd();
+    const configPath = path.join(rootDir, "momo.config.json");
+    const hasConfig = fs.existsSync(configPath);
+
     const checks = [
+      { name: "momo.config.json (Project Root)", path: "momo.config.json", required: true },
       { name: "package.json", path: "package.json", required: true },
       { name: "turbo.json", path: "turbo.json", required: true },
       { name: "packages directory", path: "packages", required: true },
       { name: "apps directory", path: "apps", required: true },
+      { name: "node_modules (Dependencies)", path: "node_modules", required: true },
     ];
 
-    if (config.manager === "pnpm") {
-      checks.push({
-        name: "pnpm-workspace.yaml",
-        path: "pnpm-workspace.yaml",
-        required: true,
-      });
+    let healthy = true;
+
+    if (hasConfig) {
+      try {
+        const config = await configManager.load();
+        if (config.manager === "pnpm") {
+          checks.push({
+            name: "pnpm-workspace.yaml",
+            path: "pnpm-workspace.yaml",
+            required: true,
+          });
+        }
+      } catch {
+        logger.warn("Could not parse momo.config.json properly.");
+      }
     }
 
-    let healthy = true;
     for (const check of checks) {
-      if (fs.existsSync(path.join(process.cwd(), check.path))) {
+      if (fs.existsSync(path.join(rootDir, check.path))) {
         logger.step(`${color.green("✔")} ${check.name} found`);
       } else {
         if (check.required) {
@@ -74,10 +87,20 @@ export const utilityCommand = {
     }
 
     if (healthy) {
-      logger.success("Project is healthy! All required monorepo files are in place.");
+      logger.success("\nProject is healthy! All required monorepo files are in place.");
     } else {
-      logger.warn("Some critical issues were found in your project setup.");
-      logger.info(`Make sure you are in the root of your ${color.cyan("create-momo")} project.`);
+      logger.warn("\nSome issues were found in your project setup.");
+      if (!fs.existsSync(path.join(rootDir, "node_modules"))) {
+        logger.info(
+          `${color.yellow("Tip:")} Run ${color.cyan("momo install")} to install project dependencies.`,
+        );
+      }
+      if (!hasConfig) {
+        logger.info(`Momo uses ${color.cyan("momo.config.json")} to identify the project root.`);
+        logger.info(
+          `If you are in a Momo project, make sure you are at the ${color.bold("root directory")}.`,
+        );
+      }
     }
   },
 

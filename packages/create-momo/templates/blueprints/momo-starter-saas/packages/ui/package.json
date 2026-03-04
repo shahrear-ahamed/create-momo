@@ -4,17 +4,18 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.tsx"
   },
   "scripts": {
     "lint": "oxlint .",
-    "format": "oxfmt ."
+    "format": "oxfmt .",
+    "test": "echo 'no tests yet'"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
-    "oxfmt": "latest",
-    "oxlint": "latest",
-    "typescript": "^5.0.0"
+    "oxfmt": "^0.36.0",
+    "oxlint": "^1.51.0",
+    "typescript": "^5.9.3"
   },
   "peerDependencies": {
     "react": ">=18"

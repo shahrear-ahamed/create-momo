@@ -3,6 +3,12 @@
   "version": "0.0.0",
   "private": true,
   "files": [
-    "base.json"
-  ]
+    "base.json",
+    "nextjs.json"
+  ],
+  "devDependencies": {
+    "oxfmt": "^0.36.0",
+    "oxlint": "^1.51.0",
+    "typescript": "^5.9.3"
+  }
 }
