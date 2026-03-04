@@ -91,7 +91,7 @@ describe("run command & tasks", () => {
       await runTask("dev");
       expect(execa).toHaveBeenCalledWith(
         "pnpm",
-        ["exec", "turbo", "dev", "--ui", "tui"],
+        ["exec", "turbo", "dev"],
         expect.objectContaining({ stdio: "inherit" }),
       );
     });

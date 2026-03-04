@@ -101,7 +101,7 @@ describe("project commands (turbo wrappers)", () => {
       await projectCommand.dev({ filter: "web" });
       expect(execa).toHaveBeenCalledWith(
         "pnpm",
-        ["exec", "turbo", COMMANDS.dev, GLOBAL_FLAGS.filter.long, "web", "--ui", "tui"],
+        ["exec", "turbo", COMMANDS.dev, GLOBAL_FLAGS.filter.long, "web"],
         expect.objectContaining({ stdio: "inherit" }),
       );
     });

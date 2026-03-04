@@ -40,11 +40,6 @@ export async function runTask(
   // Add any additional arguments passed through
   args.push(...extraArgs);
 
-  // Force TUI for dev and start if not explicitly set to something else
-  if ((task === "dev" || task === "start") && !args.some((a) => a.startsWith("--ui"))) {
-    args.push("--ui", "tui");
-  }
-
   try {
     await execa(manager, args, { stdio: "inherit" });
   } catch (error) {

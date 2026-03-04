@@ -42,11 +42,6 @@ async function runTurbo(
   // Add any additional arguments passed through
   args.push(...additionalArgs);
 
-  // Force TUI for dev and start if not explicitly set to something else
-  if ((command === "dev" || command === "start") && !args.some((a) => a.startsWith("--ui"))) {
-    args.push("--ui", "tui");
-  }
-
   try {
     await execa(manager, args, {
       stdio: "inherit",
@@ -83,7 +78,7 @@ export const projectCommand = {
   test: async (options: TurboOptions = {}, additionalArgs: string[] = []) =>
     await runTurbo(COMMANDS.test, options, additionalArgs),
   graph: async (options: TurboOptions = {}, additionalArgs: string[] = []) =>
-    await runTurbo(COMMANDS.graph, options, additionalArgs),
+    await runTurbo(COMMANDS.build, options, ["--graph", ...additionalArgs]),
   clean: async () => {
     const { projectUtils } = await import("@/utils/project.js");
     const root = projectUtils.findProjectRoot();

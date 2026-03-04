@@ -3,13 +3,13 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "momo build",
-    "dev": "momo dev",
-    "lint": "momo lint",
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
     "check": "oxlint . && oxfmt --check .",
     "format": "oxfmt .",
-    "clean": "momo clean",
-    "test": "momo test"
+    "clean": "turbo clean",
+    "test": "turbo test"
   },
   "devDependencies": {
     "create-momo": "latest",
