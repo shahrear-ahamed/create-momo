@@ -1,4 +1,9 @@
-# Momo CLI 🛡️⚡️
+# Create# Momo CLI 🛡️⚡️
+
+![momo-banner](assets/banner.png)
+
+[![npm version](https://img.shields.io/npm/v/create-momo.svg)](https://www.npmjs.com/package/create-momo)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 > The high-performance, context-aware engine to **supercharge and boost** your Turborepo monorepo management.
 

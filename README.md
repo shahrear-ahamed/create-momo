@@ -1,6 +1,6 @@
 # Create Momo
 
-![momo-banner](https://github.com/shahrear-ahamed/create-momo/blob/main/packages/create-momo/assets/banner.png?raw=true)
+![momo-banner](packages/create-momo/assets/banner.png)
 
 > **Create Momo** is a premium, context-aware CLI tool designed to **supercharge and boost your Turborepo** monorepo experience. It provides a standardized, production-ready environment for modern web development, automating the complex orchestration required for scale.
 
