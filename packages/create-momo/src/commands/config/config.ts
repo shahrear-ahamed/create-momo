@@ -64,6 +64,19 @@ export const configManager = {
     await fileOps.writeJson(targetPath, result.data);
     return targetPath;
   },
+
+  saveToPath: async (targetPath: string, config: Partial<MomoConfig>) => {
+    // Merge with defaults to ensure all required fields are present if saving a new config
+    const merged = { ...defaultConfig, ...config };
+    const result = MomoConfigSchema.safeParse(merged);
+    if (!result.success) {
+      throw new Error(`Invalid configuration: ${result.error.message}`);
+    }
+
+    await fs.ensureDir(path.dirname(targetPath));
+    await fileOps.writeJson(targetPath, result.data);
+    return targetPath;
+  },
 };
 
 export const configCommand = {

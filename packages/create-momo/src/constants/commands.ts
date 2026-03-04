@@ -73,6 +73,7 @@ export const COMMANDS = {
   deployInit: "init",
   deployPush: "push",
   update: "update",
+  rename: "rename",
 
   // ─── Execution (Turbo-powered) ─────────────────────────────────────────────
   run: "run", // Execute turbo tasks
@@ -107,6 +108,7 @@ export const DESCRIPTIONS = {
   addConfig: "add a shared configuration package",
   doctor: "Check project health",
   update: "Update configurations (Coming Soon)",
+  rename: "Safely rename a workspace package and update all cross-references",
 
   // Orchestration
   setup: "Configure project-wide standards (Coming Soon)",

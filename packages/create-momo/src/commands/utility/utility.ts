@@ -6,6 +6,9 @@ import fs from "fs-extra";
 import path from "node:path";
 import color from "picocolors";
 
+import { renameCommand } from "@/commands/lifecycle/rename.js";
+import { updateCommand } from "@/commands/lifecycle/update.js";
+
 export const utilityCommand = {
   list: async (options: { remote?: boolean } = {}) => {
     if (options.remote) {
@@ -103,12 +106,6 @@ export const utilityCommand = {
       }
     }
   },
-
-  update: async () => {
-    logger.info(
-      `${color.bold("Coming Soon:")} The update command will soon allow you to synchronize your project's configurations and shared packages with the latest Momo blueprints and standards.`,
-    );
-  },
 };
 
 export function registerUtilityCommands(program: Command) {
@@ -126,5 +123,18 @@ export function registerUtilityCommands(program: Command) {
   program
     .command(COMMANDS.update)
     .description(DESCRIPTIONS.update)
-    .action(async () => await utilityCommand.update());
+    .option("--check", "Check for outdated dependencies without applying updates")
+    .option("--all", "Update all outdated dependencies automatically without interactive prompt")
+    .option(
+      "-f, --filter <workspace>",
+      "Only check dependencies for a specific workspace (e.g. apps/web)",
+    )
+    .action(async (options) => await updateCommand.run(options));
+
+  program
+    .command(COMMANDS.rename)
+    .description(DESCRIPTIONS.rename)
+    .argument("<oldName>", "Current package name (e.g. web or @momo/web)")
+    .argument("<newName>", "New package name (e.g. web-app or @momo/web-app)")
+    .action(async (oldName, newName) => await renameCommand.run(oldName, newName));
 }
