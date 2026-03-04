@@ -2,10 +2,21 @@
 "create-momo": minor
 ---
 
-- **Smart In-Place Adoption**: `pnpm create momo .` now intelligently handles existing projects (single apps or monorepos) and migrates them into the Momo ecosystem.
-- **`momo update`**: Added an interactive workspace-wide dependency manager to keep your monorepo up-to-date with a single command.
-- **Enhanced `momo rename`**: Safely rename any workspace package. Now including **automatic source-code refactoring** (imports/references) in `.ts`, `.tsx`, `.js`, and `.jsx` files.
-- **Dynamic Version Injection**: Scaffolding now automatically injects the current CLI version into new projects via the `{{momoVersion}}` template variable.
-- **Global Template Synchronization**: Upgraded 20+ blueprints and component templates to the latest stable versions (Next.js 16.1.6, React 19.2.4, TailwindCSS 4.2.1, TanStack Start 1.120.20, etc.).
-- **ESM Stability**: Switched to `tinyglobby` to resolve bundling issues with file pattern matching in ESM environments.
-- **UX Refactoring**: Optimized the CLI to only show the ASCII logo during creation/adoption flows, ensuring clean output for management tasks and full Turbo TUI compatibility.
+# v0.7.0 Release: Smart Lifecycle & Workspace Refactoring
+
+This release introduces significant enhancements to the project lifecycle, including intelligent project adoption, automated workspace-wide updates, and safe package renaming with source code refactoring.
+
+### ✨ Highlights
+
+- **Smart In-Place Adoption**: `pnpm create momo .` now intelligently detects existing project structures (single-repo or monorepo) and migrates them into the Momo ecosystem, injecting essential configurations like `momo.config.json` and `turbo.json`.
+- **`momo update` Command**: A new interactive tool to manage workspace dependencies. Check for outdated packages across all apps and packages and update them with a single command. Supports `--check`, `--all`, and `--filter` flags.
+- **Enhanced `momo rename`**: Safely rename any package in your monorepo. This now includes **automatic source code refactoring**, recursively updating imports and references in `.ts`, `.tsx`, `.js`, and `.jsx` files to ensure builds remain green.
+- **Dynamic Version Injection**: Blueprints now use the `{{momoVersion}}` placeholder to ensure scaffolded projects are pinned to the correct CLI version.
+- **Global Template Sync**: Synchronized all 20+ blueprints and component templates to the latest stable versions of Next.js (16.1.6), React (19.2.4), TailwindCSS (4.2.1), and other core tools.
+
+### 🛡️ Quality & DX
+
+- **Zero-Warning Codebase**: Fully optimized with `oxlint` and `oxfmt`. Resolved all linting warnings and achieved 100% formatting compliance across the workspace.
+- **UX Refactoring**: The ASCII logo is now exclusively shown during project creation and adoption flows, providing a cleaner experience for management commands and better compatibility with the Turborepo TUI.
+- **ESM Stability**: Switched to `tinyglobby` to resolve pattern-matching issues in ESM environments.
+- **Bug Fixes**: Resolved issues with `momo add` flag detection, fixed missing configurations in the SaaS blueprint, and stabilized version fallback logic.

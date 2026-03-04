@@ -6,10 +6,11 @@ Momo uses a flexible, directory-based template system located in the root `/temp
 
 ```text
 templates/
-├── blueprints/      # Full project starters (momo init)
-│   ├── momo-starter-minimal/
-│   └── momo-starter-saas/
-└── components/      # Single apps or packages (momo add)
+├── blueprints/          # Full project starters (momo init)
+│   ├── momo-starter-blank/   # [NEW] Empty monorepo
+│   ├── momo-starter-minimal/ # Clean monorepo structure
+│   └── momo-starter-saas/    # Next.js + UI + Shared Configs
+└── components/          # Single apps or packages (momo add)
     ├── with-nextjs/
     ├── with-node-express/
     ├── with-react-vite/
@@ -22,28 +23,30 @@ The `templateEngine` utility handles the complexity of copying files and replaci
 
 ### 1. Placeholder Replacement
 
-Any file inside a template can use `{{handlebars}}` style placeholders. When creating a project or component, Momo replaces these with actual values:
+Any file inside a template can use `{{handlebars}}` style placeholders. When creating a project or component, Momo replaces these with actual values from the current environment:
 
-| Placeholder          | Description                               | Example      |
-| :------------------- | :---------------------------------------- | :----------- |
-| `{{name}}`           | The name of the project or component.     | `my-web-app` |
-| `{{scope}}`          | The package scope from your config.       | `@momo`      |
-| `{{packageManager}}` | The detected/selected package manager.    | `pnpm`       |
-| `{{pmVersion}}`      | The exact version of the package manager. | `9.1.0`      |
-| `{{version}}`        | The version of the Momo CLI.              | `0.5.1`      |
+| Placeholder       | Description                               | Example      |
+| :---------------- | :---------------------------------------- | :----------- |
+| `{{name}}`        | The name of the project or component.     | `my-web-app` |
+| `{{scope}}`       | The package scope from your config.       | `@momo`      |
+| `{{manager}}`     | The detected/selected package manager.    | `pnpm`       |
+| `{{pmVersion}}`   | The exact version of the package manager. | `9.1.0`      |
+| `{{momoVersion}}` | The version of the Momo CLI.              | `^0.7.0`     |
 
 ### 2. Adding a New Blueprint
 
 1. Create a new folder in `templates/blueprints/` (e.g., `momo-starter-fastify`).
-2. Add a `package.json` at the root of that folder using `{{name}}` and `{{packageManager}}`.
-3. Add any other files (e.g., `turbo.json`, `apps/`, `packages/`).
-4. Update `getBlueprint` in `src/commands/core/create.ts` to include your new option.
+2. Add a `package.json` at the root using `{{name}}` and `{{manager}}`.
+3. **Important**: Add a `momo.config.json` to the root so the CLI recognizes it as a valid project.
+4. Add any other files (e.g., `turbo.json`, `apps/`, `packages/`).
+5. Update `getBlueprint` in `src/commands/core/create.ts` to include your new option.
 
 ### 3. Adding a New Component Flavor
 
 1. Create a new folder in `templates/components/` (e.g., `with-python-api`).
 2. Add necessary files. Usually, this includes a `package.json` and a `src/` directory.
-3. Update `getComponentFlavor` in `src/commands/core/add.ts` to include your new flavor.
+3. **Optional**: Add a `momo.json` to define the component's metadata (type, description).
+4. Update `getComponentFlavor` in `src/commands/core/add.ts` to include your new flavor.
 
 ## 🛠 Local Development Note
 
