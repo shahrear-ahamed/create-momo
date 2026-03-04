@@ -1,7 +1,5 @@
 # Create Momo
 
-![momo-banner](packages/create-momo/assets/banner.png)
-
 > **Create Momo** is a premium, context-aware CLI tool designed to **supercharge and boost your Turborepo** monorepo experience. It provides a standardized, production-ready environment for modern web development, automating the complex orchestration required for scale.
 
 [![npm version](https://img.shields.io/npm/v/create-momo.svg)](https://www.npmjs.com/package/create-momo)
