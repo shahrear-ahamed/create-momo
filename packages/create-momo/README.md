@@ -1,4 +1,4 @@
-# Create# Momo CLI 🛡️⚡️
+# Momo CLI 🛡️⚡️
 
 ![momo-banner](assets/banner.png)
 
