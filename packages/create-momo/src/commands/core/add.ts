@@ -27,6 +27,7 @@ async function getComponentType(type?: string, options: AddOptions = {}): Promis
 
   if (options.app) componentType = "app";
   else if (options.package) componentType = "package";
+  else if (options.config) componentType = "config";
 
   if (!componentType) {
     const selected = await select({
@@ -199,7 +200,7 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
   }
 
   const validated = AddComponentSchema.parse({ type: resolvedType, options });
-  let componentType = validated.type;
+  let componentType = await getComponentType(validated.type, validated.options);
 
   // Find template directory early for Smart Routing
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -253,8 +254,6 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
       }
     }
   }
-
-  componentType = await getComponentType(componentType, validated.options);
 
   const componentName = await getComponentName(componentType, resolvedName);
   const targetRoot = componentType === "app" ? "apps" : "packages";

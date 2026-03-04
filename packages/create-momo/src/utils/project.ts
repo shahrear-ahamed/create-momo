@@ -51,7 +51,7 @@ export const projectUtils = {
       const pkg = await fs.readJson(pkgPath);
       return pkg.version;
     } catch {
-      return "0.7.0"; // current target version fallback
+      return "0.6.1"; // current target version fallback
     }
   },
 };
