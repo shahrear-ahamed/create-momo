@@ -83,7 +83,7 @@ describe("Polishing & Synchronization Regressions", () => {
 
       try {
         await renameCommand.run("old", "new");
-      } catch (e) {
+      } catch {
         // It might fail later due to move/install mocks missing, which is fine
       }
 

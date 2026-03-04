@@ -64,7 +64,7 @@ export const updateCommand = {
         if (stdout) {
           outdatedData = JSON.parse(stdout);
         }
-      } catch (e) {
+      } catch {
         // Ignore errors for individual packages
       }
 
@@ -193,7 +193,7 @@ export const updateCommand = {
       await execa(pm, ["install"], { cwd: rootDir });
       installSpinner.stop("Lockfile updated successfully.");
       logger.success(`\nSuccessfully updated ${selectedToUpdate.length} dependencies!`);
-    } catch (e) {
+    } catch {
       installSpinner.stop(`${color.red("Failed:")} Error updating lockfile.`);
       logger.error(`Please run ${color.cyan(`${pm} install`)} manually to resolve the issue.`);
       process.exit(1);

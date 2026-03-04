@@ -45,7 +45,7 @@ export const renameCommand = {
           if (pkgData.name === fullOldName) {
             targetPkgPath = fullPath;
           }
-        } catch (e) {
+        } catch {
           // Ignore read/parse errors for now
         }
       }
@@ -121,7 +121,7 @@ export const renameCommand = {
             await fs.writeFile(file, newContent, "utf-8");
             refactoredCount++;
           }
-        } catch (e) {
+        } catch {
           // Skip if binary or unreadable
         }
       }
@@ -140,7 +140,7 @@ export const renameCommand = {
         try {
           await fs.move(targetDir, newTargetDir);
           moveSpinner.stop(`Directory renamed to ${color.cyan(shortNewName)}.`);
-        } catch (err) {
+        } catch {
           moveSpinner.stop(
             `${color.yellow("Warning:")} Could not rename directory on disk. Proceeding anyway.`,
           );
@@ -156,7 +156,7 @@ export const renameCommand = {
         logger.success(
           `\nSuccessfully renamed ${color.cyan(fullOldName)} to ${color.green(fullNewName)}!`,
         );
-      } catch (e) {
+      } catch {
         installSpinner.stop(`${color.red("Failed:")} Error updating lockfile.`);
         logger.error(
           `Please run ${color.cyan(`${pm} install`)} manually to resolve workspace linking.`,

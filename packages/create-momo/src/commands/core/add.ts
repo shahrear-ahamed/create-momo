@@ -229,7 +229,7 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
             break;
           }
         } catch {
-          /* ignore */
+          // Ignore errors for individual packages
         }
       }
     }
@@ -408,7 +408,7 @@ export async function addDependency(packageName?: string, options: AddDepOptions
       await execa(packageManager, ["install"], { stdio: "inherit", cwd: rootDir });
       logger.success("Dependencies installed successfully!");
       return;
-    } catch (error) {
+    } catch {
       logger.error(`\n${color.bold("Installation Failed:")} Could not install dependencies.`);
       process.exit(1);
     }

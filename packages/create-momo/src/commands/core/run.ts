@@ -42,7 +42,7 @@ export async function runTask(
 
   try {
     await execa(manager, args, { stdio: "inherit" });
-  } catch (error) {
+  } catch {
     // Turbo handles its own error output generally
     process.exit(1);
   }

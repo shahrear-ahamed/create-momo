@@ -172,7 +172,7 @@ describe("Update Command", () => {
       name: "web",
       dependencies: { react: "^18.0.0" },
     });
-    vi.mocked(execa).mockImplementation((...args: any[]) => {
+    vi.mocked(execa).mockImplementation((..._args: any[]) => {
       return Promise.resolve({
         stdout: JSON.stringify({ react: { current: "18.0.0", latest: "18.2.0" } }),
       }) as any;
