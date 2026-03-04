@@ -6,8 +6,8 @@
     "tailwind.config.ts"
   ],
   "dependencies": {
-    "autoprefixer": "latest",
-    "postcss": "latest",
-    "tailwindcss": "latest"
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.1",
+    "tailwindcss": "^4.2.1"
   }
 }

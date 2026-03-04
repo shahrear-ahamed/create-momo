@@ -1,6 +1,8 @@
 import { configManager } from "@/commands/config/config.js";
+import { runAdoptFlow, runMigrateFlow } from "@/commands/lifecycle/adopt.js";
 import { CreateProjectSchema } from "@/schemas/commands.schema.js";
 import type { CreateProjectOptions, PackageManager } from "@/types/index.js";
+import { showLogo } from "@/utils/cli-utils.js";
 import { fileOps } from "@/utils/file-ops.js";
 import { createSpinner, logger } from "@/utils/logger.js";
 import { projectUtils } from "@/utils/project.js";
@@ -131,18 +133,37 @@ async function getBlueprint(initialBlueprint?: string): Promise<string> {
 // runScaffolding removed. Template engine handles this via blueprints.
 
 export async function createProject(args: CreateProjectOptions = {}) {
+  showLogo();
   const validated = CreateProjectSchema.parse(args);
 
   if (projectUtils.isInsideProject()) {
     const root = projectUtils.findProjectRoot();
-    logger.error(
-      `${color.bold("Existing Project Detected:")} You are already inside a Momo project at:`,
+    logger.warn(
+      `\n${color.bold("Existing Momo Project Detected:")} You are already inside a Momo project at:`,
     );
-    logger.error(`  ${color.underline(root || "")}`);
-    logger.info(
-      `To create a new project, please move outside of ${color.cyan(path.basename(root || ""))}.`,
-    );
-    process.exit(1);
+    logger.warn(`  ${color.underline(root || "")}`);
+
+    logger.info("Momo is already tracking your project. To run a health check, try `momo doctor`.");
+
+    const repair = await select({
+      message: "What would you like to do?",
+      options: [
+        { value: "cancel", label: "Cancel (Exit)" },
+        { value: "reanalyze", label: "Re-analyze / Repair project (Adopt Flow)" },
+      ],
+    });
+
+    if (repair === "cancel" || isCancel(repair)) {
+      process.exit(0);
+    }
+
+    // Continue to adopt flow to reanalyze
+    const targetDir = root || process.cwd();
+    const pName = path.basename(targetDir);
+    const pScope = await getProjectScope(pName, validated.scope);
+    const pManager = await getPackageManager(validated.manager);
+    await runAdoptFlow(targetDir, pName, pScope, pManager);
+    return;
   }
 
   let projectName = await getProjectName(validated.name);
@@ -153,6 +174,34 @@ export async function createProject(args: CreateProjectOptions = {}) {
     projectName = path.basename(targetDir);
   } else {
     targetDir = path.resolve(process.cwd(), projectName);
+  }
+
+  // Smart Detection for in-place adoption
+  if (projectName === path.basename(process.cwd()) && !(await fileOps.isEmpty(targetDir))) {
+    const hasPnpmWorkspace = fs.existsSync(path.join(targetDir, "pnpm-workspace.yaml"));
+    let hasPackageJsonWorkspaces = false;
+    let isPlainPackage = false;
+
+    const rootPkgPath = path.join(targetDir, "package.json");
+    if (fs.existsSync(rootPkgPath)) {
+      const pkg = await fs.readJson(rootPkgPath);
+      hasPackageJsonWorkspaces = !!pkg.workspaces;
+      isPlainPackage = true;
+    }
+
+    if (hasPnpmWorkspace || hasPackageJsonWorkspaces) {
+      // It's already a monorepo
+      const scope = await getProjectScope(projectName, validated.scope);
+      const packageManager = await getPackageManager(validated.manager);
+      await runAdoptFlow(targetDir, projectName, scope, packageManager);
+      return;
+    } else if (isPlainPackage) {
+      // It's a standard single-repo
+      const scope = await getProjectScope(projectName, validated.scope);
+      const packageManager = await getPackageManager(validated.manager);
+      await runMigrateFlow(targetDir, projectName, scope, packageManager);
+      return;
+    }
   }
 
   await validateTargetDir(targetDir, projectName);
@@ -180,13 +229,16 @@ export async function createProject(args: CreateProjectOptions = {}) {
   }
 
   const spinner = createSpinner("Scaffolding project with latest dependencies...");
+  const momoVersion = await projectUtils.getMomoVersion();
+
   try {
     await templateEngine.copyTemplate(blueprintDir, targetDir, {
       name: projectName,
       scope,
       packageManager,
       pmVersion,
-      version: validated.version || "0.5.1",
+      momoVersion,
+      version: validated.version || "0.1.0",
     });
 
     spinner.stop("Project scaffolded successfully!");

@@ -1,8 +1,11 @@
 # Momo CLI 🛡️⚡️
 
-> The high-performance, context-aware engine for managing modern Turborepo monorepos.
+[![npm version](https://img.shields.io/npm/v/create-momo.svg)](https://www.npmjs.com/package/create-momo)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Momo CLI** is designed to eliminate the friction of monorepo management. Whether you're bootstrapping a new project or scaling an existing one, Momo provides a unified, intuitive, and "hassle-free" developer experience.
+> The high-performance, context-aware engine to **supercharge and boost** your Turborepo monorepo management.
+
+**Momo CLI** is designed to eliminate the friction of monorepo management and boost your productivity with Turborepo. Whether you're bootstrapping a new project or scaling an existing one, Momo provides a unified, intuitive, and "hassle-free" developer experience.
 
 ---
 
@@ -84,13 +87,14 @@ momo install shadcn:button      # Inject UI component
 
 ### 🔧 Orchestration & Utility
 
-| Command           | Description                      | Detail          |
-| :---------------- | :------------------------------- | :-------------- |
-| **`momo graph`**  | Visualize the dependency graph   | **Utility**     |
-| **`momo doctor`** | Check project health & standards | **Utility**     |
-| **`momo config`** | Manage CLI settings and context  | **Settings**    |
-| **`momo setup`**  | Configure project-wide standards | **Coming Soon** |
-| **`momo update`** | Update project configurations    | **Coming Soon** |
+| Command           | Description                              | Detail          |
+| :---------------- | :--------------------------------------- | :-------------- |
+| **`momo graph`**  | Visualize the dependency graph           | **Utility**     |
+| **`momo doctor`** | Check project health & standards         | **Utility**     |
+| **`momo config`** | Manage CLI settings and context          | **Settings**    |
+| **`momo setup`**  | Configure project-wide standards         | **Coming Soon** |
+| **`momo update`** | Interactive workspace dependency manager | **Lifecycle**   |
+| **`momo rename`** | Safely rename internal packages          | **Lifecycle**   |
 
 ### 🌐 Infrastructure (Remote Caching)
 

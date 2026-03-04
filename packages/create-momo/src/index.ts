@@ -1,13 +1,11 @@
 import { createProject } from "@/commands/core/create.js";
-import { getPkgInfo, showLogo } from "@/utils/cli-utils.js";
+import { getPkgInfo } from "@/utils/cli-utils.js";
 import { Command } from "commander";
 
 const pkg = getPkgInfo(import.meta.url);
 const program = new Command();
 
 async function main() {
-  showLogo();
-
   program
     .name("create-momo")
     .description("A modern CLI tool for scaffolding monorepo projects")

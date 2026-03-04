@@ -1,15 +1,13 @@
 # Create Momo
 
-![momo-banner](https://github.com/shahrear-ahamed/create-momo/blob/main/packages/create-momo/assets/banner.png?raw=true)
-
-> **Create Momo** is a premium, context-aware CLI tool designed to simplify the creation and management of high-performance Turborepo monorepos. It provides a standardized, production-ready environment for modern web development.
+> **Create Momo** is a premium, context-aware CLI tool designed to **supercharge and boost your Turborepo** monorepo experience. It provides a standardized, production-ready environment for modern web development, automating the complex orchestration required for scale.
 
 [![npm version](https://img.shields.io/npm/v/create-momo.svg)](https://www.npmjs.com/package/create-momo)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## 🎯 Overview
 
-Building monorepos shouldn't be complex. **Create Momo** automates the tedious parts of monorepo orchestration—from initial scaffolding to ongoing management. Whether you're building a SaaS, an e-commerce platform, or a suite of shared libraries, Momo provides the structure and tools you need to move fast and stay consistent.
+Building monorepos shouldn't be complex. **Create Momo** acts as a powerful booster for Turborepo, automating the tedious parts of monorepo orchestration—from initial scaffolding to ongoing lifecycle management. Whether you're building a SaaS, an e-commerce platform, or a suite of shared libraries, Momo provides the structure and tools you need to move fast and stay consistent.
 
 ---
 
@@ -75,7 +73,8 @@ bun create momo my-project
 | **`momo doctor`** | Check project health and standards audit | **Utility**     |
 | **`momo config`** | Manage CLI settings and project context  | **Settings**    |
 | **`momo setup`**  | Configure project-wide standards         | **Coming Soon** |
-| **`momo update`** | Update project configurations            | **Coming Soon** |
+| **`momo update`** | Interactive workspace dependency manager | **Lifecycle**   |
+| **`momo rename`** | Safely rename internal packages          | **Lifecycle**   |
 
 ### 🌐 Infrastructure (Remote Caching)
 

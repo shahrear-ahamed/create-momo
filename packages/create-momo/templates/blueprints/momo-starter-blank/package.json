@@ -12,7 +12,7 @@
     "test": "turbo test"
   },
   "devDependencies": {
-    "create-momo": "latest",
+    "create-momo": "^{{momoVersion}}",
     "oxfmt": "^0.36.0",
     "oxlint": "^1.51.0",
     "turbo": "^2.8.13",

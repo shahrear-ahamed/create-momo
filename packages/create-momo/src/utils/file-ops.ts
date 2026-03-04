@@ -58,8 +58,8 @@ export const fileOps = {
   /**
    * Find files matching a pattern
    */
-  findFiles: async (pattern: string, cwd: string): Promise<string[]> => {
-    const { globby } = await import("globby");
-    return (globby as any)(pattern, { cwd, absolute: true });
+  findFiles: async (pattern: string, cwd: string, ignore?: string[]): Promise<string[]> => {
+    const { glob } = await import("tinyglobby");
+    return glob(pattern, { cwd, absolute: true, ignore });
   },
 };

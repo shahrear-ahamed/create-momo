@@ -8,7 +8,7 @@ import { registerProjectCommands } from "@/commands/management/project.js";
 import { registerRemoteCacheCommands } from "@/commands/management/remote-cache.js";
 import { registerSetupCommands } from "@/commands/setup/setup.js";
 import { registerUtilityCommands } from "@/commands/utility/utility.js";
-import { getPkgInfo, showLogo } from "@/utils/cli-utils.js";
+import { getPkgInfo } from "@/utils/cli-utils.js";
 import { projectUtils } from "@/utils/project.js";
 import { Command } from "commander";
 
@@ -16,13 +16,6 @@ const pkg = getPkgInfo(import.meta.url);
 const program = new Command();
 
 async function main() {
-  const tuiCommands = ["dev", "start"];
-  const isTuiCommand = tuiCommands.includes(process.argv[2]);
-
-  if (!isTuiCommand) {
-    showLogo();
-  }
-
   program
     .name("momo")
     .description("A modern CLI tool for managing monorepo projects")

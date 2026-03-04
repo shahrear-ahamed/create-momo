@@ -39,4 +39,19 @@ export const projectUtils = {
       return "10.0.0"; // fallback for npm
     }
   },
+  /**
+   * Gets the current version of create-momo.
+   */
+  async getMomoVersion(): Promise<string> {
+    try {
+      // In dist/, this is in dist/utils/project.js, so package.json is at ../../package.json
+      // In src/, this is in src/utils/project.ts, so package.json is at ../../package.json
+      const __dirname = path.dirname(new URL(import.meta.url).pathname);
+      const pkgPath = path.resolve(__dirname, "../../package.json");
+      const pkg = await fs.readJson(pkgPath);
+      return pkg.version;
+    } catch {
+      return "0.6.1"; // current target version fallback
+    }
+  },
 };
