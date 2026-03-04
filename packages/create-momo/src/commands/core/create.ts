@@ -2,6 +2,7 @@ import { configManager } from "@/commands/config/config.js";
 import { runAdoptFlow, runMigrateFlow } from "@/commands/lifecycle/adopt.js";
 import { CreateProjectSchema } from "@/schemas/commands.schema.js";
 import type { CreateProjectOptions, PackageManager } from "@/types/index.js";
+import { showLogo } from "@/utils/cli-utils.js";
 import { fileOps } from "@/utils/file-ops.js";
 import { createSpinner, logger } from "@/utils/logger.js";
 import { projectUtils } from "@/utils/project.js";
@@ -132,6 +133,7 @@ async function getBlueprint(initialBlueprint?: string): Promise<string> {
 // runScaffolding removed. Template engine handles this via blueprints.
 
 export async function createProject(args: CreateProjectOptions = {}) {
+  showLogo();
   const validated = CreateProjectSchema.parse(args);
 
   if (projectUtils.isInsideProject()) {
