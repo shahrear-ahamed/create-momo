@@ -103,7 +103,31 @@ export const renameCommand = {
 
       updateSpinner.stop(`Updated ${updatedCount} package.json file(s).`);
 
-      // 3. Rename the physical folder if it matches the short oldName
+      // 3. Update source code references (imports, etc.)
+      const refactorSpinner = createSpinner("Refactoring source code imports...");
+      const srcFiles = await fileOps.findFiles("**/*.{ts,tsx,js,jsx,json,md,yml,yaml}", rootDir, [
+        "**/node_modules/**",
+        "**/dist/**",
+        "**/.next/**",
+        "**/package.json", // already handled
+      ]);
+
+      let refactoredCount = 0;
+      for (const file of srcFiles) {
+        try {
+          const content = await fs.readFile(file, "utf-8");
+          if (content.includes(fullOldName)) {
+            const newContent = content.split(fullOldName).join(fullNewName);
+            await fs.writeFile(file, newContent, "utf-8");
+            refactoredCount++;
+          }
+        } catch (e) {
+          // Skip if binary or unreadable
+        }
+      }
+      refactorSpinner.stop(`Refactored ${refactoredCount} source file(s).`);
+
+      // 4. Rename the physical folder if it matches the short oldName
       const targetDir = path.dirname(targetPkgPath);
       const shortOldName = oldName.split("/").pop() || oldName;
       const shortNewName = newName.split("/").pop() || newName;
