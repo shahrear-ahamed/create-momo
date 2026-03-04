@@ -41,7 +41,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Check formatting and linting (Biome)
+      - name: Check formatting and linting
         run: pnpm check
 
       - name: Run tests

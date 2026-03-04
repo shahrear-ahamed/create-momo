@@ -42,6 +42,12 @@ async function runTurbo(
   // Add any additional arguments passed through
   args.push(...additionalArgs);
 
+  // Enable TUI for dev, start, lint, test if not already present in additionalArgs
+  const tuiCommands = ["dev", "start", "lint", "test"];
+  if (tuiCommands.includes(command) && !additionalArgs.includes("--ui")) {
+    args.push("--ui", "tui");
+  }
+
   try {
     await execa(manager, args, {
       stdio: "inherit",
