@@ -7,6 +7,7 @@ export const CreateProjectSchema = z.object({
   blueprint: z.string().optional(),
   scope: z.string().optional(),
   manager: z.enum(["npm", "yarn", "pnpm", "bun"]).optional(),
+  yes: z.boolean().optional(),
 });
 
 export type CreateProjectArgs = z.infer<typeof CreateProjectSchema>;

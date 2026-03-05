@@ -49,4 +49,5 @@ export interface CreateProjectOptions {
   blueprint?: string;
   scope?: string;
   manager?: PackageManager;
+  yes?: boolean;
 }

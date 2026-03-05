@@ -147,6 +147,12 @@ export const DESCRIPTIONS = {
 
 // ─── Add Action Flags ────────────────────────────────────────────────────────
 export const ADD_ACTION_FLAGS = {
+  yes: {
+    short: "-y",
+    long: "--yes",
+    flag: "-y, --yes",
+    description: "Skip confirmation prompts (non-interactive)",
+  },
   app: {
     short: "-a",
     long: "--app",
@@ -170,6 +176,12 @@ export const ADD_ACTION_FLAGS = {
     long: "--name",
     flag: "-n, --name [name]",
     description: "Specify the name of the new workspace",
+  },
+  to: {
+    short: "-t",
+    long: "--to",
+    flag: "-t, --to <name>",
+    description: "Target a specific workspace (app or package)",
   },
 } as const;
 

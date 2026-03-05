@@ -38,20 +38,30 @@ vi.mock("../utils/logger.js", () => ({
 
 describe("Polishing & Synchronization Regressions", () => {
   describe("projectUtils.getMomoVersion", () => {
+    const originalEnv = process.env.npm_package_version;
+
     it("should return the version from package.json", async () => {
+      delete process.env.npm_package_version;
       const { projectUtils } = await import("../utils/project.js");
-      (fs.readJson as any).mockResolvedValue({ version: "0.7.0-test" });
+      (fs.readJson as any).mockResolvedValue({
+        name: "create-momo",
+        version: "0.7.0-test",
+      });
+      (fs.existsSync as any).mockReturnValue(true);
 
       const version = await projectUtils.getMomoVersion();
       expect(version).toBe("0.7.0-test");
+      process.env.npm_package_version = originalEnv;
     });
 
-    it("should fallback to 0.6.1 if reading fails", async () => {
+    it("should fallback to latest if reading fails", async () => {
+      delete process.env.npm_package_version;
       const { projectUtils } = await import("../utils/project.js");
       (fs.readJson as any).mockRejectedValue(new Error("Read failed"));
 
       const version = await projectUtils.getMomoVersion();
-      expect(version).toBe("0.6.1");
+      expect(version).toBe("latest");
+      process.env.npm_package_version = originalEnv;
     });
   });
 

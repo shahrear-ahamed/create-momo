@@ -48,6 +48,16 @@ async function getComponentType(type?: string, options: AddOptions = {}): Promis
           label: "shared configuration",
           hint: "ESLint, Tailwind, etc.",
         },
+        {
+          value: "stack",
+          label: "modular stack / integration",
+          hint: "Convex, Drizzle, etc.",
+        },
+        {
+          value: "shadcn",
+          label: "shadcn ui",
+          hint: "add components or initialize",
+        },
       ],
     });
 
@@ -149,26 +159,76 @@ export async function handleExternalFramework(framework: string, _options: any) 
   }
 }
 
-export async function handleShadcnAdd(component: string, options: any) {
+export async function initShadcn() {
   const rootDir = process.cwd();
   const uiDir = path.join(rootDir, "packages/ui");
 
+  logger.info(`\n${color.blue("Shadcn UI Initialization:")} Setting up workspace... 🎨`);
+
   if (!fs.existsSync(uiDir)) {
-    logger.info(`Creating ${color.cyan("packages/ui")} for Shadcn components...`);
-    await addComponent("package", { ...options, package: "ui" }, "ui");
+    logger.info(`Creating ${color.cyan("packages/ui")} for shared components...`);
+    await addComponent("package", { package: "ui" }, "ui");
   }
 
   try {
-    const spinner = createSpinner(`Adding shadcn ${color.cyan(component)}...`);
-    await execa("npx", ["shadcn@latest", "add", component, "--cwd", uiDir, "-y"], {
+    logger.step("Initializing Shadcn in shared UI package...");
+    await execa("npx", ["shadcn@latest", "init", "-y", "--cwd", uiDir], { stdio: "inherit" });
+
+    logger.success("Shadcn UI initialized successfully! 🛡️⚡️");
+    logger.info(`Next steps:`);
+    logger.step(`  momo add shadcn:button        (Adds to shared UI)`);
+    logger.step(`  momo add shadcn:card --to web  (Adds to specific app)`);
+  } catch (error) {
+    logger.error(`Failed to initialize Shadcn: ${(error as Error).message}`);
+    process.exit(1);
+  }
+}
+
+export async function handleShadcnAdd(component: string, options: any) {
+  const rootDir = process.cwd();
+  const targetApp = options.toApp || options.app;
+  const targetPkg = options.toPkg || options.pkg || "ui";
+
+  let targetDir = path.join(rootDir, "packages", targetPkg);
+
+  if (targetApp && typeof targetApp === "string") {
+    targetDir = path.join(rootDir, "apps", targetApp);
+  }
+
+  if (!fs.existsSync(targetDir)) {
+    logger.error(
+      `${color.red("Target Not Found:")} Directory ${color.cyan(targetDir)} does not exist.`,
+    );
+    process.exit(1);
+  }
+
+  try {
+    const spinner = createSpinner(
+      `Adding shadcn ${color.cyan(component)} to ${color.bold(path.basename(targetDir))}...`,
+    );
+
+    if (!fs.existsSync(path.join(targetDir, "components.json"))) {
+      spinner.stop(`${color.yellow("Missing components.json")}`);
+      const shouldInit = await confirm({
+        message: `Shadcn is not initialized in ${path.basename(targetDir)}. Initialize now?`,
+        initialValue: true,
+      });
+
+      if (shouldInit && !isCancel(shouldInit)) {
+        await execa("npx", ["shadcn@latest", "init", "-y", "--cwd", targetDir], {
+          stdio: "inherit",
+        });
+      } else {
+        cancel("Operation cancelled.");
+        process.exit(0);
+      }
+    }
+
+    await execa("npx", ["shadcn@latest", "add", component, "--cwd", targetDir, "-y"], {
       stdio: "inherit",
     });
-    spinner.stop(`Successfully added ${color.bold(component)} to packages/ui! 🛡️⚡️`);
-    logger.info(
-      `${color.dim("Tip:")} Components are available via ${color.cyan(
-        "@momo/ui/components/ui/" + component,
-      )}`,
-    );
+
+    logger.success(`Successfully added ${color.bold(component)}! 🛡️⚡️`);
   } catch (error) {
     logger.error(`Failed to add shadcn component: ${(error as Error).message}`);
     process.exit(1);
@@ -181,7 +241,7 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
   let resolvedType = typeOrName;
   let resolvedName = name;
 
-  const validTypes: string[] = ["app", "package", "config"];
+  const validTypes: string[] = ["app", "package", "config", "shadcn", "stack"];
 
   if (typeOrName && !validTypes.includes(typeOrName)) {
     resolvedName = typeOrName;
@@ -193,28 +253,63 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
   else if (typeof options.config === "string") resolvedName = options.config;
   else if (options.name) resolvedName = options.name;
 
-  // Handle shadcn: prefix
+  // Handle shadcn: prefix or direct shadcn commands
   if (resolvedName?.startsWith("shadcn:")) {
-    const shadcnComponent = resolvedName.split(":")[1];
-    return handleShadcnAdd(shadcnComponent, options);
+    const action = resolvedName.split(":")[1];
+    if (action === "init") {
+      return initShadcn();
+    }
+    return handleShadcnAdd(action, options);
   }
 
   const validated = AddComponentSchema.parse({ type: resolvedType, options });
   let componentType = await getComponentType(validated.type, validated.options);
 
-  // Find template directory early for Smart Routing
+  if (componentType === "shadcn") {
+    const action = await select({
+      message: "What shadcn action would you like to perform?",
+      options: [
+        { value: "add", label: "add component", hint: "button, card, etc." },
+        { value: "init", label: "initialize", hint: "setup shadcn in workspace" },
+      ],
+    });
+
+    if (isCancel(action)) {
+      cancel("Operation cancelled.");
+      process.exit(0);
+    }
+
+    if (action === "init") return initShadcn();
+
+    const componentName = await text({
+      message: "Which component would you like to add?",
+      placeholder: "button",
+      validate: (v) => (!v || v.length === 0 ? "Component name is required" : undefined),
+    });
+
+    if (isCancel(componentName)) {
+      cancel("Operation cancelled.");
+      process.exit(0);
+    }
+
+    return handleShadcnAdd(componentName as string, options);
+  }
+
+  // Find template roots
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const candidates = [
-    path.resolve(__dirname, "../templates/components"), // internal to package (dist/ -> templates/)
-    path.resolve(__dirname, "../../../templates/components"), // dev mode (src/commands/core/ -> templates/)
+    path.resolve(__dirname, "../templates"), // dist/ -> templates/
+    path.resolve(__dirname, "../../../templates"), // src/commands/core -> templates/
   ];
-  const templateRoot = candidates.find((p) => fs.existsSync(p)) || candidates[0];
+  const templateBase = candidates.find((p) => fs.existsSync(p)) || candidates[0];
+  const componentTemplateRoot = path.join(templateBase, "components");
+  const stackTemplateRoot = path.join(templateBase, "stacks");
 
   // Inferred Routing (Smart Routing)
   if (!componentType && resolvedName) {
     const searchNames = [resolvedName, `with-${resolvedName}`, `config-${resolvedName}`];
     for (const sName of searchNames) {
-      const templateDir = path.join(templateRoot, sName);
+      const templateDir = path.join(componentTemplateRoot, sName);
       const momoPath = path.join(templateDir, "momo.json");
       if (fs.existsSync(momoPath)) {
         try {
@@ -237,8 +332,10 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
 
   // Generic Framework Fallback (Guided)
   if (resolvedName && !componentType) {
-    const isFlavorAvailable = fs.existsSync(path.join(templateRoot, resolvedName));
-    const isWithFlavorAvailable = fs.existsSync(path.join(templateRoot, `with-${resolvedName}`));
+    const isFlavorAvailable = fs.existsSync(path.join(componentTemplateRoot, resolvedName));
+    const isWithFlavorAvailable = fs.existsSync(
+      path.join(componentTemplateRoot, `with-${resolvedName}`),
+    );
 
     if (!isFlavorAvailable && !isWithFlavorAvailable) {
       // Ask user for confirmation before jumping to external initializer
@@ -256,12 +353,74 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
   }
 
   const componentName = await getComponentName(componentType, resolvedName);
-  const targetRoot = componentType === "app" ? "apps" : "packages";
+  const targetRoot =
+    componentType === "app" ? "apps" : componentType === "stack" ? "stacks" : "packages";
+
+  // Handle stack specifically
+  if (componentType === "stack") {
+    const categories = await fs.readdir(stackTemplateRoot);
+    const stackChoices: { value: string; label: string; hint?: string }[] = [];
+
+    for (const cat of categories) {
+      const catPath = path.join(stackTemplateRoot, cat);
+      if (fs.statSync(catPath).isDirectory()) {
+        const items = await fs.readdir(catPath);
+        for (const item of items) {
+          const itemPath = path.join(catPath, item);
+          const momoPath = path.join(itemPath, "momo.json");
+          if (fs.existsSync(momoPath)) {
+            const mConfig = fs.readJsonSync(momoPath);
+            stackChoices.push({
+              value: `${cat}/${item}`,
+              label: mConfig.name || item,
+              hint: mConfig.description,
+            });
+          }
+        }
+      }
+    }
+
+    const selectedStack = await select({
+      message: "Which stack would you like to add?",
+      options: stackChoices,
+    });
+
+    if (isCancel(selectedStack)) {
+      cancel("Operation cancelled.");
+      process.exit(0);
+    }
+
+    const [cat, item] = (selectedStack as string).split("/");
+    const templateDir = path.join(stackTemplateRoot, cat, item);
+    const mConfig = fs.readJsonSync(path.join(templateDir, "momo.json"));
+
+    const targetDir = path.join(process.cwd(), mConfig.target.replace("{{name}}", componentName));
+
+    const spinner = createSpinner(`Adding stack ${color.cyan(item)}...`);
+    try {
+      const config = await configManager.load();
+      const scope = config.packageScope || config.scope || "@momo";
+
+      await templateEngine.copyTemplate(templateDir, targetDir, {
+        name: componentName,
+        scope,
+        projectName: path.basename(process.cwd()),
+      });
+
+      spinner.stop(`Stack ${color.bold(item)} added successfully!`);
+      logger.success(`\nIntegranted into ${color.underline(targetDir)}`);
+      return;
+    } catch (error) {
+      spinner.stop(`${color.red("Failed:")} ${(error as Error).message}`);
+      process.exit(1);
+    }
+  }
+
   const finalName = componentType === "config" ? `config-${componentName}` : componentName;
   const targetDir = path.join(process.cwd(), targetRoot, finalName);
 
   let flavor =
-    resolvedName && fs.existsSync(path.join(templateRoot, resolvedName))
+    resolvedName && fs.existsSync(path.join(componentTemplateRoot, resolvedName))
       ? resolvedName
       : componentType === "config"
         ? `config-${componentName}`
@@ -287,7 +446,7 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
     flavor = "blank";
   }
 
-  const templateDir = path.join(templateRoot, flavor);
+  const templateDir = path.join(componentTemplateRoot, flavor);
   const spinner = createSpinner(`Creating ${componentType}...`);
 
   try {
@@ -317,13 +476,6 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
     const err = error as Error;
     spinner.stop(`${color.red("Failed:")} Could not add ${componentType}.`);
     logger.error(`${color.bold("Reason:")} ${err.message}`);
-    if (err.message.includes("EEXIST")) {
-      logger.info(
-        `${color.yellow("Tip:")} A directory with the name ${color.cyan(
-          componentName,
-        )} already exists.`,
-      );
-    }
     process.exit(1);
   }
 }
@@ -441,15 +593,17 @@ export async function addDependency(packageName?: string, options: AddDepOptions
 export function registerAddCommand(program: Command) {
   const add = program
     .command(COMMANDS.add)
+    .argument("[type]", "Type or name of component to add (e.g. app, shadcn:button)")
     .description(DESCRIPTIONS.add)
     .option(ADD_ACTION_FLAGS.app.flag, ADD_ACTION_FLAGS.app.description)
     .option(ADD_ACTION_FLAGS.package.flag, ADD_ACTION_FLAGS.package.description)
     .option(ADD_ACTION_FLAGS.config.flag, ADD_ACTION_FLAGS.config.description)
     .option(ADD_ACTION_FLAGS.name.flag, ADD_ACTION_FLAGS.name.description)
+    .option(ADD_ACTION_FLAGS.to.flag, ADD_ACTION_FLAGS.to.description)
+    .option(ADD_ACTION_FLAGS.yes.flag, ADD_ACTION_FLAGS.yes.description)
     .option("-l, --flavor <flavor>", "Select component flavor (blank, nextjs, react, node)")
-    .action(async (options, cmd) => {
-      const typeOrName = cmd.args[0];
-      await addComponent(typeOrName, options);
+    .action(async (type, options) => {
+      await addComponent(type, options);
     });
 
   // Legacy subcommands preserved for CLI consistency
@@ -457,17 +611,17 @@ export function registerAddCommand(program: Command) {
     .command(COMMANDS.addConfig)
     .argument("[name]")
     .description(DESCRIPTIONS.addConfig)
-    .action((name, _opts, cmd) => addComponent("config", { ...cmd.opts(), config: true }, name));
+    .action((name, options) => addComponent("config", { ...options, config: true }, name));
   add
     .command(COMMANDS.addApp)
     .argument("[name]")
     .description(DESCRIPTIONS.addApp)
     .option("-l, --flavor <flavor>", "Select component flavor")
-    .action((name, _opts, cmd) => addComponent("app", { ...cmd.opts(), app: true }, name));
+    .action((name, options) => addComponent("app", { ...options, app: true }, name));
   add
     .command(COMMANDS.addPackage)
     .argument("[name]")
     .description(DESCRIPTIONS.addPackage)
     .option("-l, --flavor <flavor>", "Select component flavor")
-    .action((name, _opts, cmd) => addComponent("package", { ...cmd.opts(), package: true }, name));
+    .action((name, options) => addComponent("package", { ...options, package: true }, name));
 }

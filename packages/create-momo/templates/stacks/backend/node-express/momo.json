@@ -1,0 +1,7 @@
+{
+  "name": "node-express",
+  "type": "stack",
+  "category": "backend",
+  "target": "apps/{{name}}",
+  "description": "Standard Node.js + Express backend."
+}

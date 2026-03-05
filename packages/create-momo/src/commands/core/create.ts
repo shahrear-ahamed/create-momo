@@ -9,6 +9,7 @@ import { projectUtils } from "@/utils/project.js";
 import { templateEngine } from "@/utils/template-engine.js";
 import { validators } from "@/utils/validators.js";
 import { cancel, isCancel, select, text } from "@clack/prompts";
+import { execa } from "execa";
 import fs from "fs-extra";
 import path from "node:path";
 import process from "node:process";
@@ -110,24 +111,59 @@ async function getPackageManager(initialManager?: PackageManager): Promise<Packa
   return packageManager;
 }
 
-async function getBlueprint(initialBlueprint?: string): Promise<string> {
-  if (initialBlueprint) return initialBlueprint;
+async function getStackSelections(skipPrompts: boolean = false) {
+  if (skipPrompts) {
+    return { frontend: "next-app", backend: "convex", ui: "shadcn" };
+  }
 
-  const blueprint = await select({
-    message: "which blueprint would you like to start with?",
+  const frontend = await select({
+    message: "choose your frontend framework",
     options: [
-      { value: "momo-starter-blank", label: "blank", hint: "Empty monorepo, no apps or packages" },
-      { value: "momo-starter-minimal", label: "minimal", hint: "Clean monorepo structure" },
-      { value: "momo-starter-saas", label: "saas starter", hint: "Next.js + UI + Shared Configs" },
+      { value: "next-app", label: "Next.js", hint: "App Router, Tailwind, TS" },
+      { value: "tanstack-start", label: "TanStack Start", hint: "React Router, Full-stack" },
+      { value: "react-vite", label: "Vite (React)", hint: "Fast and lightweight" },
+      { value: "none", label: "None", hint: "Skip frontend" },
     ],
   });
 
-  if (isCancel(blueprint)) {
+  if (isCancel(frontend)) {
     cancel("Operation cancelled.");
     process.exit(0);
   }
 
-  return blueprint as string;
+  const backend = await select({
+    message: "choose your backend / api layer",
+    options: [
+      { value: "convex", label: "Convex", hint: "Real-time sync, autoscaling" },
+      { value: "node-express", label: "Express", hint: "Standard Node.js framework" },
+      { value: "hono", label: "Hono", hint: "Ultrafast web framework" },
+      { value: "none", label: "None", hint: "Skip backend" },
+    ],
+  });
+
+  if (isCancel(backend)) {
+    cancel("Operation cancelled.");
+    process.exit(0);
+  }
+
+  const ui = await select({
+    message: "choose your ui library",
+    options: [
+      { value: "shadcn", label: "Shadcn UI", hint: "Premium components with Tailwind" },
+      { value: "none", label: "None", hint: "Skip UI library" },
+    ],
+  });
+
+  if (isCancel(ui)) {
+    cancel("Operation cancelled.");
+    process.exit(0);
+  }
+
+  return {
+    frontend: frontend === "none" ? null : (frontend as string),
+    backend: backend === "none" ? null : (backend as string),
+    ui: ui === "none" ? null : (ui as string),
+  };
 }
 
 // runScaffolding removed. Template engine handles this via blueprints.
@@ -207,32 +243,27 @@ export async function createProject(args: CreateProjectOptions = {}) {
   await validateTargetDir(targetDir, projectName);
   const scope = await getProjectScope(projectName, validated.scope);
   const packageManager = await getPackageManager(validated.manager);
-  const blueprint = await getBlueprint(validated.blueprint);
+  const stacks = await getStackSelections(validated.yes);
   const pmVersion = await projectUtils.getPMVersion(packageManager);
 
-  // Find template directory (support both local monorepo and published package)
-  // Try multiple candidates: dist/ is flat (3 up), src/commands/core/ needs 5 up, fallback to ../templates for bundled publish
+  // Find template roots
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const candidates = [
-    path.resolve(__dirname, "../templates/blueprints"), // internal to package (dist/ -> templates/)
-    path.resolve(__dirname, "../../../templates/blueprints"), // dev mode (src/commands/core/ -> templates/)
+    path.resolve(__dirname, "../templates"), // dist/ -> templates/
+    path.resolve(__dirname, "../../../templates"), // src/commands/core -> templates/
   ];
-  let templateRoot = candidates.find((p) => fs.existsSync(p)) || candidates[0];
+  const templateBase = candidates.find((p) => fs.existsSync(p)) || candidates[0];
 
-  const blueprintDir = path.join(templateRoot, blueprint);
+  const blueprintRoot = path.join(templateBase, "blueprints");
+  const stackRoot = path.join(templateBase, "stacks");
 
-  if (!fs.existsSync(blueprintDir)) {
-    logger.error(
-      `${color.bold("Blueprint Not Found:")} Could not find blueprint at ${blueprintDir}`,
-    );
-    process.exit(1);
-  }
-
-  const spinner = createSpinner("Scaffolding project with latest dependencies...");
+  const spinner = createSpinner("Assembling your stack...");
   const momoVersion = await projectUtils.getMomoVersion();
 
   try {
-    await templateEngine.copyTemplate(blueprintDir, targetDir, {
+    // 1. Initial Scaffold (Minimal structure)
+    const baseBlueprint = path.join(blueprintRoot, "momo-starter-minimal");
+    await templateEngine.copyTemplate(baseBlueprint, targetDir, {
       name: projectName,
       scope,
       packageManager,
@@ -241,23 +272,64 @@ export async function createProject(args: CreateProjectOptions = {}) {
       version: validated.version || "0.1.0",
     });
 
+    // 2. Assemble Stacks (file-based templates)
+    const selectedStacks = [
+      { cat: "frontend", item: stacks.frontend, defaultName: "web" },
+      {
+        cat: "backend",
+        item: stacks.backend,
+        defaultName: stacks.backend === "convex" ? "convex" : "api",
+      },
+    ];
+
+    for (const s of selectedStacks) {
+      if (s.item) {
+        const stackDir = path.join(stackRoot, s.cat, s.item);
+        const momoPath = path.join(stackDir, "momo.json");
+        if (fs.existsSync(momoPath)) {
+          const mConfig = await fs.readJson(momoPath);
+          const stackName = s.defaultName;
+          const relativeTarget = mConfig.target.replace("{{name}}", stackName);
+          const stackTargetDir = path.join(targetDir, relativeTarget);
+
+          await templateEngine.copyTemplate(stackDir, stackTargetDir, {
+            name: stackName,
+            scope,
+            projectName,
+          });
+        }
+      }
+    }
+
     spinner.stop("Project scaffolded successfully!");
+
+    // 3. Post-scaffold: Dynamic Shadcn UI initialization
+    if (stacks.ui === "shadcn" && stacks.frontend) {
+      const frontendDir = path.join(targetDir, "apps/web");
+      if (fs.existsSync(frontendDir)) {
+        const shadcnSpinner = createSpinner("Initializing Shadcn UI...");
+        try {
+          await execa("npx", ["shadcn@latest", "init", "-y", "--cwd", frontendDir], {
+            stdio: "pipe",
+            cwd: targetDir,
+          });
+          shadcnSpinner.stop("Shadcn UI initialized!");
+        } catch {
+          shadcnSpinner.stop(
+            color.yellow("Shadcn UI init skipped (run manually: npx shadcn@latest init)"),
+          );
+        }
+      }
+    }
     logger.success(`\nProject created at ${color.underline(targetDir)}`);
     logger.info("\nNext steps:");
     if (targetDir !== process.cwd()) logger.step(`  cd ${projectName}`);
     logger.step(`  ${packageManager} install`);
-    logger.step(`  ${packageManager} ${packageManager === "npm" ? "run " : ""}dev`);
+    logger.step(`  ${packageManager} dev`);
   } catch (error) {
     const err = error as Error;
     spinner.stop(`${color.red("Failed:")} Project creation halted.`);
     logger.error(`${color.bold("Reason:")} ${err.message}`);
-
-    if (err.message.includes("permission denied")) {
-      logger.info(
-        `${color.yellow("Tip:")} Check your folder permissions or try running with elevated privileges.`,
-      );
-    }
-
     process.exit(1);
   }
 }

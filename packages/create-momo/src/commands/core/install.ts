@@ -1,6 +1,8 @@
 import { addDependency } from "@/commands/core/add.js";
 import { COMMANDS, DESCRIPTIONS } from "@/constants/commands.js";
+import { logger } from "@/utils/logger.js";
 import type { Command } from "commander";
+import color from "picocolors";
 
 export function registerInstallCommand(program: Command) {
   program
@@ -13,9 +15,12 @@ export function registerInstallCommand(program: Command) {
     .option("-w, --root", "Install to workspace root")
     .action(async (packageName, options) => {
       if (packageName?.startsWith("shadcn:")) {
-        const { handleShadcnAdd } = await import("@/commands/core/add.js");
-        const shadcnComponent = packageName.split(":")[1];
-        return handleShadcnAdd(shadcnComponent, options);
+        logger.info(
+          `${color.yellow("Note:")} For structural components like Shadcn, use ${color.cyan("momo add")}.`,
+        );
+        logger.info(`Redirecting: ${color.dim(`momo add ${packageName}`)}`);
+        const { addComponent } = await import("@/commands/core/add.js");
+        return addComponent(packageName, options);
       }
 
       const addOptions = {

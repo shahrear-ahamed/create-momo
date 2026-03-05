@@ -1,5 +1,6 @@
 import fs from "fs-extra";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 export const projectUtils = {
   /**
@@ -39,19 +40,30 @@ export const projectUtils = {
       return "10.0.0"; // fallback for npm
     }
   },
-  /**
-   * Gets the current version of create-momo.
-   */
   async getMomoVersion(): Promise<string> {
     try {
-      // In dist/, this is in dist/utils/project.js, so package.json is at ../../package.json
-      // In src/, this is in src/utils/project.ts, so package.json is at ../../package.json
-      const __dirname = path.dirname(new URL(import.meta.url).pathname);
-      const pkgPath = path.resolve(__dirname, "../../package.json");
-      const pkg = await fs.readJson(pkgPath);
-      return pkg.version;
+      // 1. Try environment variable (provided by npm/pnpm when running via bin)
+      if (process.env.npm_package_version) {
+        return process.env.npm_package_version;
+      }
+
+      // 2. Try to find package.json relative to the current module
+      const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+      // We look up to 4 levels to find package.json (handling various dist structures)
+      let currentDir = __dirname;
+      for (let i = 0; i < 4; i++) {
+        const pkgPath = path.join(currentDir, "package.json");
+        if (fs.existsSync(pkgPath)) {
+          const pkg = await fs.readJson(pkgPath);
+          if (pkg.name === "create-momo") return pkg.version;
+        }
+        currentDir = path.dirname(currentDir);
+      }
+
+      return "latest";
     } catch {
-      return "0.6.1"; // current target version fallback
+      return "latest";
     }
   },
 };
