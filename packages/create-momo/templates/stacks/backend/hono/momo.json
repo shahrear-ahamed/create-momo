@@ -1,0 +1,7 @@
+{
+  "name": "hono",
+  "type": "stack",
+  "category": "backend",
+  "target": "apps/{{name}}",
+  "description": "Hono - Ultrafast web framework for the edge and Node.js."
+}

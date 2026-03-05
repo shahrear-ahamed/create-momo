@@ -120,8 +120,9 @@ async function getStackSelections(skipPrompts: boolean = false) {
     message: "choose your frontend framework",
     options: [
       { value: "next-app", label: "Next.js", hint: "App Router, Tailwind, TS" },
-      { value: "tanstack-start", label: "TanStack Start", hint: "React Router, Full-stack" },
-      { value: "react-vite", label: "Vite (React)", hint: "Fast and lightweight" },
+      { value: "react-vite", label: "React (Vite)", hint: "Fast and lightweight" },
+      { value: "tanstack-start", label: "TanStack Start", hint: "Full-stack React Router" },
+      { value: "expo", label: "Expo", hint: "React Native — iOS, Android, Web" },
       { value: "none", label: "None", hint: "Skip frontend" },
     ],
   });
@@ -134,9 +135,11 @@ async function getStackSelections(skipPrompts: boolean = false) {
   const backend = await select({
     message: "choose your backend / api layer",
     options: [
-      { value: "convex", label: "Convex", hint: "Real-time sync, autoscaling" },
+      { value: "convex", label: "Convex", hint: "Real-time backend-as-a-service" },
       { value: "node-express", label: "Express", hint: "Standard Node.js framework" },
-      { value: "hono", label: "Hono", hint: "Ultrafast web framework" },
+      { value: "hono", label: "Hono", hint: "Ultrafast edge-ready framework" },
+      { value: "fastify", label: "Fastify", hint: "High-performance Node.js" },
+      { value: "nestjs", label: "NestJS", hint: "Enterprise-grade progressive Node.js" },
       { value: "none", label: "None", hint: "Skip backend" },
     ],
   });

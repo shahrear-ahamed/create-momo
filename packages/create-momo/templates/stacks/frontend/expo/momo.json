@@ -1,0 +1,7 @@
+{
+  "name": "expo",
+  "type": "stack",
+  "category": "frontend",
+  "target": "apps/{{name}}",
+  "description": "Expo - React Native for iOS, Android, and Web."
+}
