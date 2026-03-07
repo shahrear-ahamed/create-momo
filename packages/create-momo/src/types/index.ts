@@ -32,10 +32,17 @@ export interface AddOptions {
   dep?: boolean | string;
   toApp?: string;
   toPkg?: string;
+  to?: string; // Generic target (app or pkg)
   dev?: boolean;
   root?: boolean;
   flavor?: string;
   name?: string;
+  yes?: boolean;
+}
+
+export interface IntegrateOptions {
+  yes?: boolean;
+  to?: string | string[];
 }
 
 export type AddDepOptions = AddOptions;
@@ -46,7 +53,8 @@ export interface CreateProjectOptions {
   name?: string;
   cwd?: string;
   version?: string;
-  blueprint?: string;
+  template?: string;
   scope?: string;
   manager?: PackageManager;
+  yes?: boolean;
 }

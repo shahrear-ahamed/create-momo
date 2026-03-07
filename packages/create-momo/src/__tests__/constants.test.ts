@@ -52,6 +52,7 @@ describe("shared constants", () => {
   describe("command names", () => {
     it("should have all core commands", () => {
       expect(COMMANDS.add).toBe("add");
+      expect(COMMANDS.integrate).toBe("integrate");
       expect(COMMANDS.build).toBe("build");
       expect(COMMANDS.dev).toBe("dev");
       expect(COMMANDS.lint).toBe("lint");
@@ -89,6 +90,13 @@ describe("shared constants", () => {
       expect(COMMANDS.deployInit).toBe("init");
       expect(COMMANDS.deployPush).toBe("push");
     });
+
+    it("should have integrate subcommands", () => {
+      expect(COMMANDS.integrateShadcn).toBe("shadcn");
+      expect(COMMANDS.integrateConvex).toBe("convex");
+      expect(COMMANDS.integrateNextjs).toBe("nextjs");
+      expect(COMMANDS.integrateTanstack).toBe("tanstack");
+    });
   });
 
   describe("descriptions", () => {
@@ -105,11 +113,13 @@ describe("shared constants", () => {
       expect(DESCRIPTIONS.addPackage).toBeDefined();
     });
 
-    it("should have descriptions for config, utility, setup, deploy", () => {
+    it("should have descriptions for config, utility, setup, deploy, integrate", () => {
       expect(DESCRIPTIONS.config).toBeDefined();
       expect(DESCRIPTIONS.doctor).toBeDefined();
       expect(DESCRIPTIONS.setup).toBeDefined();
       expect(DESCRIPTIONS.deploy).toBeDefined();
+      expect(DESCRIPTIONS.integrate).toBeDefined();
+      expect(DESCRIPTIONS.integrateShadcn).toBeDefined();
     });
   });
 

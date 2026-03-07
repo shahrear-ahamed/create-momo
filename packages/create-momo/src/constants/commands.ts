@@ -48,6 +48,7 @@ export const COMMANDS = {
   create: "create", // Shorthand for bootstrap
   add: "add", // Grow with templates (local/remote/shadcn)
   install: "install", // Add NPM dependencies
+  integrate: "integrate", // Third-party integrations
   list: "list", // List available components/blueprints
 
   // ─── Subcommands (Required for Logic & Tests) ──────────────────────────────
@@ -91,6 +92,12 @@ export const COMMANDS = {
   unlink: "unlink",
   deploy: "deploy",
   graph: "graph",
+
+  // ─── Integration Subcommands ──────────────────────────────────────────────
+  integrateShadcn: "shadcn",
+  integrateConvex: "convex",
+  integrateNextjs: "nextjs",
+  integrateTanstack: "tanstack",
 } as const;
 
 // ─── Command Descriptions ────────────────────────────────────────────────────
@@ -98,8 +105,9 @@ export const COMMANDS = {
 export const DESCRIPTIONS = {
   // Management
   create: "bootstrap a new monorepo project",
-  add: "add components, apps, or UI libraries (shadcn:)",
+  add: "add components, apps, or configuration templates",
   install: "install and link NPM dependencies to workspaces",
+  integrate: "integrate third-party tools (shadcn, convex, etc.)",
   list: "List available component flavors",
 
   // Subcommands & Utility (Preserving legacy text for tests)
@@ -143,10 +151,22 @@ export const DESCRIPTIONS = {
   setupCloseSource: "Configure for proprietary use (Coming Soon)",
   setupCi: "Configure continuous integration workflows",
   setupEnv: "Manage environment variables",
+
+  // Integration Descriptions
+  integrateShadcn: "Integrate Shadcn UI into your workspace",
+  integrateConvex: "Integrate Convex backend (Coming Soon)",
+  integrateNextjs: "Integrate Next.js enhancements (Coming Soon)",
+  integrateTanstack: "Integrate TanStack features (Coming Soon)",
 } as const;
 
 // ─── Add Action Flags ────────────────────────────────────────────────────────
 export const ADD_ACTION_FLAGS = {
+  yes: {
+    short: "-y",
+    long: "--yes",
+    flag: "-y, --yes",
+    description: "Skip confirmation prompts (non-interactive)",
+  },
   app: {
     short: "-a",
     long: "--app",
@@ -170,6 +190,28 @@ export const ADD_ACTION_FLAGS = {
     long: "--name",
     flag: "-n, --name [name]",
     description: "Specify the name of the new workspace",
+  },
+  to: {
+    short: "-t",
+    long: "--to",
+    flag: "-t, --to <name>",
+    description: "Target a specific workspace (app or package)",
+  },
+} as const;
+
+// ─── Integrate Action Flags ──────────────────────────────────────────────────
+export const INTEGRATE_ACTION_FLAGS = {
+  yes: {
+    short: "-y",
+    long: "--yes",
+    flag: "-y, --yes",
+    description: "Skip confirmation prompts",
+  },
+  to: {
+    short: "-t",
+    long: "--to",
+    flag: "-t, --to <apps...>",
+    description: "Specify app(s) to integrate with (space-separated)",
   },
 } as const;
 

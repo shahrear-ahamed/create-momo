@@ -12,15 +12,17 @@ async function main() {
     .version(pkg.version, "-v, --version")
     .helpOption("-h, --help", "Show help")
     .argument("[project-name]", "Name of the project to create")
-    .option("-b, --blueprint <name>", "Specify a blueprint to use")
+    .option("-t, --template <name>", "Specify a template to use")
     .option("-s, --scope <name>", "Specify the package scope")
     .option("-m, --manager <name>", "Specify the package manager (pnpm, npm, yarn, bun)")
+    .option("-y, --yes", "Skip prompts and use defaults")
     .action(async (projectName: string | undefined, options: any) => {
       await createProject({
         name: projectName,
-        blueprint: options.blueprint,
+        template: options.template,
         scope: options.scope,
         manager: options.manager,
+        yes: options.yes,
         version: pkg.version,
       });
     });
