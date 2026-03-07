@@ -47,10 +47,14 @@ export class TemplateGenerator {
         }
       } else {
         const content = await fs.readFile(srcPath, "utf-8");
-        const template = Handlebars.compile(content);
-        let result = template(data);
+        let result = content;
 
-        // Smart merge for JSON files
+        if (file.endsWith(".hbs")) {
+          const template = Handlebars.compile(content);
+          result = template(data);
+        }
+
+        // Smart merge for JSON files (only if they were actually templates or just copied)
         if (destPath.endsWith(".json") && fs.existsSync(destPath)) {
           try {
             const sourceJson = JSON.parse(result);
