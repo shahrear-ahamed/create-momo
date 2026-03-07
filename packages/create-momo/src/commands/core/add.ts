@@ -220,14 +220,13 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
     return;
   }
 
-  // Find template roots
+  // Find registry root (contains templates/ and stacks/)
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const candidates = [
-    path.resolve(__dirname, "../templates"), // dist/ -> templates/
-    path.resolve(__dirname, "../../../templates"), // src/commands/core -> templates/
+  const registryCandidates = [
+    path.resolve(__dirname, "../registry"), // dist/ -> registry/
+    path.resolve(__dirname, "../../../registry"), // src/commands/core -> registry/
   ];
-  const baseDir = candidates.find((p) => fs.existsSync(p)) || candidates[0];
-  const registryRoot = path.join(path.dirname(baseDir), "registry");
+  const registryRoot = registryCandidates.find((p) => fs.existsSync(p)) || registryCandidates[0];
   const templateRoot = path.join(registryRoot, "templates");
   const stackTemplateRoot = path.join(registryRoot, "stacks");
 
@@ -371,7 +370,30 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
     flavor = "blank";
   }
 
-  const templateDir = path.join(templateRoot, flavor);
+  let templateDir = path.join(templateRoot, flavor);
+
+  // Fallback: check stacks/frontend for app flavors (e.g. with-nextjs -> next-app)
+  if (!fs.existsSync(templateDir) && componentType === "app") {
+    const flavorToStack: Record<string, string> = {
+      "with-nextjs": "next-app",
+      "with-react-vite": "react-vite",
+      "with-tanstack-start": "tanstack-start",
+      "with-expo": "expo",
+      "with-node-express": "node-express",
+    };
+    const stackName = flavorToStack[flavor] || flavor.replace("with-", "");
+    const stackDir = path.join(stackTemplateRoot, "frontend", stackName);
+    if (fs.existsSync(stackDir)) {
+      templateDir = stackDir;
+    } else {
+      // Also try backend stacks
+      const backendDir = path.join(stackTemplateRoot, "backend", stackName);
+      if (fs.existsSync(backendDir)) {
+        templateDir = backendDir;
+      }
+    }
+  }
+
   const spinner = createSpinner(`Creating ${componentType}...`);
 
   try {

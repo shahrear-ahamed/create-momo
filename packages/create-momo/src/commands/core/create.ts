@@ -125,8 +125,8 @@ async function getPackageManager(
 async function getStackSelections(skipPrompts: boolean = false) {
   if (skipPrompts) {
     return {
-      frontend: "tanstack-start",
-      backend: "node-express",
+      frontend: "next-app",
+      backend: "convex",
       ui: "shadcn",
       shadcnComponents: ["button", "card"],
     };
@@ -325,9 +325,13 @@ export async function createProject(args: CreateProjectOptions = {}) {
   const stacks = await getStackSelections(validated.yes);
   const pmVersion = await projectUtils.getPMVersion(packageManager);
 
-  // Find template roots
+  // Find registry root (contains templates/ and stacks/)
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const registryRoot = path.join(path.dirname(templateBase), "registry");
+  const registryCandidates = [
+    path.resolve(__dirname, "../registry"), // dist/ -> registry/
+    path.resolve(__dirname, "../../../registry"), // src/commands/core -> registry/
+  ];
+  const registryRoot = registryCandidates.find((p) => fs.existsSync(p)) || registryCandidates[0];
   const templateRoot = path.join(registryRoot, "templates");
   const stackRoot = path.join(registryRoot, "stacks");
 
@@ -359,9 +363,28 @@ export async function createProject(args: CreateProjectOptions = {}) {
     for (const s of selectedStacks) {
       if (s.item) {
         const stackDir = path.join(stackRoot, s.cat, s.item);
-        const momoPath = path.join(stackDir, "momo.json");
-        if (fs.existsSync(momoPath)) {
-          const mConfig = await fs.readJson(momoPath);
+
+        // Check for momo.json or momo.json.hbs (template engine uses .hbs)
+        const momoJsonPath = path.join(stackDir, "momo.json");
+        const momoHbsPath = path.join(stackDir, "momo.json.hbs");
+        const resolvedMomoPath = fs.existsSync(momoJsonPath)
+          ? momoJsonPath
+          : fs.existsSync(momoHbsPath)
+            ? momoHbsPath
+            : null;
+
+        if (resolvedMomoPath) {
+          let mConfig: Record<string, any>;
+          const raw = await fs.readFile(resolvedMomoPath, "utf-8");
+
+          if (resolvedMomoPath.endsWith(".hbs")) {
+            const Handlebars = (await import("handlebars")).default;
+            const compiled = Handlebars.compile(raw);
+            mConfig = JSON.parse(compiled({ name: s.defaultName, scope, projectName }));
+          } else {
+            mConfig = JSON.parse(raw);
+          }
+
           const stackName = s.defaultName;
           const relativeTarget = mConfig.target.replace("{{name}}", stackName);
           const stackTargetDir = path.join(targetDir, relativeTarget);
@@ -381,12 +404,17 @@ export async function createProject(args: CreateProjectOptions = {}) {
     if (stacks.ui === "shadcn" && stacks.frontend) {
       const frontendDir = path.join(targetDir, "apps/web");
       if (fs.existsSync(frontendDir)) {
+        const componentsJsonExists = fs.existsSync(path.join(frontendDir, "components.json"));
         const shadcnSpinner = createSpinner("Initializing Shadcn UI...");
+
         try {
-          await execa("npx", ["shadcn@latest", "init", "-d", "-f", "--cwd", frontendDir], {
-            stdio: "pipe",
-            cwd: targetDir,
-          });
+          if (!componentsJsonExists) {
+            // Run shadcn init only if components.json wasn't provided by the template
+            await execa("npx", ["shadcn@latest", "init", "-d", "-f", "--cwd", frontendDir], {
+              stdio: "pipe",
+              cwd: targetDir,
+            });
+          }
           shadcnSpinner.stop("Shadcn UI initialized!");
 
           if (stacks.shadcnComponents && stacks.shadcnComponents.length > 0) {
