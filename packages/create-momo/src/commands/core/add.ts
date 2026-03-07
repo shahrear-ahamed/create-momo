@@ -53,11 +53,6 @@ async function getComponentType(type?: string, options: AddOptions = {}): Promis
           label: "modular stack / integration",
           hint: "Convex, Drizzle, etc.",
         },
-        {
-          value: "shadcn",
-          label: "shadcn ui",
-          hint: "add components or initialize",
-        },
       ],
     });
 
@@ -106,7 +101,7 @@ async function getComponentFlavor(componentType: string, initialFlavor?: string)
   } else if (componentType === "package") {
     options = [
       { value: "blank", label: "blank (minimal package.json)" },
-      { value: "with-ui-shared", label: "shared ui library" },
+      { value: "shadcn/ui-shared", label: "shared ui library (shadcn)" },
     ];
   } else if (componentType === "config") {
     return "config-" + (initialFlavor || "base");
@@ -159,89 +154,13 @@ export async function handleExternalFramework(framework: string, _options: any) 
   }
 }
 
-export async function initShadcn() {
-  const rootDir = process.cwd();
-  const uiDir = path.join(rootDir, "packages/ui");
-
-  logger.info(`\n${color.blue("Shadcn UI Initialization:")} Setting up workspace... 🎨`);
-
-  if (!fs.existsSync(uiDir)) {
-    logger.info(`Creating ${color.cyan("packages/ui")} for shared components...`);
-    await addComponent("package", { package: "ui" }, "ui");
-  }
-
-  try {
-    logger.step("Initializing Shadcn in shared UI package...");
-    await execa("npx", ["shadcn@latest", "init", "-y", "--cwd", uiDir], { stdio: "inherit" });
-
-    logger.success("Shadcn UI initialized successfully! 🛡️⚡️");
-    logger.info(`Next steps:`);
-    logger.step(`  momo add shadcn:button        (Adds to shared UI)`);
-    logger.step(`  momo add shadcn:card --to web  (Adds to specific app)`);
-  } catch (error) {
-    logger.error(`Failed to initialize Shadcn: ${(error as Error).message}`);
-    process.exit(1);
-  }
-}
-
-export async function handleShadcnAdd(component: string, options: any) {
-  const rootDir = process.cwd();
-  const targetApp = options.toApp || options.app;
-  const targetPkg = options.toPkg || options.pkg || "ui";
-
-  let targetDir = path.join(rootDir, "packages", targetPkg);
-
-  if (targetApp && typeof targetApp === "string") {
-    targetDir = path.join(rootDir, "apps", targetApp);
-  }
-
-  if (!fs.existsSync(targetDir)) {
-    logger.error(
-      `${color.red("Target Not Found:")} Directory ${color.cyan(targetDir)} does not exist.`,
-    );
-    process.exit(1);
-  }
-
-  try {
-    const spinner = createSpinner(
-      `Adding shadcn ${color.cyan(component)} to ${color.bold(path.basename(targetDir))}...`,
-    );
-
-    if (!fs.existsSync(path.join(targetDir, "components.json"))) {
-      spinner.stop(`${color.yellow("Missing components.json")}`);
-      const shouldInit = await confirm({
-        message: `Shadcn is not initialized in ${path.basename(targetDir)}. Initialize now?`,
-        initialValue: true,
-      });
-
-      if (shouldInit && !isCancel(shouldInit)) {
-        await execa("npx", ["shadcn@latest", "init", "-y", "--cwd", targetDir], {
-          stdio: "inherit",
-        });
-      } else {
-        cancel("Operation cancelled.");
-        process.exit(0);
-      }
-    }
-
-    await execa("npx", ["shadcn@latest", "add", component, "--cwd", targetDir, "-y"], {
-      stdio: "inherit",
-    });
-
-    logger.success(`Successfully added ${color.bold(component)}! 🛡️⚡️`);
-  } catch (error) {
-    logger.error(`Failed to add shadcn component: ${(error as Error).message}`);
-    process.exit(1);
-  }
-}
-
 // ─── Main Logic ─────────────────────────────────────────────────────────────
 
 export async function addComponent(typeOrName?: string, options: AddOptions = {}, name?: string) {
   let resolvedType = typeOrName;
   let resolvedName = name;
 
-  const validTypes: string[] = ["app", "package", "config", "shadcn", "stack"];
+  const validTypes: string[] = ["app", "package", "config", "stack"];
 
   if (typeOrName && !validTypes.includes(typeOrName)) {
     resolvedName = typeOrName;
@@ -253,46 +172,41 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
   else if (typeof options.config === "string") resolvedName = options.config;
   else if (options.name) resolvedName = options.name;
 
-  // Handle shadcn: prefix or direct shadcn commands
+  // Handle shadcn: prefix (Redirect to integrate)
   if (resolvedName?.startsWith("shadcn:")) {
+    logger.warn(`The ${color.bold("shadcn:")} prefix in ${color.cyan("momo add")} is deprecated.`);
+    logger.info(`Please use ${color.bold("momo integrate shadcn")} instead.`);
+    logger.info(`For backward compatibility, I'll attempt to route this...`);
+
     const action = resolvedName.split(":")[1];
-    if (action === "init") {
-      return initShadcn();
+    const targetDir = (options.to || options.app || "ui") as string;
+
+    try {
+      await execa(
+        "pnpm",
+        [
+          "dlx",
+          "shadcn@latest",
+          "add",
+          action,
+          "--cwd",
+          path.join(process.cwd(), targetDir.includes("/") ? targetDir : `apps/${targetDir}`),
+          "-y",
+        ],
+        { stdio: "inherit" },
+      );
+      return;
+    } catch {
+      process.exit(1);
     }
-    return handleShadcnAdd(action, options);
   }
 
   const validated = AddComponentSchema.parse({ type: resolvedType, options });
   let componentType = await getComponentType(validated.type, validated.options);
 
   if (componentType === "shadcn") {
-    const action = await select({
-      message: "What shadcn action would you like to perform?",
-      options: [
-        { value: "add", label: "add component", hint: "button, card, etc." },
-        { value: "init", label: "initialize", hint: "setup shadcn in workspace" },
-      ],
-    });
-
-    if (isCancel(action)) {
-      cancel("Operation cancelled.");
-      process.exit(0);
-    }
-
-    if (action === "init") return initShadcn();
-
-    const componentName = await text({
-      message: "Which component would you like to add?",
-      placeholder: "button",
-      validate: (v) => (!v || v.length === 0 ? "Component name is required" : undefined),
-    });
-
-    if (isCancel(componentName)) {
-      cancel("Operation cancelled.");
-      process.exit(0);
-    }
-
-    return handleShadcnAdd(componentName as string, options);
+    logger.info(`Shadcn setup has moved! Use ${color.bold("momo integrate shadcn")} instead.`);
+    return;
   }
 
   // Find template roots
@@ -593,7 +507,7 @@ export async function addDependency(packageName?: string, options: AddDepOptions
 export function registerAddCommand(program: Command) {
   const add = program
     .command(COMMANDS.add)
-    .argument("[type]", "Type or name of component to add (e.g. app, shadcn:button)")
+    .argument("[type]", "Type or name of component to add (e.g. app, package, config)")
     .description(DESCRIPTIONS.add)
     .option(ADD_ACTION_FLAGS.app.flag, ADD_ACTION_FLAGS.app.description)
     .option(ADD_ACTION_FLAGS.package.flag, ADD_ACTION_FLAGS.package.description)

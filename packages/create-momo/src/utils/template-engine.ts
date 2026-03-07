@@ -1,8 +1,8 @@
 import { generator } from "@momo/template-generator";
 
 export interface TemplateOptions {
-  name: string;
-  scope: string;
+  name?: string;
+  scope?: string;
   packageManager?: string;
   pmVersion?: string;
   [key: string]: any;

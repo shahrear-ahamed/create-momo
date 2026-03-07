@@ -32,10 +32,16 @@ export interface AddOptions {
   dep?: boolean | string;
   toApp?: string;
   toPkg?: string;
+  to?: string; // Generic target (app or pkg)
   dev?: boolean;
   root?: boolean;
   flavor?: string;
   name?: string;
+}
+
+export interface IntegrateOptions {
+  yes?: boolean;
+  to?: string | string[];
 }
 
 export type AddDepOptions = AddOptions;

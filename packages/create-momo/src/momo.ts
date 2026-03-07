@@ -2,6 +2,7 @@ import { registerConfigCommand } from "@/commands/config/config.js";
 import { registerAddCommand } from "@/commands/core/add.js";
 import { createProject } from "@/commands/core/create.js";
 import { registerInstallCommand } from "@/commands/core/install.js";
+import { registerIntegrateCommand } from "@/commands/core/integrate.js";
 import { registerRunCommand } from "@/commands/core/run.js";
 import { registerDeployCommands } from "@/commands/management/deploy.js";
 import { registerProjectCommands } from "@/commands/management/project.js";
@@ -24,6 +25,7 @@ async function main() {
 
   // ─── Management ────────────────────────────────────────────────────────────
   registerAddCommand(program);
+  registerIntegrateCommand(program);
   registerInstallCommand(program);
 
   // ─── Orchestration ─────────────────────────────────────────────────────────

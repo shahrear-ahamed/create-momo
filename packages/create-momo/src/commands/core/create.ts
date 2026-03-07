@@ -8,7 +8,7 @@ import { createSpinner, logger } from "@/utils/logger.js";
 import { projectUtils } from "@/utils/project.js";
 import { templateEngine } from "@/utils/template-engine.js";
 import { validators } from "@/utils/validators.js";
-import { cancel, isCancel, select, text } from "@clack/prompts";
+import { cancel, isCancel, multiselect, select, text } from "@clack/prompts";
 import { execa } from "execa";
 import fs from "fs-extra";
 import path from "node:path";
@@ -113,7 +113,12 @@ async function getPackageManager(initialManager?: PackageManager): Promise<Packa
 
 async function getStackSelections(skipPrompts: boolean = false) {
   if (skipPrompts) {
-    return { frontend: "next-app", backend: "convex", ui: "shadcn" };
+    return {
+      frontend: "tanstack-start",
+      backend: "node-express",
+      ui: "shadcn",
+      shadcnComponents: ["button", "card"],
+    };
   }
 
   const frontend = await select({
@@ -162,10 +167,70 @@ async function getStackSelections(skipPrompts: boolean = false) {
     process.exit(0);
   }
 
+  let shadcnComponents: string[] = [];
+  if (ui === "shadcn") {
+    if (!skipPrompts) {
+      const components = await multiselect({
+        message: "which shadcn components would you like to install out of the box?",
+        options: [
+          { value: "alert", label: "Alert", hint: "Displays a callout for user attention" },
+          { value: "avatar", label: "Avatar", hint: "An image element with a fallback" },
+          {
+            value: "badge",
+            label: "Badge",
+            hint: "Displays a badge or a component that looks like a badge",
+          },
+          {
+            value: "button",
+            label: "Button",
+            hint: "Displays a button or a component that looks like a button",
+          },
+          {
+            value: "card",
+            label: "Card",
+            hint: "Displays a card with header, content, and footer",
+          },
+          {
+            value: "dialog",
+            label: "Dialog",
+            hint: "A window overlaid on either the primary window or another dialog window",
+          },
+          { value: "dropdown-menu", label: "Dropdown Menu", hint: "Displays a menu to the user" },
+          {
+            value: "input",
+            label: "Input",
+            hint: "Displays a form input field or a component that looks like an input field",
+          },
+          { value: "form", label: "Form", hint: "Building forms with React Hook Form and Zod" },
+          {
+            value: "select",
+            label: "Select",
+            hint: "Displays a list of options for the user to pick from",
+          },
+          { value: "table", label: "Table", hint: "A responsive table component" },
+          { value: "tabs", label: "Tabs", hint: "A set of layered sections of content" },
+          {
+            value: "toast",
+            label: "Toast",
+            hint: "A succinct message that is displayed temporarily",
+          },
+        ],
+        required: false,
+      });
+
+      if (isCancel(components)) {
+        cancel("Operation cancelled.");
+        process.exit(0);
+      }
+      shadcnComponents = components as string[];
+    }
+  }
+
   return {
     frontend: frontend === "none" ? null : (frontend as string),
     backend: backend === "none" ? null : (backend as string),
     ui: ui === "none" ? null : (ui as string),
+    shadcnComponents,
   };
 }
 
@@ -312,14 +377,29 @@ export async function createProject(args: CreateProjectOptions = {}) {
       if (fs.existsSync(frontendDir)) {
         const shadcnSpinner = createSpinner("Initializing Shadcn UI...");
         try {
-          await execa("npx", ["shadcn@latest", "init", "-y", "--cwd", frontendDir], {
+          await execa("npx", ["shadcn@latest", "init", "-d", "-f", "--cwd", frontendDir], {
             stdio: "pipe",
             cwd: targetDir,
           });
           shadcnSpinner.stop("Shadcn UI initialized!");
+
+          if (stacks.shadcnComponents && stacks.shadcnComponents.length > 0) {
+            const addSpinner = createSpinner(
+              `Installing Shadcn components: ${stacks.shadcnComponents.join(", ")}`,
+            );
+            await execa(
+              "npx",
+              ["shadcn@latest", "add", ...stacks.shadcnComponents, "-y", "-c", frontendDir],
+              {
+                stdio: "pipe",
+                cwd: targetDir,
+              },
+            );
+            addSpinner.stop("Shadcn components installed!");
+          }
         } catch {
           shadcnSpinner.stop(
-            color.yellow("Shadcn UI init skipped (run manually: npx shadcn@latest init)"),
+            color.yellow("Shadcn UI init skipped or failed (run manually: npx shadcn@latest init)"),
           );
         }
       }

@@ -1,0 +1,6 @@
+{
+  "name": "a-tanstack",
+  "dependencies": {
+    "@tanstack/start": "latest"
+  }
+}
