@@ -1,2 +1,4 @@
-@tailwind base; @tailwind components; @tailwind utilities; /* Additional globals will be added by
+@tailwind base;
+@tailwind components;
+@tailwind utilities; /* Additional globals will be added by
 Shadcn init */
