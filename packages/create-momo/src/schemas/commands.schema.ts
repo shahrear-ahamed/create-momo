@@ -4,7 +4,7 @@ export const CreateProjectSchema = z.object({
   name: z.string().optional(),
   cwd: z.string().optional(),
   version: z.string().optional(),
-  blueprint: z.string().optional(),
+  template: z.string().optional(),
   scope: z.string().optional(),
   manager: z.enum(["npm", "yarn", "pnpm", "bun"]).optional(),
   yes: z.boolean().optional(),
@@ -25,6 +25,7 @@ export const AddComponentSchema = z.object({
       dev: z.boolean().optional(),
       root: z.boolean().optional(),
       flavor: z.string().optional(),
+      yes: z.boolean().optional(),
     })
     .optional(),
 });

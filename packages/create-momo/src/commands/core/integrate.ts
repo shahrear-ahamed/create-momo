@@ -3,7 +3,7 @@ import { COMMANDS, DESCRIPTIONS, INTEGRATE_ACTION_FLAGS } from "@/constants/comm
 import { createSpinner, logger } from "@/utils/logger.js";
 import { templateEngine } from "@/utils/template-engine.js";
 import { workspaceUtils } from "@/utils/workspace.js";
-import { cancel, isCancel, multiselect, select } from "@clack/prompts";
+import { cancel, confirm, isCancel, multiselect, select } from "@clack/prompts";
 import type { Command } from "commander";
 import { execa } from "execa";
 import fs from "fs-extra";
@@ -174,8 +174,9 @@ async function integrateShadcnMono(
     path.resolve(__dirname, "../templates"),
     path.resolve(__dirname, "../../../templates"),
   ];
-  const templateBase = candidates.find((p) => fs.existsSync(p)) || candidates[0];
-  const monoTemplateDir = path.join(templateBase, "integrate", "shadcn", "mono");
+  const baseDir = candidates.find((p) => fs.existsSync(p)) || candidates[0];
+  const registryRoot = path.join(path.dirname(baseDir), "registry");
+  const nextjsTemplateDir = path.join(registryRoot, "integrate", "shadcn", "next-js");
 
   for (const appName of selectedApps) {
     const appDir = path.join(rootDir, "apps", appName);
@@ -186,7 +187,7 @@ async function integrateShadcnMono(
 
     const spinner = createSpinner(`Linking Shadcn to ${color.cyan(appName)}...`);
     try {
-      await templateEngine.copyTemplate(monoTemplateDir, appDir, {
+      await templateEngine.copyTemplate(nextjsTemplateDir, appDir, {
         scope,
         uiPkgName,
       });
@@ -222,17 +223,119 @@ async function integrateShadcnStandalone(rootDir: string, framework: string, _op
       path.resolve(__dirname, "../templates"),
       path.resolve(__dirname, "../../../templates"),
     ];
-    const templateBase = candidates.find((p) => fs.existsSync(p)) || candidates[0];
-    const standaloneTemplateDir = path.join(templateBase, "integrate", "shadcn", "standalone");
+    const baseDir = candidates.find((p) => fs.existsSync(p)) || candidates[0];
+    const registryRoot = path.join(path.dirname(baseDir), "registry");
+    const tStackTemplateDir = path.join(registryRoot, "integrate", "shadcn", "t-stack");
 
-    if (fs.existsSync(standaloneTemplateDir)) {
-      await templateEngine.copyTemplate(standaloneTemplateDir, rootDir, {});
+    if (fs.existsSync(tStackTemplateDir)) {
+      await templateEngine.copyTemplate(tStackTemplateDir, rootDir, {});
     }
 
     logger.success("Shadcn UI initialized successfully with premium preset! 🛡️⚡️");
   } catch (error) {
     logger.error(`Failed to initialize Shadcn: ${(error as Error).message}`);
     process.exit(1);
+  }
+}
+
+// ─── Command Registration ────────────────────────────────────────────────────
+
+async function integrateConvex() {
+  const rootDir = process.cwd();
+  const mode = await detectWorkspaceMode(rootDir);
+  await configManager.load();
+
+  logger.info(`\n${color.blue("Convex Integration:")} Setting up real-time backend... 🚀`);
+
+  if (mode === "mono") {
+    const convexDir = path.join(rootDir, "packages", "convex");
+    if (!fs.existsSync(convexDir)) {
+      logger.step(`Creating ${color.cyan("packages/convex")}...`);
+
+      const __dirname = path.dirname(fileURLToPath(import.meta.url));
+      const candidates = [
+        path.resolve(__dirname, "../templates"),
+        path.resolve(__dirname, "../../../templates"),
+      ];
+      const baseDir = candidates.find((p) => fs.existsSync(p)) || candidates[0];
+      const registryRoot = path.join(path.dirname(baseDir), "registry");
+      const backendTemplateDir = path.join(registryRoot, "integrate", "backend");
+
+      const config = await configManager.load();
+      const scope = config.packageScope || config.scope || "@momo";
+
+      await templateEngine.copyTemplate(backendTemplateDir, convexDir, {
+        name: "convex",
+        scope,
+        projectName: path.basename(rootDir),
+      });
+    } else {
+      logger.info(`${color.dim("ℹ")} Convex already exists in ${color.cyan("packages/convex")}`);
+    }
+  } else {
+    logger.step("Initializing Convex in standalone mode...");
+    try {
+      await execa("npm", ["install", "convex"], { stdio: "inherit", cwd: rootDir });
+      await execa("npx", ["convex", "dev", "--until-success"], { stdio: "inherit", cwd: rootDir });
+    } catch (error) {
+      logger.error(`Failed to initialize Convex: ${(error as Error).message}`);
+    }
+  }
+
+  logger.success("\nConvex integration complete! ⚡️");
+}
+
+async function integrateEnv() {
+  const rootDir = process.cwd();
+  await configManager.load();
+
+  logger.info(`\n${color.blue("Env Integration:")} Scaffolding type-safe environment... 🔐`);
+
+  const targetPath = path.join(rootDir, "packages/env");
+  if (fs.existsSync(targetPath)) {
+    const overwrite = await confirm({
+      message: "packages/env already exists. overwrite?",
+      initialValue: false,
+    });
+    if (isCancel(overwrite) || !overwrite) return;
+  }
+
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  const candidates = [
+    path.resolve(__dirname, "../templates"),
+    path.resolve(__dirname, "../../../templates"),
+  ];
+  const baseDir = candidates.find((p) => fs.existsSync(p)) || candidates[0];
+  const registryRoot = path.join(path.dirname(baseDir), "registry");
+  const templatePath = path.join(registryRoot, "integrate", "env");
+
+  if (!fs.existsSync(templatePath)) {
+    logger.error(`${color.red("Error:")} Env template not found at ${templatePath}`);
+    return;
+  }
+
+  const spinner = createSpinner("Setting up T3 environment package...");
+  try {
+    const config = await configManager.load();
+    const scope = config.packageScope || config.scope || "@momo";
+
+    await fs.ensureDir(targetPath);
+    await fs.copy(templatePath, targetPath);
+
+    // Replace scope in package.json
+    const pkgPath = path.join(targetPath, "package.json");
+    if (fs.existsSync(pkgPath)) {
+      let pkgContent = await fs.readFile(pkgPath, "utf-8");
+      pkgContent = pkgContent.replace("{{scope}}", scope);
+      await fs.writeFile(pkgPath, pkgContent);
+    }
+
+    spinner.stop("T3 Env package scaffolded successfully! 🛡️⚡️");
+    logger.info(
+      "\nNext steps: Run 'pnpm install' and update your apps to import from '@momo/env'.",
+    );
+  } catch (error) {
+    spinner.stop(`${color.red("Failed:")} ${(error as Error).message}`);
   }
 }
 
@@ -247,7 +350,8 @@ export function registerIntegrateCommand(program: Command) {
         message: "What would you like to integrate?",
         options: [
           { value: "shadcn", label: "Shadcn UI", hint: "Premium component system" },
-          { value: "convex", label: "Convex", hint: "coming soon" },
+          { value: "convex", label: "Convex", hint: "Real-time backend-as-a-service" },
+          { value: "env", label: "T3 Env", hint: "Type-safe environment variables" },
           { value: "nextjs", label: "Next.js extras", hint: "coming soon" },
           { value: "tanstack", label: "TanStack extras", hint: "coming soon" },
         ],
@@ -260,6 +364,10 @@ export function registerIntegrateCommand(program: Command) {
 
       if (type === "shadcn") {
         await integrateShadcn();
+      } else if (type === "convex") {
+        await integrateConvex();
+      } else if (type === "env") {
+        await integrateEnv();
       } else {
         logger.info(
           `${color.yellow("Coming Soon:")} Integration for ${color.bold(type as string)} is under development.`,
@@ -273,9 +381,13 @@ export function registerIntegrateCommand(program: Command) {
     .option(INTEGRATE_ACTION_FLAGS.yes.flag, INTEGRATE_ACTION_FLAGS.yes.description)
     .option(INTEGRATE_ACTION_FLAGS.to.flag, INTEGRATE_ACTION_FLAGS.to.description)
     .action(async (options) => {
-      // Support array for --to apps
-      if (options.to && typeof options.to === "string") {
-        options.to = options.to.split(" ");
+      // Support space-separated strings even if already in an array (variadic)
+      if (options.to) {
+        if (Array.isArray(options.to)) {
+          options.to = options.to.flatMap((t: string) => t.split(" "));
+        } else if (typeof options.to === "string") {
+          options.to = options.to.split(" ");
+        }
       }
       await integrateShadcn(options);
     });
@@ -283,9 +395,7 @@ export function registerIntegrateCommand(program: Command) {
   integrate
     .command(COMMANDS.integrateConvex)
     .description(DESCRIPTIONS.integrateConvex)
-    .action(() =>
-      logger.info(`${color.yellow("Coming Soon:")} Convex integration will be available in v0.8.0`),
-    );
+    .action(async () => await integrateConvex());
 
   integrate
     .command(COMMANDS.integrateNextjs)
@@ -295,6 +405,11 @@ export function registerIntegrateCommand(program: Command) {
         `${color.yellow("Coming Soon:")} Next.js integration will be available in v0.8.0`,
       ),
     );
+
+  integrate
+    .command("env")
+    .description("Integrate T3 Env for type-safe environment variables")
+    .action(async () => await integrateEnv());
 
   integrate
     .command(COMMANDS.integrateTanstack)

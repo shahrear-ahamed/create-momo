@@ -83,8 +83,19 @@ async function getComponentName(componentType: string, initialName?: string): Pr
   return name as string;
 }
 
-async function getComponentFlavor(componentType: string, initialFlavor?: string): Promise<string> {
+async function getComponentFlavor(
+  componentType: string,
+  initialFlavor?: string,
+  skipPrompts: boolean = false,
+): Promise<string> {
   if (initialFlavor) return initialFlavor;
+
+  if (skipPrompts) {
+    if (componentType === "app") return "with-nextjs";
+    if (componentType === "package") return "blank";
+    if (componentType === "config") return "config-typescript";
+    return "blank";
+  }
 
   let options: { value: string; label: string; hint?: string }[] = [];
 
@@ -215,15 +226,17 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
     path.resolve(__dirname, "../templates"), // dist/ -> templates/
     path.resolve(__dirname, "../../../templates"), // src/commands/core -> templates/
   ];
-  const templateBase = candidates.find((p) => fs.existsSync(p)) || candidates[0];
-  const componentTemplateRoot = path.join(templateBase, "components");
-  const stackTemplateRoot = path.join(templateBase, "stacks");
+  const baseDir = candidates.find((p) => fs.existsSync(p)) || candidates[0];
+  const registryRoot = path.join(path.dirname(baseDir), "registry");
+  const templateRoot = path.join(registryRoot, "templates");
+  const stackTemplateRoot = path.join(registryRoot, "stacks");
 
   // Inferred Routing (Smart Routing)
   if (!componentType && resolvedName) {
     const searchNames = [resolvedName, `with-${resolvedName}`, `config-${resolvedName}`];
+    // This logic is mostly for blueprints now as components folder is removed
     for (const sName of searchNames) {
-      const templateDir = path.join(componentTemplateRoot, sName);
+      const templateDir = path.join(templateRoot, sName);
       const momoPath = path.join(templateDir, "momo.json");
       if (fs.existsSync(momoPath)) {
         try {
@@ -246,10 +259,8 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
 
   // Generic Framework Fallback (Guided)
   if (resolvedName && !componentType) {
-    const isFlavorAvailable = fs.existsSync(path.join(componentTemplateRoot, resolvedName));
-    const isWithFlavorAvailable = fs.existsSync(
-      path.join(componentTemplateRoot, `with-${resolvedName}`),
-    );
+    const isFlavorAvailable = fs.existsSync(path.join(templateRoot, resolvedName));
+    const isWithFlavorAvailable = fs.existsSync(path.join(templateRoot, `with-${resolvedName}`));
 
     if (!isFlavorAvailable && !isWithFlavorAvailable) {
       // Ask user for confirmation before jumping to external initializer
@@ -334,11 +345,11 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
   const targetDir = path.join(process.cwd(), targetRoot, finalName);
 
   let flavor =
-    resolvedName && fs.existsSync(path.join(componentTemplateRoot, resolvedName))
+    resolvedName && fs.existsSync(path.join(templateRoot, resolvedName))
       ? resolvedName
       : componentType === "config"
         ? `config-${componentName}`
-        : await getComponentFlavor(componentType, options.flavor);
+        : await getComponentFlavor(componentType, options.flavor, options.yes);
 
   if (flavor === "external") {
     const framework = await text({
@@ -360,7 +371,7 @@ export async function addComponent(typeOrName?: string, options: AddOptions = {}
     flavor = "blank";
   }
 
-  const templateDir = path.join(componentTemplateRoot, flavor);
+  const templateDir = path.join(templateRoot, flavor);
   const spinner = createSpinner(`Creating ${componentType}...`);
 
   try {
@@ -507,17 +518,9 @@ export async function addDependency(packageName?: string, options: AddDepOptions
 export function registerAddCommand(program: Command) {
   const add = program
     .command(COMMANDS.add)
-    .argument("[type]", "Type or name of component to add (e.g. app, package, config)")
     .description(DESCRIPTIONS.add)
-    .option(ADD_ACTION_FLAGS.app.flag, ADD_ACTION_FLAGS.app.description)
-    .option(ADD_ACTION_FLAGS.package.flag, ADD_ACTION_FLAGS.package.description)
-    .option(ADD_ACTION_FLAGS.config.flag, ADD_ACTION_FLAGS.config.description)
-    .option(ADD_ACTION_FLAGS.name.flag, ADD_ACTION_FLAGS.name.description)
-    .option(ADD_ACTION_FLAGS.to.flag, ADD_ACTION_FLAGS.to.description)
-    .option(ADD_ACTION_FLAGS.yes.flag, ADD_ACTION_FLAGS.yes.description)
-    .option("-l, --flavor <flavor>", "Select component flavor (blank, nextjs, react, node)")
-    .action(async (type, options) => {
-      await addComponent(type, options);
+    .action(async (options) => {
+      await addComponent(undefined, options);
     });
 
   // Legacy subcommands preserved for CLI consistency
@@ -525,17 +528,29 @@ export function registerAddCommand(program: Command) {
     .command(COMMANDS.addConfig)
     .argument("[name]")
     .description(DESCRIPTIONS.addConfig)
-    .action((name, options) => addComponent("config", { ...options, config: true }, name));
+    .option(ADD_ACTION_FLAGS.yes.flag, ADD_ACTION_FLAGS.yes.description)
+    .action(async (name, options, command) => {
+      const opts = command.opts();
+      await addComponent("config", { ...opts, config: true }, name);
+    });
   add
     .command(COMMANDS.addApp)
     .argument("[name]")
     .description(DESCRIPTIONS.addApp)
     .option("-l, --flavor <flavor>", "Select component flavor")
-    .action((name, options) => addComponent("app", { ...options, app: true }, name));
+    .option(ADD_ACTION_FLAGS.yes.flag, ADD_ACTION_FLAGS.yes.description)
+    .action(async (name, options, command) => {
+      const opts = command.opts();
+      await addComponent("app", { ...opts, app: true }, name);
+    });
   add
     .command(COMMANDS.addPackage)
     .argument("[name]")
     .description(DESCRIPTIONS.addPackage)
     .option("-l, --flavor <flavor>", "Select component flavor")
-    .action((name, options) => addComponent("package", { ...options, package: true }, name));
+    .option(ADD_ACTION_FLAGS.yes.flag, ADD_ACTION_FLAGS.yes.description)
+    .action(async (name, options, command) => {
+      const opts = command.opts();
+      await addComponent("package", { ...opts, package: true }, name);
+    });
 }

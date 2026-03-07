@@ -61,13 +61,19 @@ async function validateTargetDir(targetDir: string, projectName: string) {
   }
 }
 
-async function getProjectScope(projectName: string, initialScope?: string): Promise<string> {
+async function getProjectScope(
+  projectName: string,
+  initialScope?: string,
+  skipPrompts: boolean = false,
+): Promise<string> {
   if (initialScope) return initialScope;
   const config = await configManager.load();
   const defaultScope =
     config.packageScope ||
     config.scope ||
     `@${projectName.replace(/[^a-zA-Z0-9-]/g, "").toLowerCase()}`;
+
+  if (skipPrompts) return defaultScope;
 
   const scope = await text({
     message: "what is the package scope?",
@@ -84,13 +90,18 @@ async function getProjectScope(projectName: string, initialScope?: string): Prom
   return scope as string;
 }
 
-async function getPackageManager(initialManager?: PackageManager): Promise<PackageManager> {
+async function getPackageManager(
+  initialManager?: PackageManager,
+  skipPrompts: boolean = false,
+): Promise<PackageManager> {
   if (initialManager) return initialManager;
   const userAgent = process.env.npm_config_user_agent || "";
   let detectedPM: PackageManager = "pnpm";
   if (userAgent.includes("yarn")) detectedPM = "yarn";
   else if (userAgent.includes("bun")) detectedPM = "bun";
   else if (userAgent.includes("npm")) detectedPM = "npm";
+
+  if (skipPrompts) return detectedPM;
 
   const packageManager = (await select({
     message: "which package manager do you want to use?",
@@ -309,29 +320,24 @@ export async function createProject(args: CreateProjectOptions = {}) {
   }
 
   await validateTargetDir(targetDir, projectName);
-  const scope = await getProjectScope(projectName, validated.scope);
-  const packageManager = await getPackageManager(validated.manager);
+  const scope = await getProjectScope(projectName, validated.scope, validated.yes);
+  const packageManager = await getPackageManager(validated.manager, validated.yes);
   const stacks = await getStackSelections(validated.yes);
   const pmVersion = await projectUtils.getPMVersion(packageManager);
 
   // Find template roots
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const candidates = [
-    path.resolve(__dirname, "../templates"), // dist/ -> templates/
-    path.resolve(__dirname, "../../../templates"), // src/commands/core -> templates/
-  ];
-  const templateBase = candidates.find((p) => fs.existsSync(p)) || candidates[0];
-
-  const blueprintRoot = path.join(templateBase, "blueprints");
-  const stackRoot = path.join(templateBase, "stacks");
+  const registryRoot = path.join(path.dirname(templateBase), "registry");
+  const templateRoot = path.join(registryRoot, "templates");
+  const stackRoot = path.join(registryRoot, "stacks");
 
   const spinner = createSpinner("Assembling your stack...");
   const momoVersion = await projectUtils.getMomoVersion();
 
   try {
     // 1. Initial Scaffold (Minimal structure)
-    const baseBlueprint = path.join(blueprintRoot, "momo-starter-minimal");
-    await templateEngine.copyTemplate(baseBlueprint, targetDir, {
+    const baseTemplate = path.join(templateRoot, validated.template || "momo-starter-minimal");
+    await templateEngine.copyTemplate(baseTemplate, targetDir, {
       name: projectName,
       scope,
       packageManager,

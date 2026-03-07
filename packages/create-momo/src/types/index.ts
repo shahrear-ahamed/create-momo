@@ -37,6 +37,7 @@ export interface AddOptions {
   root?: boolean;
   flavor?: string;
   name?: string;
+  yes?: boolean;
 }
 
 export interface IntegrateOptions {
@@ -52,7 +53,7 @@ export interface CreateProjectOptions {
   name?: string;
   cwd?: string;
   version?: string;
-  blueprint?: string;
+  template?: string;
   scope?: string;
   manager?: PackageManager;
   yes?: boolean;

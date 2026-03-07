@@ -1,11 +1,9 @@
 import { COMMANDS, DESCRIPTIONS } from "@/constants/commands.js";
-import { fileOps } from "@/utils/file-ops.js";
 import { logger } from "@/utils/logger.js";
 import { confirm, select } from "@clack/prompts";
 import type { Command } from "commander";
 import fs from "fs-extra";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import color from "picocolors";
 
 export const setupCommand = {
@@ -58,11 +56,8 @@ export const setupCommand = {
 
     if (!type) return;
 
-    const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    const templatePath = path.resolve(
-      __dirname,
-      `../../templates/setup/ci/${provider}/${type}.yml`,
-    );
+    const registryRoot = path.join(path.dirname(__dirname), "../../registry");
+    const templatePath = path.resolve(registryRoot, `setup/ci/${provider}/${type}.yml`);
 
     // CircleCI uses .circleci/config.yml, GitLab uses .gitlab-ci.yml
     let targetPath = path.join(process.cwd(), ".github/workflows/ci.yml");
@@ -94,44 +89,10 @@ export const setupCommand = {
     );
   },
 
-  env: async (options: { t3?: boolean }) => {
-    const rootDir = process.cwd();
-
-    if (options.t3) {
-      const config = (await fileOps.readJson(path.join(rootDir, "momo.config.json"))) as {
-        scope: string;
-      };
-      const { scope } = config;
-      const targetPath = path.join(rootDir, "packages/env");
-
-      if (fs.existsSync(targetPath)) {
-        const overwrite = await confirm({
-          message: "packages/env already exists. overwrite?",
-          initialValue: false,
-        });
-        if (!overwrite) return;
-      }
-
-      const __dirname = path.dirname(fileURLToPath(import.meta.url));
-      const templatePath = path.resolve(__dirname, "../../templates/packages/env");
-
-      await fs.ensureDir(targetPath);
-      await fs.copy(templatePath, targetPath);
-
-      // Replace scope in package.json
-      const pkgPath = path.join(targetPath, "package.json");
-      let pkgContent = await fs.readFile(pkgPath, "utf-8");
-      pkgContent = pkgContent.replace("{{scope}}", scope);
-      await fs.writeFile(pkgPath, pkgContent);
-
-      logger.success(`Successfully scaffolded T3 Env package in ${color.underline(targetPath)}`);
-      logger.info(
-        "Don't forget to run 'pnpm install' and update your apps to import from '@momo/env'.",
-      );
-      return;
-    }
-
-    await fileOps.findFiles("**/ .env.example", rootDir);
+  env: async (_options?: any) => {
+    logger.warn(
+      `'momo setup --env' is deprecated. Please use ${color.bold("momo integrate env")} instead.`,
+    );
   },
 };
 
@@ -173,8 +134,7 @@ export function registerSetupCommands(program: Command) {
     .action(async (options) => await setupCommand.ci(options));
 
   setup
-    .command(COMMANDS.setupEnv)
-    .description(DESCRIPTIONS.setupEnv)
-    .option("--t3", "scaffold type-safe env using t3-env")
-    .action(async (options) => await setupCommand.env(options));
+    .command("env")
+    .description("Deprecated: use 'momo integrate env'")
+    .action(async () => await setupCommand.env());
 }

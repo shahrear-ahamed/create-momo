@@ -1,7 +1,0 @@
-{
-  "name": "convex",
-  "type": "stack",
-  "category": "backend",
-  "target": "packages/convex",
-  "description": "Powerful backend-as-a-service with real-time sync."
-}
